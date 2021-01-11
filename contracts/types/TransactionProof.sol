@@ -97,6 +97,7 @@ library TransactionProofHelper {
         returns (bytes32)
     {
         // TODO use EIP-712 maybe
+        // TODO Don't use transaction leaf bytes since we don't want witnesses
         return
             keccak256(
                 abi.encode(
