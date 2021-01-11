@@ -31,10 +31,10 @@ struct TransactionProof {
     uint32 signatureFeeToken;
     // Implicit fee rate
     uint256 signatureFee;
-    // Token address, used for invalid sum proofs
-    address tokenAddress;
-    // Return owner, used for HTLCs with expired timelock
-    address returnOwner;
+    // Used to verify against an ID
+    address address1;
+    // Used to verify against an ID
+    address address2;
 }
 
 /// @title Transaction proof helper functions
@@ -76,12 +76,12 @@ library TransactionProofHelper {
                 getTransactionId(transactionProof),
                 transactionProof.inputOutputIndex,
                 output.t,
-                output.owner,
+                output.ownerAddress,
                 output.amount,
                 output.tokenId,
                 output.digest,
                 output.expiry,
-                output.returnOwner
+                output.returnOwnerAddress
             );
 
         return utxo;

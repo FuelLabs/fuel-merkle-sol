@@ -5,6 +5,7 @@ pragma abicoder v2;
 
 import "./TokenHandler.sol";
 import "./types/BlockHeader.sol";
+import "./types/TransactionProof.sol";
 import "./types/WithdrawalMetadata.sol";
 
 /// @title Withdrawal handler
@@ -41,9 +42,56 @@ library WithdrawalHandler {
     /// @notice Do a withdrawal.
     function withdraw(
         mapping(uint256 => mapping(bytes32 => bool)) storage s_Withdrawals,
-        bytes calldata transactionProof
+        TransactionLeaf memory transactionLeaf,
+        TransactionProof calldata transactionProof
     ) internal {
+        // Verify transaction proof
         // TODO
+        // verifyTransactionProof(transactionProof, AssertFinalized.Finalized)
+
+        Output memory output =
+            transactionLeaf.outputs[transactionProof.inputOutputIndex];
+
+        // Output type must be Withdraw
+        require(output.t == OutputType.Withdraw, "output-type");
+
+        // Get transaction details
+        bytes32 transactionLeafHash =
+            keccak256(transactionProof.transactionLeafBytes);
+
+        // Construct withdrawal ID
+        WithdrawalMetadata memory withdrawalMetadata =
+            WithdrawalMetadata(
+                transactionProof.rootIndex,
+                transactionLeafHash,
+                transactionProof.inputOutputIndex
+            );
+        bytes32 withdrawalId = keccak256(abi.encode(withdrawalMetadata));
+
+        // This withdrawal must not have been processed yet
+        require(
+            isWithdrawalProcessed(
+                s_Withdrawals,
+                transactionProof.blockHeader.height,
+                withdrawalId
+            ) == false,
+            "withdrawal-occured"
+        );
+
+        // Transfer amount out
+
+        // Set withdrawal as processed
+
+        emit WithdrawalMade(
+            output.ownerAddress,
+            output.tokenAddress,
+            output.amount,
+            transactionProof.blockHeader.height,
+            transactionProof.rootIndex,
+            transactionLeafHash,
+            transactionProof.inputOutputIndex,
+            transactionProof.transactionIndex
+        );
     }
 
     /// @notice Withdraw a block producer bond from a finalizable block.

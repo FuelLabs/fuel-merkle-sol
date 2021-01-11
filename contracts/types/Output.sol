@@ -23,11 +23,12 @@ struct Output {
     ////////////
     // Token ID
     uint32 tokenId;
+    address tokenAddress;
     // Amount of tokens
     uint256 amount;
-    // Recipient
-    // TODO some logic to convert index to address always
-    address owner;
+    // Recipient (if ID is 0, use address)
+    uint32 ownerId;
+    address ownerAddress;
     //////////
     // HTLC //
     //////////
@@ -35,9 +36,9 @@ struct Output {
     bytes32 digest;
     // Timelock expiry (Ethereum block number)
     uint32 expiry;
-    // Return owner if timelock expires
-    // TODO some logic to convert index to address always
-    address returnOwner;
+    // Return owner if timelock expires (if ID is 0, use address)
+    uint32 returnOwnerId;
+    address returnOwnerAddress;
     ////////////
     // Return //
     ////////////

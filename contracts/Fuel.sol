@@ -11,6 +11,7 @@ import "./RootHandler.sol";
 import "./WithdrawalHandler.sol";
 import "./WitnessHandler.sol";
 import "./types/BlockHeader.sol";
+import "./types/TransactionProof.sol";
 
 /// @title Fuel optimistic rollup top-level contract
 contract Fuel {
@@ -226,7 +227,7 @@ contract Fuel {
     /// @notice Prove that a transaction was invalid.
     /// @param transactionProof Proof.
     /// @dev provers::InvalidTransaction::proveInvalidTransaction
-    function proveInvalidTransaction(bytes calldata transactionProof)
+    function proveInvalidTransaction(TransactionProof calldata transactionProof)
         external
     {}
 
@@ -234,34 +235,36 @@ contract Fuel {
     /// @param proofA First proof.
     /// @param proofB Second proof.
     /// @dev provers::InvalidInput::proveInvalidInput
-    function proveInvalidInput(bytes calldata proofA, bytes calldata proofB)
-        external
-    {}
+    function proveInvalidInput(
+        TransactionProof calldata proofA,
+        TransactionProof calldata proofB
+    ) external {}
 
     /// @notice Prove that a UTXO was double-spent.
     /// @param proofA Proof of UTXO being spent once.
     /// @param proofB Proof of UTXO being spent again.
     /// @dev provers::DoubleSpend::proveDoubleSpend
-    function proveDoubleSpend(bytes calldata proofA, bytes calldata proofB)
-        external
-    {}
+    function proveDoubleSpend(
+        TransactionProof calldata proofA,
+        TransactionProof calldata proofB
+    ) external {}
 
     /// @notice Prove that a witness was invalid.
-    /// @param transactionProof Memory offset to start of transaction proof.
-    /// @param inputProofs Memory offset of start of input proofs.
+    /// @param transactionProof Transaction proof.
+    /// @param inputProofs Input proofs, one per input.
     /// @dev provers::InvalidWitness::proveInvalidWitness
     function proveInvalidWitness(
-        bytes calldata transactionProof,
-        bytes calldata inputProofs
+        TransactionProof calldata transactionProof,
+        TransactionProof[] calldata inputProofs
     ) external {}
 
     /// @notice Prove that a transation produced more than it consumed.
-    /// @param transactionProof Memory offset to start of transaction proof.
-    /// @param inputProofs Memory offset of start of input proofs.
+    /// @param transactionProof Transaction proof.
+    /// @param inputProofs Input proofs, one per input.
     /// @dev provers::InvalidSum::proveInvalidSum
     function proveInvalidSum(
-        bytes calldata transactionProof,
-        bytes calldata inputProofs
+        TransactionProof calldata transactionProof,
+        TransactionProof[] calldata inputProofs
     ) external {}
 
     //////////////////////////////////////////////////////////////////////////
@@ -271,7 +274,7 @@ contract Fuel {
     /// @notice Complete a withdrawal.
     /// @param proof Inclusion proof for withdrawal on the rollup chain.
     /// @dev WithdrawalHandler::withdraw
-    function withdraw(bytes calldata proof) external {
+    function withdraw(TransactionProof calldata proof) external {
         WithdrawalHandler.withdraw(s_Withdrawals, proof);
     }
 
