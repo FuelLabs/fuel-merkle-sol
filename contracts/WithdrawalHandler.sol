@@ -21,7 +21,7 @@ library WithdrawalHandler {
         uint16 rootIndex,
         bytes32 indexed transactionLeafHash,
         uint8 outputIndex,
-        uint32 transactionIndex
+        uint16 transactionIndex
     );
 
     /////////////
