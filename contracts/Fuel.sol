@@ -6,6 +6,7 @@ pragma abicoder v2;
 import "./AddressHandler.sol";
 import "./BlockHandler.sol";
 import "./DepositHandler.sol";
+import "./FraudHandler.sol";
 import "./RootHandler.sol";
 import "./WitnessHandler.sol";
 
@@ -120,7 +121,7 @@ contract Fuel {
     /// @dev RootHandler::commitRoot
     function commitRoot(
         bytes32 merkleTreeRoot,
-        uint256 token,
+        uint32 token,
         uint256 fee,
         bytes calldata transactions
     ) external {
@@ -161,6 +162,7 @@ contract Fuel {
     /// @notice Register a fraud commitment hash.
     /// @param fraudHash The hash of the calldata used for a fraud commitment.
     /// @dev Uses the message sender (caller()) in the commitment.
+    /// @dev Fraudhandler::commitFraudHash
     function commitFraudHash(bytes32 fraudHash) external {}
 
     //////////////////////////////////////////////////////////////////////////
