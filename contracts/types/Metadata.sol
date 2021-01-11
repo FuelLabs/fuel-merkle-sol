@@ -3,6 +3,9 @@
 pragma solidity >=0.8.0 <0.9.0;
 pragma abicoder v2;
 
+import "../BlockHandler.sol";
+import "../TransactionHandler.sol";
+
 enum MetadataType {Metadata, MetadataDeposit}
 
 /// @notice Transaction metadata. Points to an exact entry in the ledger or a deposit.
@@ -68,6 +71,50 @@ library MetadataHelper {
         metadata.tokenId = uint32(abi.decode(s[1:5], (bytes4)));
         metadata.blockNumber = uint32(abi.decode(s[5:9], (bytes4)));
 
+        if (!_sanitizeMetadata(metadata)) return (metadata, bytesUsed, false);
+
         return (metadata, bytesUsed, true);
+    }
+
+    function _sanitizeMetadata(Metadata memory metadata)
+        private
+        pure
+        returns (bool)
+    {
+        if (metadata.t == MetadataType.Metadata) {
+            // Block height must be past genesis block
+            if (metadata.blockHeight <= 0) return false;
+
+            // Output must be created before it was spent (can be spent in the same block)
+            // TODO move to verifier
+
+            // Root index must be bounded
+            if (metadata.rootIndex >= BlockHandler.TRANSACTION_ROOTS_MAX)
+                return false;
+
+            // If metadata is referencing current block
+            // TODO move to verifier
+
+            // Prove correctness of transaction proof index
+            // TODO move to verifier
+
+            // Output index must be bounded
+            if (metadata.outputIndex >= TransactionHandler.OUTPUTS_MAX)
+                return false;
+
+            // Root input must always select tx and output index 0, in an older block
+            // TODO move to verifier
+        } else {
+            // Ethereum block number of deposit must be positive and non-zero
+            if (metadata.blockNumber == 0) return false;
+
+            // Transaction must spend deposit at least one block after it was made
+            // TODO move to verifier
+
+            // Token ID of deposit must be bounded by block's number of registered tokens
+            // TODO move to verifier
+        }
+
+        return true;
     }
 }
