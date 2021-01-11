@@ -45,23 +45,22 @@ library RootHandler {
     ///////////////
 
     // Maximum size of list of transactions, in bytes
-    uint256 constant MAX_ROOT_SIZE = 32000;
+    uint32 constant MAX_ROOT_SIZE = 32000;
     // Maximum number of transactions in list of transactions
-    uint256 constant MAX_TRANSACTIONS_IN_ROOT = 2048;
+    uint32 constant MAX_TRANSACTIONS_IN_ROOT = 2048;
 
     /////////////
     // Methods //
     /////////////
 
-    function clearRoot(
-        mapping(bytes32 => uint256) storage s_Roots,
-        bytes32 root
-    ) internal {
+    function clearRoot(mapping(bytes32 => uint32) storage s_Roots, bytes32 root)
+        internal
+    {
         delete s_Roots[root];
     }
 
     function commitRoot(
-        mapping(bytes32 => uint256) storage s_Roots,
+        mapping(bytes32 => uint32) storage s_Roots,
         uint32 numTokens,
         bytes32 merkleTreeRoot,
         uint32 token,
@@ -76,7 +75,7 @@ library RootHandler {
         require(packedTransactions.length >= 44, "root-size-overflow");
         // Calldata max size enforcement (~2M gas / 16 gas per byte/64kb payload target)
         require(
-            packedTransactions.length <= MAX_ROOT_SIZE,
+            packedTransactions.length <= uint256(MAX_ROOT_SIZE),
             "root-size-overflow"
         );
         // TODO this check can be removed?
@@ -107,11 +106,12 @@ library RootHandler {
         bytes32 root = keccak256(abi.encode(rootHeader));
 
         // Root must not have been registered yet
-        uint256 rootBlockNumber = s_Roots[root];
+        uint32 rootBlockNumber = s_Roots[root];
         require(rootBlockNumber == 0, "root-already-exists");
 
         // Register root with current block number
-        s_Roots[root] = block.number;
+        require(uint256(uint32(block.number)) == block.number);
+        s_Roots[root] = uint32(block.number);
 
         emit RootCommitted(
             root,

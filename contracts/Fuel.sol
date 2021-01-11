@@ -17,8 +17,8 @@ contract Fuel {
     ////////////
 
     event FraudCommitted(
-        uint256 indexed previousTip,
-        uint256 indexed currentTip,
+        uint32 indexed previousTip,
+        uint32 indexed currentTip,
         uint256 indexed fraudCode
     );
 
@@ -26,37 +26,37 @@ contract Fuel {
     // Constants //
     ///////////////
 
-    uint256 constant GENESIS_BLOCK_HEIGHT = 0;
-    uint256 constant GENESIS_ROOTS_LENGTH = 0;
-    uint256 constant NUM_TOKENS_INIT = 1;
-    uint256 constant NUM_ADDRESSES_INIT = 1;
+    uint32 constant GENESIS_BLOCK_HEIGHT = 0;
+    uint16 constant GENESIS_ROOTS_LENGTH = 0;
+    uint32 constant NUM_ADDRESSES_INIT = 1;
+    uint32 constant NUM_TOKENS_INIT = 1;
 
     uint256 immutable BOND_SIZE;
     uint256 immutable CHAIN_ID;
-    uint256 immutable FINALIZATION_DELAY;
+    uint32 immutable FINALIZATION_DELAY;
     bytes32 immutable NAME;
     address immutable OPERATOR;
-    uint256 immutable PENALTY_DELAY;
-    uint256 immutable SUBMISSION_DELAY;
+    uint32 immutable PENALTY_DELAY;
+    uint32 immutable SUBMISSION_DELAY;
     bytes32 immutable VERSION;
 
     ///////////
     // State //
     ///////////
 
-    mapping(bytes32 => bytes32) public s_Address;
+    mapping(address => uint32) public s_Address;
     mapping(uint256 => bytes32) public s_BlockCommitments;
-    mapping(bytes32 => bytes32) public s_BlockTip;
-    mapping(address => mapping(uint256 => mapping(uint256 => uint256)))
+    uint32 public s_BlockTip;
+    mapping(address => mapping(uint32 => mapping(uint32 => uint256)))
         public s_Deposits;
-    mapping(bytes32 => bytes32) public s_FraudCommitments;
-    uint256 public s_NumAddresses;
+    mapping(address => bytes32) public s_FraudCommitments;
+    uint32 public s_NumAddresses;
     uint32 public s_NumTokens;
-    mapping(bytes32 => bytes32) public s_Penalty;
-    mapping(bytes32 => uint256) public s_Roots;
-    mapping(address => uint32) public s_Token;
-    mapping(bytes32 => bytes32) public s_Withdrawals;
-    mapping(bytes32 => bytes32) public s_Witness;
+    uint32 public s_PenaltyUntil;
+    mapping(bytes32 => uint32) public s_Roots;
+    mapping(address => uint32) public s_Tokens;
+    mapping(uint256 => mapping(bytes32 => bool)) public s_Withdrawals;
+    mapping(address => mapping(uint32 => bytes32)) public s_Witnesses;
 
     /////////////////
     // Constructor //
@@ -64,9 +64,9 @@ contract Fuel {
 
     constructor(
         address operator,
-        uint256 finalizationDelay,
-        uint256 submissionDelay,
-        uint256 penaltyDelay,
+        uint32 finalizationDelay,
+        uint32 submissionDelay,
+        uint32 penaltyDelay,
         uint256 bond,
         bytes32 name,
         bytes32 version,
@@ -93,6 +93,10 @@ contract Fuel {
         PENALTY_DELAY = penaltyDelay;
         SUBMISSION_DELAY = submissionDelay;
         VERSION = version;
+
+        // Set storage
+        s_NumAddresses = NUM_ADDRESSES_INIT;
+        s_NumTokens = NUM_TOKENS_INIT;
     }
 
     /////////////
@@ -106,7 +110,7 @@ contract Fuel {
     function deposit(address account, address token) external {
         s_NumTokens = DepositHandler.deposit(
             s_Deposits,
-            s_Token,
+            s_Tokens,
             s_NumTokens,
             account,
             token
@@ -146,18 +150,26 @@ contract Fuel {
         bytes32 minimumHash,
         uint32 height,
         bytes32[] calldata roots
-    ) external payable {}
+    ) external payable {
+        BlockHandler.commitBlock(
+            s_BlockCommitments,
+            minimum,
+            minimumHash,
+            height,
+            roots
+        );
+    }
 
     /// @notice Commit a new witness. Used for authorizing rollup transactions via an Ethereum smart contract.
-    /// @param transactionId Transaction ID to authorize.
+    /// @param transactionID Transaction ID to authorize.
     /// @dev WitnessHandler::commitWitness
-    function commitWitness(bytes32 transactionId) external {}
+    function commitWitness(bytes32 transactionID) external {}
 
     /// @notice Register a new address for cheaper transactions.
     /// @param addr Address to register.
     /// @return New ID assigned to address, or existing ID if already assigned.
     /// @dev AddressHandler::commitAddress
-    function commitAddress(address addr) external returns (uint256) {}
+    function commitAddress(address addr) external returns (uint32) {}
 
     /// @notice Register a fraud commitment hash.
     /// @param fraudHash The hash of the calldata used for a fraud commitment.

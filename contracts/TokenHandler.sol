@@ -26,18 +26,18 @@ library TokenHandler {
     /// @notice Return ID of token, assigning a new one if necessary.
     /// @return ID of token.
     function commitToken(
-        mapping(address => uint32) storage s_Token,
+        mapping(address => uint32) storage s_Tokens,
         uint32 numTokens,
         address addr
     ) internal returns (uint32, uint32) {
-        uint32 id = s_Token[addr];
+        uint32 id = s_Tokens[addr];
         uint32 newNumTokens = numTokens;
 
         if (addr != ETHER_TOKEN_ADDRESS && id == 0) {
             id = numTokens;
 
             newNumTokens = numTokens++;
-            s_Token[addr] = newNumTokens;
+            s_Tokens[addr] = newNumTokens;
 
             emit TokenIndexed(addr, newNumTokens);
         }

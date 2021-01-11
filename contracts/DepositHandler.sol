@@ -26,7 +26,7 @@ library DepositHandler {
     /// @notice Handle token deposit.
     /// @return Number of tokens.
     function deposit(
-        mapping(address => mapping(uint256 => mapping(uint256 => uint256)))
+        mapping(address => mapping(uint32 => mapping(uint32 => uint256)))
             storage s_Deposit,
         mapping(address => uint32) storage s_Token,
         uint32 numTokens,
@@ -56,12 +56,13 @@ library DepositHandler {
         }
 
         // Load current balance from storage
-        // Deposits are uniquely identified by owner, token, and Ethereum block numbers, so a second deposit in the same block will simply update a single deposit object
-        uint256 balanceAmount = s_Deposit[owner][tokenID][block.number];
-        s_Deposit[owner][tokenID][block.number] = balanceAmount + amount;
+        // Deposits are uniquely identified by owner, token, and Ethereum bloc numbers, so a second deposit in the same block will simply update a single deposit object
+        require(uint256(uint32(block.number)) == block.number);
+        uint256 balanceAmount = s_Deposit[owner][tokenID][uint32(block.number)];
+        s_Deposit[owner][tokenID][uint32(block.number)] =
+            balanceAmount +
+            amount;
 
-        // TODO
-        // mstore(0, amount)
         emit DepositMade(owner, token, amount);
 
         return newNumTokens;
