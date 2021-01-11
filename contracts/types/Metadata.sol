@@ -5,12 +5,16 @@ pragma abicoder v2;
 
 /// @notice Transaction metadata. Points to an exact entry in the ledger or a deposit.
 struct Metadata {
-    // Metadata
+    //////////////
+    // Metadata //
+    //////////////
     uint32 blockHeight;
     uint8 rootIndex;
     uint16 transactionIndex;
     uint8 outputIndex;
-    // MetadataDeposit
+    /////////////////////
+    // MetadataDeposit //
+    /////////////////////
     uint32 tokenId;
     uint32 blockNumber;
 }
