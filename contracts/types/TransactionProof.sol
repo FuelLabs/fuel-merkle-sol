@@ -3,7 +3,9 @@
 pragma solidity >=0.8.0 <0.9.0;
 pragma abicoder v2;
 
+import "../TransactionHandler.sol";
 import "./BlockHeader.sol";
+import "./Output.sol";
 import "./RootHeader.sol";
 import "./TransactionLeaf.sol";
 
@@ -21,8 +23,8 @@ struct TransactionProof {
     uint8 inputOutputIndex;
     // Index of transaction in list of transactions in root
     uint16 transactionIndex;
-    // Transaction leaf
-    TransactionLeaf transactionLeaf;
+    // Transaction leaf bytes
+    bytes transactionLeafBytes;
     // Implicit list of unique identifiers being spent (UTXO ID, deposit ID)
     bytes32[] data;
     // Implicit token ID to pay fees in
@@ -33,4 +35,29 @@ struct TransactionProof {
     address tokenAddress;
     // Return owner, used for HTLCs with expired timelock
     address returnOwner;
+}
+
+/// @title Transaction proof helper functions
+library TransactionProofHelper {
+    /////////////
+    // Methods //
+    /////////////
+
+    /// @notice Extract UTXO ID from transaction proof.
+    /// @param transactionProof The transaction proof.
+    /// @return The UTXO ID.
+    function getUTXOID(
+        TransactionProof calldata transactionProof,
+        TransactionLeaf memory transactionLeaf
+    ) internal returns (bytes32) {
+        require(
+            transactionProof.inputOutputIndex <= TransactionHandler.OUTPUTS_MAX,
+            "output-index-overflow"
+        );
+
+        Output memory output =
+            transactionLeaf.outputs[transactionProof.inputOutputIndex];
+
+        // Return-type outputs are unspendable
+    }
 }
