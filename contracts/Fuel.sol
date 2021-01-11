@@ -275,7 +275,9 @@ contract Fuel {
     /// @param proof Inclusion proof for withdrawal on the rollup chain.
     /// @dev WithdrawalHandler::withdraw
     function withdraw(TransactionProof calldata proof) external {
-        WithdrawalHandler.withdraw(s_Withdrawals, proof);
+        // TODO sanitize proof and use it to set addresses
+        TransactionLeaf memory transactionLeaf;
+        WithdrawalHandler.withdraw(s_Withdrawals, transactionLeaf, proof);
     }
 
     /// @notice Withdraw the block proposer's bond for a finalized block.

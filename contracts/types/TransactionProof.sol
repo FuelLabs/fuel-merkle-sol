@@ -13,6 +13,8 @@ import "./TransactionLeaf.sol";
 struct TransactionProof {
     // Block header
     BlockHeader blockHeader;
+    // If a root header is provided
+    bool hasRootHeader;
     // Root header
     RootHeader rootHeader;
     // Index of root in list of roots
