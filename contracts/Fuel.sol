@@ -8,7 +8,9 @@ import "./BlockHandler.sol";
 import "./DepositHandler.sol";
 import "./FraudHandler.sol";
 import "./RootHandler.sol";
+import "./WithdrawalHandler.sol";
 import "./WitnessHandler.sol";
+import "./types/BlockHeader.sol";
 
 /// @title Fuel optimistic rollup top-level contract
 contract Fuel {
@@ -158,8 +160,8 @@ contract Fuel {
 
         // Build a BlockHeader object from calldata and state
         require(uint256(uint32(block.number)) == block.number);
-        BlockHandler.BlockHeader memory blockHeader =
-            BlockHandler.BlockHeader(
+        BlockHeader memory blockHeader =
+            BlockHeader(
                 OPERATOR,
                 s_BlockCommitments[height - 1],
                 height,
@@ -269,10 +271,14 @@ contract Fuel {
     /// @notice Complete a withdrawal.
     /// @param proof Inclusion proof for withdrawal on the rollup chain.
     /// @dev WithdrawalHandler::withdraw
-    function withdraw(bytes calldata proof) external {}
+    function withdraw(bytes calldata proof) external {
+        WithdrawalHandler.withdraw(s_Withdrawals, proof);
+    }
 
     /// @notice Withdraw the block proposer's bond for a finalized block.
     /// @param blockHeader Rollup block header of block to withdraw bond for.
     /// @dev WithdrawalHandler::bondWithdraw
-    function bondWithdraw(bytes calldata blockHeader) external {}
+    function bondWithdraw(bytes calldata blockHeader) external {
+        WithdrawalHandler.bondWithdraw(s_Withdrawals, blockHeader);
+    }
 }
