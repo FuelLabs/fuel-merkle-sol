@@ -28,7 +28,7 @@ library TransactionProofSanitizer {
         BlockHeaderSanitizer.sanitizeBlockHeader(
             s_BlockCommitments,
             finalizationDelay,
-            proof,
+            proof.blockHeader,
             assertFinalized
         );
         // Sanitize the root header if needed

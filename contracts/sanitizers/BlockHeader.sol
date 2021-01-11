@@ -22,16 +22,14 @@ library BlockHeaderSanitizer {
     /////////////
 
     /// @notice Sanitize a block header.
-    /// @param proof The transaction proof.
+    /// @param blockHeader The block header.
     /// @param assertFinalized Enum flag of if the block should be finalized.
     function sanitizeBlockHeader(
         mapping(uint32 => bytes32) storage s_BlockCommitments,
         uint32 finalizationDelay,
-        TransactionProof calldata proof,
+        BlockHeader calldata blockHeader,
         AssertFinalized assertFinalized
     ) internal view {
-        BlockHeader calldata blockHeader = proof.blockHeader;
-
         // Block must be known (already committed)
         require(
             s_BlockCommitments[blockHeader.height] ==

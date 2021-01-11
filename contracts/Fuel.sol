@@ -10,6 +10,8 @@ import "./FraudHandler.sol";
 import "./RootHandler.sol";
 import "./WithdrawalHandler.sol";
 import "./WitnessHandler.sol";
+import "./sanitizers/BlockHeader.sol";
+import "./sanitizers/TransactionProof.sol";
 import "./types/BlockHeader.sol";
 import "./types/TransactionProof.sol";
 
@@ -58,7 +60,7 @@ contract Fuel {
     uint32 public s_PenaltyUntil;
     mapping(bytes32 => uint32) public s_Roots;
     mapping(address => uint32) public s_Tokens;
-    mapping(uint256 => mapping(bytes32 => bool)) public s_Withdrawals;
+    mapping(uint32 => mapping(bytes32 => bool)) public s_Withdrawals;
     mapping(address => mapping(uint32 => bytes32)) public s_Witnesses;
 
     /////////////////
@@ -275,8 +277,19 @@ contract Fuel {
     /// @param proof Inclusion proof for withdrawal on the rollup chain.
     /// @dev WithdrawalHandler::withdraw
     function withdraw(TransactionProof calldata proof) external {
-        // TODO sanitize proof and use it to set addresses
-        TransactionLeaf memory transactionLeaf;
+        TransactionProofSanitizer.sanitizeTransactionProof(
+            s_BlockCommitments,
+            FINALIZATION_DELAY,
+            proof,
+            BlockHeaderSanitizer.AssertFinalized.Finalized
+        );
+
+        (TransactionLeaf memory transactionLeaf, bool success) =
+            TransactionLeafHelper.parseTransactionLeaf(
+                proof.transactionLeafBytes
+            );
+        require(success);
+
         WithdrawalHandler.withdraw(s_Withdrawals, transactionLeaf, proof);
     }
 
@@ -284,6 +297,13 @@ contract Fuel {
     /// @param blockHeader Rollup block header of block to withdraw bond for.
     /// @dev WithdrawalHandler::bondWithdraw
     function bondWithdraw(BlockHeader calldata blockHeader) external {
+        BlockHeaderSanitizer.sanitizeBlockHeader(
+            s_BlockCommitments,
+            FINALIZATION_DELAY,
+            blockHeader,
+            BlockHeaderSanitizer.AssertFinalized.Finalized
+        );
+
         WithdrawalHandler.bondWithdraw(s_Withdrawals, BOND_SIZE, blockHeader);
     }
 }

@@ -32,7 +32,7 @@ library WithdrawalHandler {
     /// @notice Check if the withdrawal has already need processed.
     /// @return If the withdrawal has already been processed.
     function isWithdrawalProcessed(
-        mapping(uint256 => mapping(bytes32 => bool)) storage s_Withdrawals,
+        mapping(uint32 => mapping(bytes32 => bool)) storage s_Withdrawals,
         uint32 blockHeight,
         bytes32 withdrawalId
     ) internal view returns (bool) {
@@ -41,30 +41,24 @@ library WithdrawalHandler {
 
     /// @notice Do a withdrawal.
     function withdraw(
-        mapping(uint256 => mapping(bytes32 => bool)) storage s_Withdrawals,
+        mapping(uint32 => mapping(bytes32 => bool)) storage s_Withdrawals,
         TransactionLeaf memory transactionLeaf,
-        TransactionProof calldata transactionProof
+        TransactionProof calldata proof
     ) internal {
-        // Verify transaction proof
-        // TODO
-        // verifyTransactionProof(transactionProof, AssertFinalized.Finalized)
-
-        Output memory output =
-            transactionLeaf.outputs[transactionProof.inputOutputIndex];
+        Output memory output = transactionLeaf.outputs[proof.inputOutputIndex];
 
         // Output type must be Withdraw
         require(output.t == OutputType.Withdraw, "output-type");
 
         // Get transaction details
-        bytes32 transactionLeafHash =
-            keccak256(transactionProof.transactionLeafBytes);
+        bytes32 transactionLeafHash = keccak256(proof.transactionLeafBytes);
 
         // Construct withdrawal ID
         WithdrawalMetadata memory withdrawalMetadata =
             WithdrawalMetadata(
-                transactionProof.rootIndex,
+                proof.rootIndex,
                 transactionLeafHash,
-                transactionProof.inputOutputIndex
+                proof.inputOutputIndex
             );
         bytes32 withdrawalId = keccak256(abi.encode(withdrawalMetadata));
 
@@ -72,31 +66,33 @@ library WithdrawalHandler {
         require(
             isWithdrawalProcessed(
                 s_Withdrawals,
-                transactionProof.blockHeader.height,
+                proof.blockHeader.height,
                 withdrawalId
             ) == false,
             "withdrawal-occured"
         );
 
         // Transfer amount out
+        // TODO
 
         // Set withdrawal as processed
+        s_Withdrawals[proof.blockHeader.height][withdrawalId] = true;
 
         emit WithdrawalMade(
             output.ownerAddress,
             output.tokenAddress,
             output.amount,
-            transactionProof.blockHeader.height,
-            transactionProof.rootIndex,
+            proof.blockHeader.height,
+            proof.rootIndex,
             transactionLeafHash,
-            transactionProof.inputOutputIndex,
-            transactionProof.transactionIndex
+            proof.inputOutputIndex,
+            proof.transactionIndex
         );
     }
 
     /// @notice Withdraw a block producer bond from a finalizable block.
     function bondWithdraw(
-        mapping(uint256 => mapping(bytes32 => bool)) storage s_Withdrawals,
+        mapping(uint32 => mapping(bytes32 => bool)) storage s_Withdrawals,
         uint256 bondSize,
         BlockHeader calldata blockHeader
     ) internal {
@@ -105,10 +101,6 @@ library WithdrawalHandler {
 
         // Setup block height
         uint32 blockHeight = blockHeader.height;
-
-        // Verify block header is finalized
-        // TODO
-        // verifyHeader(blockHeader, 0, 0, AssertFinalized.Finalized)
 
         // Caller must be block producer
         require(blockHeader.producer == msg.sender, "caller-producer");
