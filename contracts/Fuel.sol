@@ -151,11 +151,31 @@ contract Fuel {
         uint32 height,
         bytes32[] calldata roots
     ) external payable {
-        BlockHandler.commitBlock(
-            s_BlockCommitments,
-            minimum,
-            minimumHash,
-            height,
+        // To avoid Ethereum re-org attacks, commitment transactions include a minimum
+        //  Ethereum block number and block hash. Check will fail if transaction is > 256 block old.
+        require(block.number > minimum, "minimum-block-number");
+        require(blockhash(minimum) == minimumHash, "minimum-block-hash");
+
+        // Build a BlockHeader object from calldata and state
+        require(uint256(uint32(block.number)) == block.number);
+        BlockHandler.BlockHeader memory blockHeader =
+            BlockHandler.BlockHeader(
+                OPERATOR,
+                s_BlockCommitments[height - 1],
+                height,
+                uint32(block.number),
+                s_NumTokens,
+                s_NumAddresses,
+                roots
+            );
+
+        s_BlockTip = BlockHandler.commitBlock(
+            blockHeader,
+            s_BlockTip,
+            BOND_SIZE,
+            s_Roots,
+            SUBMISSION_DELAY,
+            s_PenaltyUntil,
             roots
         );
     }

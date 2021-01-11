@@ -53,12 +53,6 @@ library RootHandler {
     // Methods //
     /////////////
 
-    function clearRoot(mapping(bytes32 => uint32) storage s_Roots, bytes32 root)
-        internal
-    {
-        delete s_Roots[root];
-    }
-
     function commitRoot(
         mapping(bytes32 => uint32) storage s_Roots,
         uint32 numTokens,
