@@ -4,6 +4,7 @@ pragma solidity >=0.8.0 <0.9.0;
 pragma abicoder v2;
 
 import "./TokenHandler.sol";
+import "./lib/IERC20.sol";
 import "./types/BlockHeader.sol";
 import "./types/TransactionProof.sol";
 import "./types/WithdrawalMetadata.sol";
@@ -73,7 +74,19 @@ library WithdrawalHandler {
         );
 
         // Transfer amount out
-        // TODO
+        if (output.tokenAddress == TokenHandler.ETHER_TOKEN_ADDRESS) {
+            payable(output.ownerAddress).transfer(output.amount);
+        } else {
+            require(
+                IERC20(output.tokenAddress).transfer(
+                    output.ownerAddress,
+                    output.amount
+                ),
+                "erc20-call-transfer"
+            );
+            // TODO is this check needed?
+            // require(gt(mload(0), 0), error"erc20-return-transfer")
+        }
 
         // Set withdrawal as processed
         s_Withdrawals[proof.blockHeader.height][withdrawalId] = true;
