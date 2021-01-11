@@ -43,7 +43,11 @@ library WitnessHelper {
     function parseWitness(bytes calldata s)
         internal
         pure
-        returns (Witness memory, bool)
+        returns (
+            Witness memory,
+            uint256,
+            bool
+        )
     {
         // TODO
     }

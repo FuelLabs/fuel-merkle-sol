@@ -71,7 +71,11 @@ library OutputHelper {
     function parseOutput(bytes calldata s)
         internal
         pure
-        returns (Output memory, bool)
+        returns (
+            Output memory,
+            uint256,
+            bool
+        )
     {
         // TODO
     }

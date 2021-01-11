@@ -36,7 +36,11 @@ library InputHelper {
     function parseInput(bytes calldata s)
         internal
         pure
-        returns (Input memory, bool)
+        returns (
+            Input memory,
+            uint256,
+            bool
+        )
     {
         // TODO
     }

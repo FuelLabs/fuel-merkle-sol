@@ -28,7 +28,11 @@ library MetadataHelper {
     function parseMetadata(bytes calldata s)
         internal
         pure
-        returns (Metadata memory, bool)
+        returns (
+            Metadata memory,
+            uint256,
+            bool
+        )
     {
         // TODO
     }
