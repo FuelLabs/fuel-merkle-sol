@@ -122,11 +122,15 @@ contract Fuel {
     // Methods //
     /////////////
 
+    /// @notice Deposit a token.
+    /// @param account Address of token owner.
+    /// @param token Token address.
+    /// @dev DepositHandler::deposit
     function deposit(address account, address token) external {
-        s_numTokens = DepositHandler.deposit(
+        s_NumTokens = DepositHandler.deposit(
             s_Deposits,
             s_Token,
-            s_numTokens,
+            s_NumTokens,
             account,
             token
         );
