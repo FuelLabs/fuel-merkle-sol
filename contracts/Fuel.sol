@@ -184,7 +184,9 @@ contract Fuel {
     /// @notice Commit a new witness. Used for authorizing rollup transactions via an Ethereum smart contract.
     /// @param transactionId Transaction ID to authorize.
     /// @dev WitnessHandler::commitWitness
-    function commitWitness(bytes32 transactionId) external {}
+    function commitWitness(bytes32 transactionId) external {
+        WitnessHandler.commitWitness(s_Witnesses, transactionId);
+    }
 
     /// @notice Register a new address for cheaper transactions.
     /// @param addr Address to register.
