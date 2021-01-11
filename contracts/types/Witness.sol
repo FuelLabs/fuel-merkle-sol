@@ -49,22 +49,51 @@ library WitnessHelper {
             bool
         )
     {
-        // TODO
+        Witness memory witness;
+        uint256 bytesUsed;
+
+        // Type
+        uint8 typeRaw = uint8(abi.decode(s[0:1], (bytes1)));
+        if (typeRaw > uint8(WitnessType.Producer))
+            return (witness, bytesUsed, false);
+        witness.t = WitnessType(typeRaw);
+
+        bytesUsed = _witnessSize(witness);
+        if (s.length < bytesUsed) {
+            return (witness, bytesUsed, false);
+        }
+
+        if (witness.t == WitnessType.Signature) {
+            // Signature
+            witness.r = bytes32(abi.decode(s[1:33], (bytes32)));
+            witness.r = bytes32(abi.decode(s[33:65], (bytes32)));
+            witness.v = uint8(abi.decode(s[65:66], (bytes1)));
+        } else if (witness.t == WitnessType.Caller) {
+            // Caller
+            witness.owner = address(abi.decode(s[1:21], (bytes20)));
+            witness.blockNumber = uint32(abi.decode(s[21:25], (bytes4)));
+        } else if (witness.t == WitnessType.Producer) {
+            // Producer
+            witness.hash = bytes32(abi.decode(s[1:33], (bytes32)));
+        } else {
+            revert();
+        }
+
+        return (witness, bytesUsed, true);
     }
 
     /// @notice Get size of a witness object.
     /// @return Size of witness in bytes.
-    function witnessSize(Witness memory witness) internal pure returns (uint8) {
+    function _witnessSize(Witness memory witness) private pure returns (uint8) {
         // TODO double check these sizes
         if (witness.t == WitnessType.Signature) {
             return 66;
         } else if (witness.t == WitnessType.Caller) {
-            return 53;
+            return 25;
         } else if (witness.t == WitnessType.Producer) {
             return 33;
         }
-        // avoid infinite loops
-        // TODO can we remove this?
-        return 66;
+
+        revert();
     }
 }
