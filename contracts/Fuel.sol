@@ -74,7 +74,7 @@ contract Fuel {
     ) {
         // Implicitly commit genesis block
         s_BlockCommitments[GENESIS_BLOCK_HEIGHT] = genesis;
-        emit BlockCommitted(
+        emit BlockHandler.BlockCommitted(
             operator,
             NUM_TOKENS_INIT,
             NUM_ADDRESSES_INIT,
