@@ -3,6 +3,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 pragma abicoder v2;
 
+import "./FunnelFactory.sol";
 import "./TokenHandler.sol";
 
 /// @title Deposit handler
@@ -23,7 +24,7 @@ library DepositHandler {
     /////////////
 
     /// @notice Handle token deposit.
-    /// @return ID of token.
+    /// @return Number of tokens.
     function deposit(
         mapping(address => mapping(uint256 => mapping(uint256 => uint256)))
             storage s_Deposit,
@@ -46,12 +47,10 @@ library DepositHandler {
 
         if (token == TokenHandler.ETHER_TOKEN_ADDRESS) {
             // If ETH
-
-            amount = funnel.balance();
-
-            require(amount > 0, "value-underflow");
-            require(funnel.call(), "value-funnel");
-            require(funnel.balance() == 0, "value-check");
+            // amount = funnel.balance();
+            // require(amount > 0, "value-underflow");
+            // require(funnel.call(), "value-funnel");
+            // require(funnel.balance() == 0, "value-check");
         } else {
             // If ERC-20
         }
@@ -63,8 +62,8 @@ library DepositHandler {
 
         // TODO
         // mstore(0, amount)
-        emit DepositMade(owner, tokenID, amount);
+        emit DepositMade(owner, token, amount);
 
-        return tokenID;
+        return newNumTokens;
     }
 }
