@@ -3,6 +3,9 @@
 pragma solidity >=0.8.0 <0.9.0;
 pragma abicoder v2;
 
+import "./DepositHandler.sol";
+
+/// @title Fuel optimistic rollup top-level contract
 contract Fuel {
     ////////////
     // Events //
@@ -16,11 +19,6 @@ contract Fuel {
         bytes32 indexed previousBlockHash,
         uint256 indexed height,
         bytes32[] roots
-    );
-    event DepositMade(
-        address indexed account,
-        address indexed token,
-        uint256 amount
     );
     event FraudCommitted(
         uint256 indexed previousTip,
@@ -36,7 +34,6 @@ contract Fuel {
         bytes32 indexed merkleTreeRoot,
         bytes32 indexed commitmentHash
     );
-    event TokenIndexed(address indexed token, uint256 indexed id);
     event WithdrawalMade(
         address indexed account,
         address token,
@@ -73,13 +70,14 @@ contract Fuel {
     mapping(bytes32 => bytes32) public s_Address;
     mapping(uint256 => bytes32) public s_BlockCommitments;
     mapping(bytes32 => bytes32) public s_BlockTip;
-    mapping(bytes32 => bytes32) public s_Deposits;
+    mapping(address => mapping(uint256 => mapping(uint256 => uint256)))
+        public s_Deposits;
     mapping(bytes32 => bytes32) public s_FraudCommitments;
-    mapping(bytes32 => bytes32) public s_NumAddresses;
-    mapping(bytes32 => bytes32) public s_NumTokens;
+    uint256 public s_NumAddresses;
+    uint32 public s_NumTokens;
     mapping(bytes32 => bytes32) public s_Penalty;
     mapping(bytes32 => bytes32) public s_Roots;
-    mapping(bytes32 => bytes32) public s_Token;
+    mapping(address => uint32) public s_Token;
     mapping(bytes32 => bytes32) public s_Withdrawals;
     mapping(bytes32 => bytes32) public s_Witness;
 
@@ -123,4 +121,14 @@ contract Fuel {
     /////////////
     // Methods //
     /////////////
+
+    function deposit(address account, address token) external {
+        s_numTokens = DepositHandler.deposit(
+            s_Deposits,
+            s_Token,
+            s_numTokens,
+            account,
+            token
+        );
+    }
 }
