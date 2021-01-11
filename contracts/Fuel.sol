@@ -278,7 +278,7 @@ contract Fuel {
     /// @notice Withdraw the block proposer's bond for a finalized block.
     /// @param blockHeader Rollup block header of block to withdraw bond for.
     /// @dev WithdrawalHandler::bondWithdraw
-    function bondWithdraw(bytes calldata blockHeader) external {
-        WithdrawalHandler.bondWithdraw(s_Withdrawals, blockHeader);
+    function bondWithdraw(BlockHeader calldata blockHeader) external {
+        WithdrawalHandler.bondWithdraw(s_Withdrawals, BOND_SIZE, blockHeader);
     }
 }
