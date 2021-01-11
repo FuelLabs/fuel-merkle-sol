@@ -4,8 +4,8 @@ pragma solidity >=0.8.0 <0.9.0;
 pragma abicoder v2;
 
 import "./BlockHeader.sol";
-import "./MerkleProof.sol";
 import "./RootHeader.sol";
+import "../lib/MerkleProof.sol";
 import "../types/TransactionLeaf.sol";
 import "../types/TransactionProof.sol";
 
