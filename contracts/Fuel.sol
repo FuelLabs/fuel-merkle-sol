@@ -135,4 +135,118 @@ contract Fuel {
             token
         );
     }
+
+    /// @notice Commit a new root.
+    /// @param merkleTreeRoot Root of transactions tree.
+    /// @param token Token ID for fee payments for this root.
+    /// @param fee Feerate for this root.
+    /// @param transactions List of transactions.
+    /// @dev RootHandler::commitRoot
+    function commitRoot(
+        bytes32 merkleTreeRoot,
+        uint256 token,
+        uint256 fee,
+        bytes calldata transactions
+    ) external {}
+
+    /// @notice Commit a new block.
+    /// @param minimum Minimum Ethereum block number that this commitment is valid for.
+    /// @param minimumHash Minimum Ethereum block hash that this commitment is valid for.
+    /// @param height Rollup block height.
+    /// @param roots List of roots in block.
+    /// @dev BlockHandler::commitBlock
+    function commitBlock(
+        uint32 minimum,
+        bytes32 minimumHash,
+        uint32 height,
+        bytes32[] calldata roots
+    ) external payable {}
+
+    /// @notice Commit a new witness. Used for authorizing rollup transactions via an Ethereum smart contract.
+    /// @param transactionId Transaction ID to authorize.
+    /// @dev WitnessHandler::commitWitness
+    function commitWitness(bytes32 transactionId) external {}
+
+    /// @notice Register a new address for cheaper transactions.
+    /// @param addr Address to register.
+    /// @return New ID assigned to address, or existing ID if already assigned.
+    /// @dev AddressHandler::commitAddress
+    function commitAddress(address addr) external returns (uint256) {}
+
+    /// @notice Register a fraud commitment hash.
+    /// @param fraudHash The hash of the calldata used for a fraud commitment.
+    /// @dev Uses the message sender (caller()) in the commitment.
+    function commitFraudHash(bytes32 fraudHash) external {}
+
+    //////////////////////////////////////////////////////////////////////////
+    /// FRAUD PROOFS BEGIN
+    //////////////////////////////////////////////////////////////////////////
+
+    /// @notice Prove that a block was malformed.
+    /// @param blockHeader Block header.
+    /// @param rootHeader Full root header.
+    /// @param rootIndex Index to root in block header.
+    /// @param transactions List of transactions committed to in root.
+    /// @dev provers::MalformedBlock::proveMalformedBlock
+    function proveMalformedBlock(
+        bytes calldata blockHeader,
+        bytes calldata rootHeader,
+        uint16 rootIndex,
+        bytes calldata transactions
+    ) external {}
+
+    /// @notice Prove that a transaction was invalid.
+    /// @param transactionProof Proof.
+    /// @dev provers::InvalidTransaction::proveInvalidTransaction
+    function proveInvalidTransaction(bytes calldata transactionProof)
+        external
+    {}
+
+    /// @notice Prove that an input was invalid.
+    /// @param proofA First proof.
+    /// @param proofB Second proof.
+    /// @dev provers::InvalidInput::proveInvalidInput
+    function proveInvalidInput(bytes calldata proofA, bytes calldata proofB)
+        external
+    {}
+
+    /// @notice Prove that a UTXO was double-spent.
+    /// @param proofA Proof of UTXO being spent once.
+    /// @param proofB Proof of UTXO being spent again.
+    /// @dev provers::DoubleSpend::proveDoubleSpend
+    function proveDoubleSpend(bytes calldata proofA, bytes calldata proofB)
+        external
+    {}
+
+    /// @notice Prove that a witness was invalid.
+    /// @param transactionProof Memory offset to start of transaction proof.
+    /// @param inputProofs Memory offset of start of input proofs.
+    /// @dev provers::InvalidWitness::proveInvalidWitness
+    function proveInvalidWitness(
+        bytes calldata transactionProof,
+        bytes calldata inputProofs
+    ) external {}
+
+    /// @notice Prove that a transation produced more than it consumed.
+    /// @param transactionProof Memory offset to start of transaction proof.
+    /// @param inputProofs Memory offset of start of input proofs.
+    /// @dev provers::InvalidSum::proveInvalidSum
+    function proveInvalidSum(
+        bytes calldata transactionProof,
+        bytes calldata inputProofs
+    ) external {}
+
+    //////////////////////////////////////////////////////////////////////////
+    /// FRAUD PROOFS END
+    //////////////////////////////////////////////////////////////////////////
+
+    /// @notice Complete a withdrawal.
+    /// @param proof Inclusion proof for withdrawal on the rollup chain.
+    /// @dev WithdrawalHandler::withdraw
+    function withdraw(bytes calldata proof) external {}
+
+    /// @notice Withdraw the block proposer's bond for a finalized block.
+    /// @param blockHeader Rollup block header of block to withdraw bond for.
+    /// @dev WithdrawalHandler::bondWithdraw
+    function bondWithdraw(bytes calldata blockHeader) external {}
 }
