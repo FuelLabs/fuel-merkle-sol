@@ -43,13 +43,21 @@ library TransactionProofHelper {
     // Methods //
     /////////////
 
+    /// @notice Get UTXO ID from transaction proof.
+    /// @param utxo The UTXO.
+    /// @return The UTXO ID.
+    function getUTXOID(UTXO memory utxo) internal pure returns (bytes32) {
+        return keccak256(abi.encode(utxo));
+    }
+
     /// @notice Extract UTXO ID from transaction proof.
     /// @param transactionProof The transaction proof.
-    /// @return The UTXO ID.
-    function getUTXOID(
+    /// @param transactionLeaf The parsed transaction leaf.
+    /// @return The UTXO.
+    function getUTXO(
         TransactionProof calldata transactionProof,
         TransactionLeaf memory transactionLeaf
-    ) internal returns (bytes32) {
+    ) internal pure returns (UTXO memory) {
         require(
             transactionProof.inputOutputIndex <= TransactionHandler.OUTPUTS_MAX,
             "output-index-overflow"
@@ -59,5 +67,42 @@ library TransactionProofHelper {
             transactionLeaf.outputs[transactionProof.inputOutputIndex];
 
         // Return-type outputs are unspendable
+        require(output.t != OutputType.Return, "utxo-return");
+
+        // Construct UTXO
+        // TODO do we need to get owners from the proof?
+        UTXO memory utxo =
+            UTXO(
+                getTransactionId(transactionProof),
+                transactionProof.inputOutputIndex,
+                output.t,
+                output.owner,
+                output.amount,
+                output.tokenId,
+                output.digest,
+                output.expiry,
+                output.returnOwner
+            );
+
+        return utxo;
+    }
+
+    /// @notice Get transaction ID from proof.
+    /// @return Transaction ID.
+    function getTransactionId(TransactionProof calldata proof)
+        internal
+        pure
+        returns (bytes32)
+    {
+        // TODO use EIP-712 maybe
+        return
+            keccak256(
+                abi.encode(
+                    proof.transactionLeafBytes,
+                    proof.data,
+                    proof.signatureFeeToken,
+                    proof.signatureFee
+                )
+            );
     }
 }

@@ -45,6 +45,21 @@ struct Output {
     bytes1[] data;
 }
 
+/// @notice A rollup state element: a UTXO. The UTXO ID is the hash of its fields.
+struct UTXO {
+    // Transaction ID (witnesses sign over this value)
+    bytes32 transactionId;
+    // Output index in list of outputs
+    uint8 outputIndex;
+    OutputType outputType;
+    address owner;
+    uint256 amount;
+    uint32 token;
+    bytes32 digest;
+    uint32 expiry;
+    address returnOwner;
+}
+
 /// @notice Output helper functions
 library OutputHelper {
     /////////////
