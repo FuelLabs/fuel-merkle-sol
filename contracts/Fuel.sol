@@ -49,7 +49,7 @@ contract Fuel {
     uint32 public s_BlockTip;
     mapping(address => mapping(uint32 => mapping(uint32 => uint256)))
         public s_Deposits;
-    mapping(address => bytes32) public s_FraudCommitments;
+    mapping(address => mapping(bytes32 => uint32)) public s_FraudCommitments;
     uint32 public s_NumAddresses;
     uint32 public s_NumTokens;
     uint32 public s_PenaltyUntil;
@@ -200,7 +200,9 @@ contract Fuel {
     /// @param fraudHash The hash of the calldata used for a fraud commitment.
     /// @dev Uses the message sender (caller()) in the commitment.
     /// @dev Fraudhandler::commitFraudHash
-    function commitFraudHash(bytes32 fraudHash) external {}
+    function commitFraudHash(bytes32 fraudHash) external {
+        FraudHandler.commitFraudHash(s_FraudCommitments, fraudHash);
+    }
 
     //////////////////////////////////////////////////////////////////////////
     /// FRAUD PROOFS BEGIN
