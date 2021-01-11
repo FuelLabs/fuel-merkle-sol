@@ -52,7 +52,7 @@ contract Fuel {
     uint256 public s_NumAddresses;
     uint32 public s_NumTokens;
     mapping(bytes32 => bytes32) public s_Penalty;
-    mapping(bytes32 => bytes32) public s_Roots;
+    mapping(bytes32 => uint256) public s_Roots;
     mapping(address => uint32) public s_Token;
     mapping(bytes32 => bytes32) public s_Withdrawals;
     mapping(bytes32 => bytes32) public s_Witness;
@@ -124,7 +124,14 @@ contract Fuel {
         uint256 fee,
         bytes calldata transactions
     ) external {
-        RootHandler.commitRoot();
+        RootHandler.commitRoot(
+            s_Roots,
+            s_NumTokens,
+            merkleTreeRoot,
+            token,
+            fee,
+            transactions
+        );
     }
 
     /// @notice Commit a new block.

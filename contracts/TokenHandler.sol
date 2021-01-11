@@ -17,6 +17,7 @@ library TokenHandler {
     ///////////////
 
     address constant ETHER_TOKEN_ADDRESS = address(0);
+    uint256 constant MAX_TOKEN_ID = 0xFFFFFFFF;
 
     /////////////
     // Methods //
