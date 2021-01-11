@@ -44,7 +44,7 @@ contract Fuel {
     // State //
     ///////////
 
-    mapping(address => uint32) public s_Address;
+    mapping(address => uint32) public s_Addresses;
     mapping(uint32 => bytes32) public s_BlockCommitments;
     uint32 public s_BlockTip;
     mapping(address => mapping(uint32 => mapping(uint32 => uint256)))
@@ -182,15 +182,17 @@ contract Fuel {
     }
 
     /// @notice Commit a new witness. Used for authorizing rollup transactions via an Ethereum smart contract.
-    /// @param transactionID Transaction ID to authorize.
+    /// @param transactionId Transaction ID to authorize.
     /// @dev WitnessHandler::commitWitness
-    function commitWitness(bytes32 transactionID) external {}
+    function commitWitness(bytes32 transactionId) external {}
 
     /// @notice Register a new address for cheaper transactions.
     /// @param addr Address to register.
     /// @return New ID assigned to address, or existing ID if already assigned.
     /// @dev AddressHandler::commitAddress
-    function commitAddress(address addr) external returns (uint32) {}
+    function commitAddress(address addr) external returns (uint32) {
+        return AddressHandler.commitAddress(s_Addresses, s_NumAddresses, addr);
+    }
 
     /// @notice Register a fraud commitment hash.
     /// @param fraudHash The hash of the calldata used for a fraud commitment.

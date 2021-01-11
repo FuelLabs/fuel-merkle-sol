@@ -36,7 +36,7 @@ library TokenHandler {
         if (addr != ETHER_TOKEN_ADDRESS && id == 0) {
             id = numTokens;
 
-            newNumTokens = numTokens++;
+            newNumTokens = numTokens + 1;
             s_Tokens[addr] = newNumTokens;
 
             emit TokenIndexed(addr, newNumTokens);
