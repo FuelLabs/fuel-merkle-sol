@@ -3,7 +3,11 @@
 pragma solidity >=0.8.0 <0.9.0;
 pragma abicoder v2;
 
+import "./AddressHandler.sol";
+import "./BlockHandler.sol";
 import "./DepositHandler.sol";
+import "./RootHandler.sol";
+import "./WitnessHandler.sol";
 
 /// @title Fuel optimistic rollup top-level contract
 contract Fuel {
@@ -11,38 +15,10 @@ contract Fuel {
     // Events //
     ////////////
 
-    event AddressIndexed(address indexed owner, uint256 indexed id);
-    event BlockCommitted(
-        address producer,
-        uint256 numTokens,
-        uint256 numAddresses,
-        bytes32 indexed previousBlockHash,
-        uint256 indexed height,
-        bytes32[] roots
-    );
     event FraudCommitted(
         uint256 indexed previousTip,
         uint256 indexed currentTip,
         uint256 indexed fraudCode
-    );
-    event RootCommitted(
-        bytes32 indexed root,
-        address rootProducer,
-        uint256 feeToken,
-        uint256 fee,
-        uint256 rootLength,
-        bytes32 indexed merkleTreeRoot,
-        bytes32 indexed commitmentHash
-    );
-    event WithdrawalMade(
-        address indexed account,
-        address token,
-        uint256 amount,
-        uint256 indexed blockHeight,
-        uint256 rootIndex,
-        bytes32 indexed transactionLeafHash,
-        uint8 outputIndex,
-        bytes32 transactionId
     );
 
     ///////////////
@@ -147,7 +123,9 @@ contract Fuel {
         uint256 token,
         uint256 fee,
         bytes calldata transactions
-    ) external {}
+    ) external {
+        RootHandler.commitRoot();
+    }
 
     /// @notice Commit a new block.
     /// @param minimum Minimum Ethereum block number that this commitment is valid for.

@@ -6,5 +6,5 @@ pragma abicoder v2;
 /// @title Address registry
 /// @notice Assigns a unique ID for registered addresses.
 library AddressHandler {
-
+    event AddressIndexed(address indexed owner, uint256 indexed id);
 }
