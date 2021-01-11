@@ -68,6 +68,7 @@ library BlockHandler {
         require(roots.length > 0, "roots-length-underflow");
 
         // Require at most the maximum number of root submissions
+        require(uint256(uint16(roots.length)) == roots.length);
         require(roots.length <= TRANSACTION_ROOTS_MAX, "roots-length-overflow");
 
         // Require value be bond size

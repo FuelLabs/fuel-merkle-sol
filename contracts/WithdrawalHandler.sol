@@ -13,8 +13,8 @@ library WithdrawalHandler {
         address indexed account,
         address token,
         uint256 amount,
-        uint256 indexed blockHeight,
-        uint256 rootIndex,
+        uint32 indexed blockHeight,
+        uint16 rootIndex,
         bytes32 indexed transactionLeafHash,
         uint8 outputIndex,
         bytes32 transactionId
