@@ -78,23 +78,13 @@ library OutputHelper {
         )
     {
         // TODO
+        Output memory output;
+        uint256 bytesUsed;
     }
 
-    /// @notice Get size of an output object.
-    /// @return Size of output in bytes.
-    function outputSize(Output memory output) internal pure returns (uint8) {
-        // TODO double check these sizes
-        if (output.t == OutputType.Transfer) {
-            return 1;
-        } else if (output.t == OutputType.Withdraw) {
-            return 1;
-        } else if (output.t == OutputType.HTLC) {
-            return 1;
-        } else if (output.t == OutputType.Return) {
-            return 1;
-        }
-        // avoid infinite loops
-        // TODO can we remove this?
-        return 20;
-    }
+    function _sanitizeOutput(Output memory output)
+        private
+        pure
+        returns (bool)
+    {}
 }
