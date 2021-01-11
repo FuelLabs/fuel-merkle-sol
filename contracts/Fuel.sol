@@ -45,7 +45,7 @@ contract Fuel {
     ///////////
 
     mapping(address => uint32) public s_Address;
-    mapping(uint256 => bytes32) public s_BlockCommitments;
+    mapping(uint32 => bytes32) public s_BlockCommitments;
     uint32 public s_BlockTip;
     mapping(address => mapping(uint32 => mapping(uint32 => uint256)))
         public s_Deposits;
@@ -170,6 +170,7 @@ contract Fuel {
             );
 
         s_BlockTip = BlockHandler.commitBlock(
+            s_BlockCommitments,
             blockHeader,
             s_BlockTip,
             BOND_SIZE,

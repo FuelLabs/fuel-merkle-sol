@@ -52,6 +52,7 @@ library BlockHandler {
 
     /// @notice Commits a new rollup block.
     function commitBlock(
+        mapping(uint32 => bytes32) storage s_BlockCommitments,
         BlockHeader memory blockHeader,
         uint32 blockTip,
         uint256 bondSize,
@@ -93,6 +94,11 @@ library BlockHandler {
             // Clear root from storage.
             delete s_Roots[rootHash];
         }
+
+        // Store block commitment
+        s_BlockCommitments[blockHeader.height] = keccak256(
+            abi.encode(blockHeader)
+        );
 
         emit BlockCommitted(
             blockHeader.producer,
