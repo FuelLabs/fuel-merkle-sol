@@ -3,6 +3,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 pragma abicoder v2;
 
+import "./TransactionHandler.sol";
 import "./types/RootHeader.sol";
 
 /// @title Root handler
@@ -48,7 +49,11 @@ library RootHandler {
         bytes32 commitmentHash = keccak256(packedTransactions);
 
         // Calldata size must be at least as big as the minimum transaction size (44 bytes)
-        require(packedTransactions.length >= 44, "root-size-overflow");
+        require(
+            packedTransactions.length >=
+                TransactionHandler.TRANSACTION_SIZE_MIN,
+            "root-size-overflow"
+        );
         // Calldata max size enforcement (~2M gas / 16 gas per byte/64kb payload target)
         require(
             packedTransactions.length <= uint256(MAX_ROOT_SIZE),
