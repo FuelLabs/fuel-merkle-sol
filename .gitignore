@@ -1,0 +1,12 @@
+node_modules
+.env
+
+coverage
+coverage.json
+
+#Buidler files
+cache
+artifacts
+
+typechain
+yarn-error.log

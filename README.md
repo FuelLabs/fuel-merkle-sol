@@ -1,16 +1,9 @@
-# Hardhat Boilerplate
+# Fuel-Sol
 
-![ci](https://github.com/shapeshed/hardhat-boilerplate/workflows/Continuous%20Integration/badge.svg?branch=master)
-[![codecov](https://codecov.io/gh/shapeshed/hardhat-boilerplate/branch/master/graph/badge.svg?token=FVXeaaBA3d)](https://codecov.io/gh/shapeshed/hardhat-boilerplate)
+![ci](https://github.com/fuellabs/fuel-sol/workflows/Continuous%20Integration/badge.svg?branch=master)
+[![codecov](https://codecov.io/gh/fuellabs/fuel-sol/branch/master/graph/badge.svg?token=FVXeaaBA3d)](https://codecov.io/gh/fuellabs/fuel-sol)
 
-A boilerplate hardhat project with sane defaults.
-
-- [solhint][1]
-- [eslint][6]
-- [prettier][2]
-- [typescript][4]
-- [typechain][3]
-- [dotenv][7]
+The Fuel Solidity smart-contract architecture.
 
 ## Prerequisities
 
@@ -41,11 +34,3 @@ Check file formatting
 Generate code coverage
 
     npm run coverage
-
-[1]: https://protofire.github.io/solhint/
-[2]: https://prettier.io/
-[3]: https://www.typescriptlang.org/
-[4]: https://hardhat.org/plugins/hardhat-typechain.html
-[5]: https://nodejs.org/
-[6]: https://eslint.org/
-[7]: https://www.npmjs.com/package/dotenv
