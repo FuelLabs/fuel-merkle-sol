@@ -1,6 +1,6 @@
+import chai from "chai";
 import { ethers } from "hardhat";
 import { solidity } from "ethereum-waffle";
-import chai from "chai";
 import { Greeter } from "../typechain/Greeter";
 
 chai.use(solidity);
