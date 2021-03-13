@@ -1,4 +1,10 @@
 {
+    "settings": {
+        "react": {
+            "pragma": "React",
+            "version": "16.12.0"
+        }
+    },
     "compilerOptions": {
         "target": "es5",
         "module": "commonjs",
