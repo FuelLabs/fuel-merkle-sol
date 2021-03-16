@@ -11,13 +11,14 @@ library TransactionLib {
 
     /// @notice Decompress a single input.
     /// @param data The input data in compressed bytes.
+    /// @dev Note, we arn't checking for overflows yet.
     /// @dev https://github.com/FuelLabs/fuel-specs/blob/master/specs/protocol/compressed_tx_format.md#inputcoin.
     /// @return _input The input to return.
     function decompressInput(bytes calldata data) internal pure returns (Input memory _input) {
         // Tracking index.
         uint16 index = 0;
 
-        // Decompress the transaction kind.;
+        // Decompress the transaction kind.
         _input.kind = InputKind(uint8(abi.decode(data[index:index + 1], (bytes1))));
         index += 1;
 
@@ -90,6 +91,7 @@ library TransactionLib {
 
     /// @notice Decompress a single output.
     /// @param data The output data in compressed bytes.
+    /// @dev Note, we arn't checking for overflows yet.
     /// @return _output The output to return in a sum struct.
     function decompressOutput(bytes calldata data) internal pure returns (Output memory _output) {
         // Tracking index.
@@ -264,8 +266,197 @@ library TransactionLib {
         return _witness;
     }
 
-    /// @notice decompress bytes into a Transaction object.
+    /// @notice Serialize Input struct.
+    /// @param input The Input struct.
+    /// @dev https://github.com/FuelLabs/fuel-specs/blob/master/specs/protocol/tx_format.md.
+    /// @return data The serialized data.
+    function serializeInput(Input memory input) internal pure returns (bytes memory data) {
+        // Encode the type.
+        data = abi.encodePacked(uint8(input.kind));
+
+        // Handle the Input coin case.
+        if (input.kind == InputKind.Coin) {
+            data = abi.encodePacked(
+                data,
+                input.utxoID,
+                input.owner,
+                input.amount,
+                input.color,
+                input.witnessIndex,
+                input.maturity,
+                input.predicateLength,
+                input.predicateDataLength,
+                input.predicate,
+                input.predicateData
+            );
+        }
+
+        // Handle the Contract case.
+        if (input.kind == InputKind.Contract) {
+            // Serialize the struct into a single bytes data.
+            data = abi.encodePacked(
+                data,
+                input.utxoID,
+                input.balanceRoot,
+                input.stateRoot,
+                input.contractID
+            );
+        }
+    }
+
+    /// @notice Serialize a single output.
+    /// @param output The output struct.
+    /// @dev https://github.com/FuelLabs/fuel-specs/blob/master/specs/protocol/tx_format.md#output.
+    /// @return data The serialized bytes data.
+    function serializeOutput(Output memory output) internal pure returns (bytes memory data) {
+        // Encode the type.
+        data = abi.encodePacked(uint8(output.kind));
+
+        // Handle the Coin case.
+        if (output.kind == OutputKind.Coin) {
+            data = abi.encodePacked(
+                data,
+                output.to,
+                output.amount,
+                output.color
+            );
+        }
+
+        // Handle the Contract case.
+        if (output.kind == OutputKind.Contract) {
+            data = abi.encodePacked(
+                data,
+                output.inputIndex,
+                output.balanceRoot,
+                output.stateRoot
+            );
+        }
+
+        // Handle the Withdrawal case.
+        if (output.kind == OutputKind.Withdrawal) {
+            data = abi.encodePacked(
+                data,
+                output.to,
+                output.amount,
+                output.color
+            );
+        }
+
+        // Handle the Change case.
+        if (output.kind == OutputKind.Change) {
+            data = abi.encodePacked(
+                data,
+                output.to,
+                output.amount,
+                output.color
+            );
+        }
+
+        // Handle the Variable case.
+        if (output.kind == OutputKind.Variable) {
+            data = abi.encodePacked(
+                data,
+                output.to,
+                output.amount,
+                output.color
+            );
+        }
+
+        // Handle the ContractCreated case.
+        if (output.kind == OutputKind.ContractCreated) {
+            data = abi.encodePacked(
+                data,
+                output.contractID
+            );
+        }
+    }
+
+    /// @notice Serialize a single witness.
+    /// @param witness The witness struct.
+    /// @dev https://github.com/FuelLabs/fuel-specs/blob/master/specs/protocol/tx_format.md#witness.
+    /// @return data The serialized bytes data.
+    function serializeWitness(Witness memory witness) internal pure returns (bytes memory data) {
+        // Encode the witness.
+        data = abi.encodePacked(
+            witness.dataLength,
+            witness.data
+        );
+    }
+
+    /// @notice Serialize a Transaction into a bytes form.
+    /// @dev https://github.com/FuelLabs/fuel-specs/blob/master/specs/protocol/tx_format.md
+    /// @param _tx The Transaction struct to be serialized.
+    /// @return data The serialized form of a transaction.
+    function serialize(Transaction memory _tx) internal pure returns (bytes memory data) {
+        // Encode the type.
+        data = abi.encodePacked(uint8(_tx.kind));
+
+        // Script.
+        if (_tx.kind == TransactionKind.Script) {
+            // The initial data before the inputs etc.
+            data = abi.encodePacked(
+                data,
+                _tx.gasPrice,
+                _tx.gasLimit,
+                _tx.maturity,
+                _tx.scriptLength,
+                _tx.scriptDataLength,
+                _tx.inputsCount,
+                _tx.outputsCount,
+                _tx.witnessesCount,
+                _tx.script,
+                _tx.scriptData
+            );
+        }
+
+        // Create.
+        if (_tx.kind == TransactionKind.Create) {
+            // The initial data before the inputs etc.
+            data = abi.encodePacked(
+                data,
+                _tx.gasPrice,
+                _tx.gasLimit,
+                _tx.maturity,
+                _tx.bytecodeLength,
+                _tx.bytecodeWitnessIndex,
+                _tx.staticContractsCount,
+                _tx.inputsCount,
+                _tx.outputsCount,
+                _tx.witnessesCount,
+                _tx.salt,
+                _tx.staticContracts
+            );
+        }
+
+        // Now we serialize the inputs, outputs and witnesses.
+        // Serialize inputs.
+        for (uint i = 0; i < _tx.inputs.length; i++) {
+            data = abi.encodePacked(
+                data,
+                serializeInput(_tx.inputs[i])
+            );
+        }
+
+        // Serialize outputs.
+        for (uint i = 0; i < _tx.outputs.length; i++) {
+            data = abi.encodePacked(
+                data,
+                serializeOutput(_tx.outputs[i])
+            );
+        }
+
+        // Serialize witnesses.
+        for (uint i = 0; i < _tx.witnesses.length; i++) {
+            data = abi.encodePacked(
+                data,
+                serializeWitness(_tx.witnesses[i])
+            );
+        }
+    }
+
+    /// @notice Decompress bytes into a Transaction object.
     /// @param data The compressed transaction data.
+    /// @dev Note, we arn't checking for overflows yet.
     /// @return _tx The uncompressed transaction data.
     function decompress(bytes calldata data) internal pure returns (Transaction memory _tx) {
         // Tracking index.

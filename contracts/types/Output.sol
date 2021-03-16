@@ -35,11 +35,20 @@ struct Output {
     // Color index.
     AddressPointer colorIndex;
 
+    // To address.
+    bytes32 to;
+
     // Amount of coins to send.
     uint64 amount;
 
+    // Expanded color identifier address.
+    bytes32 color;
+
     // Index of input contract.
     uint8 inputIndex;
+
+    // Balance root of the Merkle Sum Tree.
+    bytes32 balanceRoot;
 
     // OutputContract: State root of contract after transaction execution.
     bytes32 stateRoot;

@@ -25,6 +25,15 @@ struct Input {
     // Index of witness that authorizes spending the coin.
     uint8 witnessIndex;
 
+    // This is the expanded owner address.
+    bytes32 owner;
+
+    // The token color.
+    bytes32 color;
+
+    // This is the input amount.
+    uint64 amount;
+
     // UTXO being spent must have been created at least this many blocks ago.
     uint64 maturity;
 
@@ -42,6 +51,12 @@ struct Input {
 
     // ContractOnly: contractID.
     bytes32 contractID;
+
+    // This is the Merkle Sum Tree root for this contract.
+    bytes32 balanceRoot;
+    
+    // This is the Sparse Merkle Tree state root for this contract.
+    bytes32 stateRoot;
 
     // This is additional metadata for decoding purposes.
     uint16 _bytesize;
