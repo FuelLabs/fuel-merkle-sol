@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../types/BlockHeader.sol";
 
-/// @title Withdrawal handler
+/// @title Withdrawal handler.
 library WithdrawalHandler {
 
     ////////////

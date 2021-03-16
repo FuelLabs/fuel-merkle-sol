@@ -5,7 +5,7 @@
 
 The Fuel Solidity smart-contract architecture.
 
-## Prerequisities
+## Pre Requisities
 
 - [Node.js][5]
 
