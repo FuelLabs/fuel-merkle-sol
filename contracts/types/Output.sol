@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.7.4;
 
-import "./AddressPointer.sol";
+import "./DigestPointer.sol";
 
 /// @notice Output kind.
 enum OutputKind {
@@ -30,10 +30,10 @@ struct Output {
     OutputKind kind;
 
     // Receiving address or script hash.
-    AddressPointer toPointer;
+    DigestPointer toPointer;
 
     // Color index.
-    AddressPointer colorIndex;
+    DigestPointer colorIndex;
 
     // To address.
     bytes32 to;
@@ -55,6 +55,9 @@ struct Output {
 
     // OutputContractCreated: contract id.
     bytes32 contractID;
+
+    // This is used during ContractCreated decompression.
+    DigestPointer contractPointer;
 
     // This is additional metadata for decoding purposes.
     uint16 _bytesize;

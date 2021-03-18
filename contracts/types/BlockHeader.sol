@@ -16,14 +16,14 @@ struct BlockHeader {
     // Ethereum block number when this rollup block is committed.
     uint32 blockNumber;
 
-    // Address commitment hashes.
-    bytes32 addressCommitmentHash;
+    // Digest registry commitment hashes.
+    bytes32 digestCommitmentHash;
 
-    // Address merkle root.
-    bytes32 addressMerkleRoot;
+    // Digest registry merkle root.
+    bytes32 digestMerkleRoot;
 
-    // The length of the provided addresses.
-    uint16 addressLength;
+    // The length of the provided digests.
+    uint16 digestLength;
 
     // The merkle root of a binary merkle tree, where the leafs are hashes of the uncompressed transactions.
     bytes32 merkleTreeRoot;

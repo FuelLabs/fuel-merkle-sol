@@ -19,12 +19,19 @@ library BlockLib {
             header.previousBlockHash,
             header.height,
             header.blockNumber,
-            header.addressCommitmentHash,
-            header.addressMerkleRoot,
-            header.addressLength,
+            header.digestCommitmentHash,
+            header.digestMerkleRoot,
+            header.digestLength,
             header.merkleTreeRoot,
             header.commitmentHash,
             header.length
         );
+    }
+
+    /// @notice Produce the Block hash.
+    /// @param header The block header structure.
+    /// @return blockHash The returned block header hash.
+    function hash(BlockHeader memory header) internal pure returns (bytes32 blockHash) {
+        return sha256(serialize(header));
     }
 }

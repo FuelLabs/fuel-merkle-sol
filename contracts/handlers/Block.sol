@@ -2,8 +2,10 @@
 pragma solidity ^0.7.4;
 pragma experimental ABIEncoderV2;
 
+import "../types/BlockCommitment.sol";
 import "../types/BlockHeader.sol";
-import "./Transaction.sol";
+import "../lib/Block.sol";
+import "../lib/Transaction.sol";
 
 /// @title The Fuel block handler logic.
 library BlockHandler {
@@ -19,7 +21,7 @@ library BlockHandler {
     uint32 constant public MAX_BLOCK_SIZE = 32000;
 
     // Maximum number of addresses registered in a block.
-    uint32 constant public MAX_BLOCK_ADDRESSES = 0xFF;
+    uint32 constant public MAX_BLOCK_DIGESTS = 0xFF;
 
     ////////////
     // Events //
@@ -38,7 +40,7 @@ library BlockHandler {
 
     /// @notice Commits a new rollup block.
     function commitBlock(
-        mapping(bytes32 => bytes32[]) storage s_BlockCommitments,
+        mapping(bytes32 => BlockCommitment) storage s_BlockCommitments,
         BlockHeader memory blockHeader,
         uint32 blockTip
     ) internal returns (uint32 r_blockTip) {
@@ -48,7 +50,7 @@ library BlockHandler {
         // Calldata size must be at least as big as the minimum transaction size (44 bytes).
         require(
             blockHeader.length >=
-                TransactionHandler.TRANSACTION_SIZE_MIN,
+                TransactionLib.TRANSACTION_SIZE_MIN,
             "transactions-size-underflow"
         );
 
@@ -60,8 +62,8 @@ library BlockHandler {
 
         // Calldata max size enforcement (~2M gas / 16 gas per byte/32kb payload target).
         require(
-            blockHeader.addressLength < uint256(MAX_BLOCK_ADDRESSES),
-            "address-length-overflow"
+            blockHeader.digestLength < uint256(MAX_BLOCK_DIGESTS),
+            "digest-length-overflow"
         );
 
         // Check caller is not a contract.
@@ -72,10 +74,11 @@ library BlockHandler {
         }
         require(callerCodeSize == 0, "is-contract");
 
+        // Block hash.
+        bytes32 blockHash = BlockLib.hash(blockHeader);
+
         // Store block commitment.
-        s_BlockCommitments[blockHeader.previousBlockHash].push(keccak256(
-            abi.encode(blockHeader)
-        ));
+        s_BlockCommitments[blockHeader.previousBlockHash].children.push(blockHash);
 
         // Emit the block committed event.
         emit BlockCommitted(

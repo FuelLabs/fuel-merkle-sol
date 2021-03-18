@@ -5,6 +5,52 @@ import "../types/Transaction.sol";
 
 library TransactionLib {
 
+    ///////////////
+    // Constants //
+    ///////////////
+
+    /// @dev Minimum transaction size in bytes.
+    uint256 constant internal TRANSACTION_SIZE_MIN = 44;
+
+    /// @dev Maximum transaction size in bytes.
+    uint256 constant internal TRANSACTION_SIZE_MAX = 21000;
+
+    /// @dev Empty leaf hash default value.
+    bytes32 constant internal EMPTY_LEAF_HASH = bytes32(0);
+
+    /// @dev  Gas charged per byte of the transaction.
+    uint64 constant internal GAS_PER_BYTE = 1;
+
+    /// @dev Maximum gas per transaction.
+    uint64 constant internal MAX_GAS_PER_TX = 100000;
+
+    /// @dev Maximum number of inputs.
+    uint64 constant internal MAX_INPUTS = 16;
+
+    /// @dev Maximum number of outputs.
+    uint64 constant internal MAX_OUTPUTS = 16;
+
+    /// @dev Maximum length of predicate, in instructions.
+    uint64 constant internal MAX_PREDICATE_LENGTH = 2400;
+    
+    /// @dev Maximum length of predicate data, in bytes.
+    uint64 constant internal MAX_PREDICATE_DATA_LENGTH = 2400; 
+
+    /// @dev Maximum length of script, in instructions.
+    uint64 constant internal MAX_SCRIPT_LENGTH = 2400;
+
+    /// @dev Maximum length of script, in instructions.
+    uint64 constant internal MAX_CONTRACT_LENGTH = 21000;
+
+    /// @dev Maximum length of script data, in bytes.
+    uint64 constant internal MAX_SCRIPT_DATA_LENGTH = 2400;
+
+    /// @dev Maximum number of static contracts.
+    uint64 constant internal MAX_STATIC_CONTRACTS = 256;
+
+    /// @dev  Max witnesses.
+    uint64 constant internal MAX_WITNESSES = 16;
+
     /////////////
     // Methods //
     /////////////
@@ -108,7 +154,7 @@ library TransactionLib {
             index += 4;
 
             // The TXO pointer block height.
-            _output.toPointer.addressIndex = uint16(abi.decode(data[index:index + 2], (bytes2)));
+            _output.toPointer.index = uint16(abi.decode(data[index:index + 2], (bytes2)));
             index += 2;
 
             // The amount of the output.
@@ -120,7 +166,7 @@ library TransactionLib {
             index += 4;
 
             // The TXO pointer block height.
-            _output.colorIndex.addressIndex = uint16(abi.decode(data[index:index + 2], (bytes2)));
+            _output.colorIndex.index = uint16(abi.decode(data[index:index + 2], (bytes2)));
             index += 2;
 
             // Specify the bytesize of this output.
@@ -150,7 +196,7 @@ library TransactionLib {
             index += 4;
 
             // The TXO pointer block height.
-            _output.toPointer.addressIndex = uint16(abi.decode(data[index:index + 2], (bytes2)));
+            _output.toPointer.index = uint16(abi.decode(data[index:index + 2], (bytes2)));
             index += 2;
 
             // The amount of the output.
@@ -162,7 +208,7 @@ library TransactionLib {
             index += 4;
 
             // The TXO pointer block height.
-            _output.colorIndex.addressIndex = uint16(abi.decode(data[index:index + 2], (bytes2)));
+            _output.colorIndex.index = uint16(abi.decode(data[index:index + 2], (bytes2)));
             index += 2;
 
             // Specify the bytesize of this output.
@@ -179,7 +225,7 @@ library TransactionLib {
             index += 4;
 
             // The TXO pointer block height.
-            _output.toPointer.addressIndex = uint16(abi.decode(data[index:index + 2], (bytes2)));
+            _output.toPointer.index = uint16(abi.decode(data[index:index + 2], (bytes2)));
             index += 2;
 
             // The amount of the output.
@@ -191,7 +237,7 @@ library TransactionLib {
             index += 4;
 
             // The TXO pointer block height.
-            _output.colorIndex.addressIndex = uint16(abi.decode(data[index:index + 2], (bytes2)));
+            _output.colorIndex.index = uint16(abi.decode(data[index:index + 2], (bytes2)));
             index += 2;
 
             // Specify the bytesize of this output.
@@ -208,7 +254,7 @@ library TransactionLib {
             index += 4;
 
             // The TXO pointer block height.
-            _output.toPointer.addressIndex = uint16(abi.decode(data[index:index + 2], (bytes2)));
+            _output.toPointer.index = uint16(abi.decode(data[index:index + 2], (bytes2)));
             index += 2;
 
             // The amount of the output.
@@ -220,7 +266,7 @@ library TransactionLib {
             index += 4;
 
             // The TXO pointer block height.
-            _output.colorIndex.addressIndex = uint16(abi.decode(data[index:index + 2], (bytes2)));
+            _output.colorIndex.index = uint16(abi.decode(data[index:index + 2], (bytes2)));
             index += 2;
 
             // Specify the bytesize of this output.
@@ -233,8 +279,12 @@ library TransactionLib {
         // Handle the ContractCreated.
         if (_output.kind == OutputKind.ContractCreated) {
             // The TXO pointer block height.
-            _output.contractID = bytes32(abi.decode(data[index:index + 32], (bytes32)));
-            index += 32;
+            _output.contractPointer.blockHeight = uint32(abi.decode(data[index:index + 4], (bytes4)));
+            index += 4;
+
+            // The TXO pointer block height.
+            _output.contractPointer.index = uint16(abi.decode(data[index:index + 2], (bytes2)));
+            index += 2;
 
             // Specify the bytesize of this output.
             _output._bytesize = index;
@@ -458,23 +508,41 @@ library TransactionLib {
     /// @param data The compressed transaction data.
     /// @dev Note, we arn't checking for overflows yet.
     /// @return _tx The uncompressed transaction data.
-    function decompress(bytes calldata data) internal pure returns (Transaction memory _tx) {
+    function decompress(bytes calldata data) internal pure returns (Transaction memory _tx, string memory error) {
         // Tracking index.
         uint16 index = 0;
 
+        // The transaciton kind.
+        uint8 kind = uint8(abi.decode(data[index:index + 1], (bytes1)));
+
+        // Check invalid kind.
+        if (kind > 1) {
+            return (_tx, "invalid-kind");
+        }
+
         // Decode the transaction kind.;
-        _tx.kind = TransactionKind(uint8(abi.decode(data[index:index + 1], (bytes1))));
+        _tx.kind = TransactionKind(kind);
         index += 1;
 
         // Decode the gas price.
         _tx.gasPrice = uint64(abi.decode(data[index:index + 8], (bytes8)));
         index += 8;
 
-        // Decode the gas limit.
-        _tx.gasPrice = uint64(abi.decode(data[index:index + 8], (bytes8)));
-        index += 8;
+        // Check invalid kind.
+        if (_tx.gasPrice > MAX_GAS_PER_TX) {
+            return (_tx, "gas-price-overflow");
+        }
 
         // Decode the gas limit.
+        _tx.gasLimit = uint64(abi.decode(data[index:index + 8], (bytes8)));
+        index += 8;
+
+        // Check invalid gas limit.
+        if (_tx.gasLimit > MAX_GAS_PER_TX) {
+            return (_tx, "gas-limit-overflow");
+        }
+
+        // Decode the maturity.
         _tx.maturity = uint32(abi.decode(data[index:index + 4], (bytes4)));
         index += 4;
 
@@ -484,21 +552,46 @@ library TransactionLib {
             _tx.scriptLength = uint16(abi.decode(data[index:index + 2], (bytes2)));
             index += 2;
 
+            // Check invalid gas limit.
+            if (_tx.scriptLength > MAX_SCRIPT_LENGTH) {
+                return (_tx, "script-length-overflow");
+            }
+
             // Script data length.
             _tx.scriptDataLength = uint16(abi.decode(data[index:index + 2], (bytes2)));
             index += 2;
+
+            // Check invalid gas limit.
+            if (_tx.scriptDataLength > MAX_SCRIPT_DATA_LENGTH) {
+                return (_tx, "script-data-length-overflow");
+            }
 
             // The number of inputs in the transaction.
             _tx.inputsCount = uint8(abi.decode(data[index:index + 1], (bytes1)));
             index += 1;
 
+            // Check invalid gas limit.
+            if (_tx.inputsCount > MAX_INPUTS) {
+                return (_tx, "inputs-count-overflow");
+            }
+
             // The number of outputs in the transaciton.
             _tx.outputsCount = uint8(abi.decode(data[index:index + 1], (bytes1)));
             index += 1;
 
+            // Check invalid gas limit.
+            if (_tx.outputsCount > MAX_OUTPUTS) {
+                return (_tx, "outputs-count-overflow");
+            }
+
             // The number of witnesses in the transaction.
             _tx.witnessesCount = uint8(abi.decode(data[index:index + 1], (bytes1)));
             index += 1;
+
+            // Check invalid gas limit.
+            if (_tx.witnessesCount > MAX_WITNESSES) {
+                return (_tx, "witnesses-count-overflow");
+            }
 
             // The script in the transaction.
             _tx.script = abi.decode(data[index:index + _tx.scriptLength], (bytes));

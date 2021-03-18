@@ -10,6 +10,9 @@ struct TransactionProof {
     // Block header
     BlockHeader blockHeader;
 
+    // Transaction leaf bytes
+    Transaction transaction;
+
     // Merkle proof: neighboring node values
     bytes32[] merkleProof;
 
@@ -18,10 +21,4 @@ struct TransactionProof {
 
     // Index of transaction in list of transactions in root
     uint16 transactionIndex;
-
-    // Transaction leaf bytes
-    Transaction transaction;
-
-    // Implicit list of unique identifiers being spent (UTXO ID, deposit ID)
-    bytes32[] data;
 }

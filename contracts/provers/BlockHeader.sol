@@ -2,6 +2,7 @@
 pragma solidity ^0.7.4;
 pragma experimental ABIEncoderV2;
 
+import "../types/BlockCommitment.sol";
 import "../types/BlockHeader.sol";
 
 /// @title Block header sanitizer.
@@ -29,14 +30,14 @@ library BlockHeaderProver {
     /// @param blockHeader The block header.
     /// @param assertFinalized Enum flag of if the block should be finalized.
     function proveBlockHeader(
-        mapping(bytes32 => bytes32[]) storage s_BlockCommitments,
+        mapping(bytes32 => BlockCommitment) storage s_BlockCommitments,
         uint32 finalizationDelay,
         BlockHeader calldata blockHeader,
         AssertFinalized assertFinalized
     ) internal view {
-        // Block must be known (already committed).
+        // Block must be known and valid (already committed).
         require(
-            s_BlockCommitments[keccak256(abi.encode(blockHeader))].length > 0,
+            s_BlockCommitments[keccak256(abi.encode(blockHeader))].isInvalid == false,
             "block-commitment"
         );
 

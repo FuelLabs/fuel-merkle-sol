@@ -7,10 +7,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "./handlers/Deposit.sol";
 import "./handlers/Block.sol";
-import "./handlers/Transaction.sol";
 import "./handlers/Fraud.sol";
 import "./handlers/Withdrawal.sol";
 
+import "./types/BlockCommitment.sol";
 import "./provers/BlockHeader.sol";
 
 /// @notice The Fuel v2.0 Optimistic Rollup.
@@ -38,7 +38,7 @@ contract Fuel {
     /////////////
 
     /// @dev Maps Fuel block number => Fuel block hash.
-    mapping(bytes32 => bytes32[]) public s_BlockCommitments;
+    mapping(bytes32 => BlockCommitment) public s_BlockCommitments;
 
     /// @dev Maps the depositor address => token address => Ethereum block number => token amount.
     mapping(address => mapping(address => mapping(uint32 => uint256)))
@@ -99,8 +99,8 @@ contract Fuel {
         bytes32 previousBlockHash,
         bytes32 merkleTreeRoot,
         bytes calldata transactions,
-        bytes32 addressMerkleRoot,
-        bytes32[] calldata addresses
+        bytes32 digestMerkleRoot,
+        bytes32[] calldata digests
     ) external payable {
         // Check origin.
         require(tx.origin == msg.sender, "origin-not-caller");
@@ -114,11 +114,11 @@ contract Fuel {
         require(msg.value == BOND_SIZE, "bond-size");
 
         // Transactions packed together in a single bytes store.
-        bytes memory packedTransactions = abi.encode(transactions);
-        bytes32 commitmentHash = keccak256(packedTransactions);
+        bytes memory packedTransactions = abi.encodePacked(transactions);
+        bytes32 commitmentHash = sha256(packedTransactions);
 
-        // Address commitment hash.
-        bytes32 addressCommitmentHash = keccak256(abi.encode(addresses));
+        // Digest commitment hash.
+        bytes32 digestCommitmentHash = sha256(abi.encodePacked(digests));
 
         // Create a Fuel block header.
         BlockHeader memory blockHeader =
@@ -127,9 +127,9 @@ contract Fuel {
                 previousBlockHash,
                 height,
                 SafeCast.toUint32(block.number),
-                addressCommitmentHash,
-                addressMerkleRoot,
-                SafeCast.toUint16(addresses.length),
+                digestCommitmentHash,
+                digestMerkleRoot,
+                SafeCast.toUint16(digests.length),
                 merkleTreeRoot,
                 commitmentHash,
                 SafeCast.toUint32(packedTransactions.length)
