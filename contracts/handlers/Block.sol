@@ -75,7 +75,7 @@ library BlockHandler {
         require(callerCodeSize == 0, "is-contract");
 
         // Block hash.
-        bytes32 blockHash = BlockLib.hash(blockHeader);
+        bytes32 blockHash = BlockLib.computeBlockId(blockHeader);
 
         // Store block commitment.
         s_BlockCommitments[blockHeader.previousBlockHash].children.push(blockHash);

@@ -13,6 +13,9 @@ struct TransactionProof {
     // Transaction leaf bytes
     Transaction transaction;
 
+    // Block header MMR proof for previous block hash checks.
+    bytes32[] mmrMerkleProof;
+
     // Merkle proof: neighboring node values
     bytes32[] merkleProof;
 
@@ -21,4 +24,10 @@ struct TransactionProof {
 
     // Index of transaction in list of transactions in root
     uint16 transactionIndex;
+
+    // Color specifier.
+    bytes32 color;
+
+    // Transaction is an empty leaf.
+    bool empty;
 }

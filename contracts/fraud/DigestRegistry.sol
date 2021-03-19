@@ -33,7 +33,7 @@ library InvalidDigestRegistry {
         );
 
         // Produce block hash.
-        bytes32 blockHash = BlockLib.hash(blockHeader);
+        bytes32 blockHash = BlockLib.computeBlockId(blockHeader);
 
         // Require that the digests are provided correclty.
         require(
@@ -47,7 +47,8 @@ library InvalidDigestRegistry {
                 s_BlockCommitments,
                 bondSize,
                 fraudCommitter,
-                blockHash
+                blockHash,
+                "digest-registry"
             );
         }
     }

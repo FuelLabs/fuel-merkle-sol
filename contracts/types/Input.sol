@@ -2,6 +2,7 @@
 pragma solidity ^0.7.4;
 
 import "./TXOPointer.sol";
+import "./DigestPointer.sol";
 
 /// @notice The input kinds.
 enum InputKind {
@@ -27,6 +28,9 @@ struct Input {
 
     // This is the expanded owner address.
     bytes32 owner;
+
+    // The pointer of the color.
+    DigestPointer colorIndex;
 
     // The token color.
     bytes32 color;

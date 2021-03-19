@@ -32,7 +32,7 @@ library BlockHeaderProver {
     function proveBlockHeader(
         mapping(bytes32 => BlockCommitment) storage s_BlockCommitments,
         uint32 finalizationDelay,
-        BlockHeader calldata blockHeader,
+        BlockHeader memory blockHeader,
         AssertFinalized assertFinalized
     ) internal view {
         // Block must be known and valid (already committed).

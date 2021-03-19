@@ -504,6 +504,15 @@ library TransactionLib {
         }
     }
 
+    /// @notice Transaction id.
+    /// @param _tx The transaction to be serialized and hashed.
+    /// @return id The computed transaction identifier.
+    /// @dev We haven't completed the zero out of specific fields yet.
+    function computeTransactionId(Transaction memory _tx) internal pure returns (bytes32 id) {
+        // TODO: Should be Zero out specific fields, then hash.
+        return sha256(serialize(_tx));
+    }
+
     /// @notice Decompress bytes into a Transaction object.
     /// @param data The compressed transaction data.
     /// @dev Note, we arn't checking for overflows yet.

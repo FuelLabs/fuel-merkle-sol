@@ -151,6 +151,18 @@ contract Fuel {
         FraudHandler.commitFraudHash(s_FraudCommitments, fraudHash);
     }
 
+    /// @notice Withdraw a transaction input from the chain.
+    /// @param txProof The full transaction proof of the finalized withdraw.
+    function withdraw(TransactionProof memory txProof) external {
+        // Handle the withdrawal of the bond.
+        WithdrawalHandler.withdraw(
+            s_BlockCommitments,
+            s_Withdrawals,
+            FINALIZATION_DELAY,
+            txProof
+        );
+    }
+
     /// @notice Withdraw the block proposer's bond for a finalized block.
     /// @param blockHeader Rollup block header of block to withdraw bond for.
     /// @dev WithdrawalHandler::bondWithdraw

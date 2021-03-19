@@ -28,10 +28,10 @@ library BlockLib {
         );
     }
 
-    /// @notice Produce the Block hash.
+    /// @notice Produce the Block header ID.
     /// @param header The block header structure.
     /// @return blockHash The returned block header hash.
-    function hash(BlockHeader memory header) internal pure returns (bytes32 blockHash) {
+    function computeBlockId(BlockHeader memory header) internal pure returns (bytes32 blockHash) {
         return sha256(serialize(header));
     }
 }

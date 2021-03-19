@@ -7,6 +7,13 @@ import "../types/BlockCommitment.sol";
 /// @title Fraud proof handler.
 library FraudHandler {
 
+    /////////////
+    // Events //
+    ////////////
+
+    /// @dev General fraud committed error message.
+    event FraudCommitted(bytes32 blockHash, string message);
+
     ///////////////
     // Constants //
     ///////////////
@@ -65,12 +72,16 @@ library FraudHandler {
         mapping(bytes32 => BlockCommitment) storage s_BlockCommitments,
         uint256 bondSize,
         address payable fraudCommitter,
-        bytes32 blockHash
+        bytes32 blockHash,
+        string memory message
     ) internal {
         // Set the block to invald.
         s_BlockCommitments[blockHash].isInvalid = true;
 
         // Bond size.
         fraudCommitter.transfer(bondSize);
+
+        // Emit event.
+        emit FraudCommitted(blockHash, message);
     }
 }
