@@ -22,16 +22,16 @@ contract Fuel {
     ////////////////
 
     /// @dev The Fuel block bond size in wei.
-    uint256 immutable internal BOND_SIZE;
+    uint256 immutable public BOND_SIZE;
 
     /// @dev The Fuel block finalization delay in Ethereum block numbers.
-    uint32 immutable internal FINALIZATION_DELAY;
+    uint32 immutable public FINALIZATION_DELAY;
 
     /// @dev The contract name identifier used for EIP712 signing.
-    bytes32 immutable internal NAME;
+    bytes32 immutable public NAME;
 
     /// @dev The version identifier used for EIP712 signing.
-    bytes32 immutable internal VERSION;
+    bytes32 immutable public VERSION;
 
     /////////////
     // Storage //
@@ -91,6 +91,11 @@ contract Fuel {
     /// @param minimum Minimum Ethereum block number that this commitment is valid for.
     /// @param minimumHash Minimum Ethereum block hash that this commitment is valid for.
     /// @param height Rollup block height.
+    /// @param previousBlockHash This is the previous merkle root.
+    /// @param merkleTreeRoot The transaciton merkle tree root.
+    /// @param transactions The raw transaction data for this block.
+    /// @param digestMerkleRoot The merkle root of the registered digests.
+    /// @param digests The digests being registered.
     /// @dev BlockHandler::commitBlock.
     function commitBlock(
         uint32 minimum,
@@ -136,10 +141,9 @@ contract Fuel {
             );
 
         // Set the new block tip.
-        s_BlockTip = BlockHandler.commitBlock(
+        BlockHandler.commitBlock(
             s_BlockCommitments,
-            blockHeader,
-            s_BlockTip
+            blockHeader
         );
     }
 
@@ -149,18 +153,6 @@ contract Fuel {
     /// @dev Fraudhandler::commitFraudHash
     function commitFraudHash(bytes32 fraudHash) external {
         FraudHandler.commitFraudHash(s_FraudCommitments, fraudHash);
-    }
-
-    /// @notice Withdraw a transaction input from the chain.
-    /// @param txProof The full transaction proof of the finalized withdraw.
-    function withdraw(TransactionProof memory txProof) external {
-        // Handle the withdrawal of the bond.
-        WithdrawalHandler.withdraw(
-            s_BlockCommitments,
-            s_Withdrawals,
-            FINALIZATION_DELAY,
-            txProof
-        );
     }
 
     /// @notice Withdraw the block proposer's bond for a finalized block.

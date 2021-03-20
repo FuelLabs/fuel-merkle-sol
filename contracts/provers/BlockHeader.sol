@@ -2,6 +2,7 @@
 pragma solidity ^0.7.4;
 pragma experimental ABIEncoderV2;
 
+import "../lib/Block.sol";
 import "../types/BlockCommitment.sol";
 import "../types/BlockHeader.sol";
 
@@ -37,7 +38,7 @@ library BlockHeaderProver {
     ) internal view {
         // Block must be known and valid (already committed).
         require(
-            s_BlockCommitments[keccak256(abi.encode(blockHeader))].isInvalid == false,
+            s_BlockCommitments[BlockLib.computeBlockId(blockHeader)].isInvalid == false,
             "block-commitment"
         );
 

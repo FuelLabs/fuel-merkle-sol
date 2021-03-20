@@ -1,5 +1,6 @@
 import { ethers } from "hardhat";
 
+/*
 async function main() {
   const Greeter = await ethers.getContractFactory("Greeter");
   const greeter = await Greeter.deploy("hai");
@@ -13,3 +14,4 @@ main()
     console.error(error); // eslint-disable-line no-console
     process.exit(1);
   });
+*/

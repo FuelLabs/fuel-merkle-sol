@@ -10,6 +10,7 @@
     "lint": "npx solhint contracts/*.sol && npx eslint . && npx markdownlint --ignore node_modules **/*.md",
     "format": "prettier --check \"contracts/**/*.sol\" \"**/*.ts\" \"**/*.md\" \"**/*.yml\"",
     "test": "npx hardhat test",
+    "test-parallel": "npx mocha 'test/**/*.ts' --parallel --require hardhat/register",
     "test-no-compile": "npx hardhat test --no-compile",
     "coverage": "npm run build && npx hardhat coverage --temp artifacts --network coverage"
   },

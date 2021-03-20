@@ -41,12 +41,8 @@ library BlockHandler {
     /// @notice Commits a new rollup block.
     function commitBlock(
         mapping(bytes32 => BlockCommitment) storage s_BlockCommitments,
-        BlockHeader memory blockHeader,
-        uint32 blockTip
-    ) internal returns (uint32 r_blockTip) {
-        // Check that new rollup blocks builds on top of the tip.
-        require(blockHeader.height == blockTip + 1, "block-height");
-
+        BlockHeader memory blockHeader
+    ) internal {
         // Calldata size must be at least as big as the minimum transaction size (44 bytes).
         require(
             blockHeader.length >=
@@ -87,8 +83,5 @@ library BlockHandler {
             blockHeader.producer,
             blockHeader
         );
-
-        // Return new rollup block height as the tip.
-        r_blockTip = blockHeader.height;
     }
 }
