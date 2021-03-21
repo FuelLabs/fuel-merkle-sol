@@ -6,7 +6,6 @@ import "../types/BlockCommitment.sol";
 
 /// @title Fraud proof handler.
 library FraudHandler {
-
     /////////////
     // Events //
     ////////////
@@ -19,7 +18,7 @@ library FraudHandler {
     ///////////////
 
     /// @dev Fraud finalization period. Mitigates miner frontrunning of fraud proofs.
-    uint32 constant internal FRAUD_FINALIZATION_PERIOD = 10;
+    uint32 internal constant FRAUD_FINALIZATION_PERIOD = 10;
 
     /////////////
     // Methods //
@@ -28,11 +27,9 @@ library FraudHandler {
     /// @notice This will commit a fraud hash in storage.
     /// @param s_FraudCommitments the state to be modified by this method.
     /// @param fraudHash the fraud hash of one-time fraud commitment.
-    function commitFraudHash(
-        mapping(address => mapping(bytes32 => uint32))
-            storage s_FraudCommitments,
-        bytes32 fraudHash
-    ) internal {
+    function commitFraudHash(mapping(address => mapping(bytes32 => uint32)) storage s_FraudCommitments, bytes32 fraudHash)
+        internal
+    {
         // Ensure block number downcasing is correct.
         require(uint256(uint32(block.number)) == block.number, "block-number");
 

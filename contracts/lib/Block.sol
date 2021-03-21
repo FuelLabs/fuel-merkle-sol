@@ -4,7 +4,6 @@ pragma solidity ^0.7.4;
 import "../types/BlockHeader.sol";
 
 library BlockLib {
-
     /////////////
     // Methods //
     /////////////

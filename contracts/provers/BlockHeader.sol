@@ -8,7 +8,6 @@ import "../types/BlockHeader.sol";
 
 /// @title Block header sanitizer.
 library BlockHeaderProver {
-
     ///////////
     // Enums //
     ///////////
@@ -37,24 +36,15 @@ library BlockHeaderProver {
         AssertFinalized assertFinalized
     ) internal view {
         // Block must be known and valid (already committed).
-        require(
-            s_BlockCommitments[BlockLib.computeBlockId(blockHeader)].isInvalid == false,
-            "block-commitment"
-        );
+        require(s_BlockCommitments[BlockLib.computeBlockId(blockHeader)].isInvalid == false, "block-commitment");
 
         // Check finalization assertion.
         if (assertFinalized == AssertFinalized.Finalized) {
             // If asserting finalized, block must be finalizable.
-            require(
-                block.number >= blockHeader.blockNumber + finalizationDelay,
-                "not-finalized"
-            );
+            require(block.number >= blockHeader.blockNumber + finalizationDelay, "not-finalized");
         } else if (assertFinalized == AssertFinalized.NotFinalized) {
             // If asserting not finalized, block must not be finalizable.
-            require(
-                block.number < blockHeader.blockNumber + finalizationDelay,
-                "block-finalized"
-            );
+            require(block.number < blockHeader.blockNumber + finalizationDelay, "block-finalized");
         }
     }
 }

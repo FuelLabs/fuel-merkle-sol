@@ -9,16 +9,11 @@ import "../utils/SafeCast.sol";
 /// @notice Uniquely indexes an on-chain ETH or token deposit.
 /// @dev We allow the user to specify the amount, this way you can approve infinite if need be.
 library DepositHandler {
-
     ////////////
     // Events //
     ////////////
 
-    event DepositMade(
-        address indexed account,
-        address indexed token,
-        uint256 amount
-    );
+    event DepositMade(address indexed account, address indexed token, uint256 amount);
 
     /////////////
     // Methods //
@@ -31,8 +26,7 @@ library DepositHandler {
     /// @param amount the amount ot deposit to the owner.
     /// @dev For Ether: require the use of wrapped Ether for simplicity.
     function deposit(
-        mapping(address => mapping(address => mapping(uint32 => uint256)))
-            storage s_Deposit,
+        mapping(address => mapping(address => mapping(uint32 => uint256))) storage s_Deposit,
         address account,
         address sender,
         uint256 amount,
@@ -45,9 +39,7 @@ library DepositHandler {
         uint256 balanceAmount = s_Deposit[account][address(token)][SafeCast.toUint32(block.number)];
 
         // Increase amount.
-        s_Deposit[account][address(token)][SafeCast.toUint32(block.number)] =
-            balanceAmount +
-            amount;
+        s_Deposit[account][address(token)][SafeCast.toUint32(block.number)] = balanceAmount + amount;
 
         // Deposit made.
         emit DepositMade(account, address(token), amount);

@@ -9,19 +9,18 @@ import "../lib/Transaction.sol";
 
 /// @title The Fuel block handler logic.
 library BlockHandler {
-
     ///////////////
     // Constants //
     ///////////////
 
     // Maximum number of transactions in list of transactions.
-    uint32 constant public MAX_TRANSACTIONS_IN_BLOCK = 2048;
+    uint32 public constant MAX_TRANSACTIONS_IN_BLOCK = 2048;
 
     // Maximum size of list of transactions, in bytes.
-    uint32 constant public MAX_BLOCK_SIZE = 32000;
+    uint32 public constant MAX_BLOCK_SIZE = 32000;
 
     // Maximum number of addresses registered in a block.
-    uint32 constant public MAX_BLOCK_DIGESTS = 0xFF;
+    uint32 public constant MAX_BLOCK_DIGESTS = 0xFF;
 
     ////////////
     // Events //
@@ -39,28 +38,17 @@ library BlockHandler {
     /////////////
 
     /// @notice Commits a new rollup block.
-    function commitBlock(
-        mapping(bytes32 => BlockCommitment) storage s_BlockCommitments,
-        BlockHeader memory blockHeader
-    ) internal {
+    function commitBlock(mapping(bytes32 => BlockCommitment) storage s_BlockCommitments, BlockHeader memory blockHeader)
+        internal
+    {
         // Calldata size must be at least as big as the minimum transaction size (44 bytes).
-        require(
-            blockHeader.length >=
-                TransactionLib.TRANSACTION_SIZE_MIN,
-            "transactions-size-underflow"
-        );
+        require(blockHeader.length >= TransactionLib.TRANSACTION_SIZE_MIN, "transactions-size-underflow");
 
         // Calldata max size enforcement (~2M gas / 16 gas per byte/32kb payload target).
-        require(
-            blockHeader.length <= uint256(MAX_BLOCK_SIZE),
-            "transactions-size-overflow"
-        );
+        require(blockHeader.length <= uint256(MAX_BLOCK_SIZE), "transactions-size-overflow");
 
         // Calldata max size enforcement (~2M gas / 16 gas per byte/32kb payload target).
-        require(
-            blockHeader.digestLength < uint256(MAX_BLOCK_DIGESTS),
-            "digest-length-overflow"
-        );
+        require(blockHeader.digestLength < uint256(MAX_BLOCK_DIGESTS), "digest-length-overflow");
 
         // Check caller is not a contract.
         uint256 callerCodeSize;
@@ -77,11 +65,6 @@ library BlockHandler {
         s_BlockCommitments[blockHeader.previousBlockHash].children.push(blockHash);
 
         // Emit the block committed event.
-        emit BlockCommitted(
-            blockHeader.previousBlockHash,
-            blockHeader.height,
-            blockHeader.producer,
-            blockHeader
-        );
+        emit BlockCommitted(blockHeader.previousBlockHash, blockHeader.height, blockHeader.producer, blockHeader);
     }
 }

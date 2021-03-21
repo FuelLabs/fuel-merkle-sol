@@ -16,22 +16,21 @@ import "./provers/BlockHeader.sol";
 /// @notice The Fuel v2.0 Optimistic Rollup.
 /// @dev In this model, the Fuel contract holds all the working state, with libraries providing ORU logic.
 contract Fuel {
-
     ////////////////
     // Immutables //
     ////////////////
 
     /// @dev The Fuel block bond size in wei.
-    uint256 immutable public BOND_SIZE;
+    uint256 public immutable BOND_SIZE;
 
     /// @dev The Fuel block finalization delay in Ethereum block numbers.
-    uint32 immutable public FINALIZATION_DELAY;
+    uint32 public immutable FINALIZATION_DELAY;
 
     /// @dev The contract name identifier used for EIP712 signing.
-    bytes32 immutable public NAME;
+    bytes32 public immutable NAME;
 
     /// @dev The version identifier used for EIP712 signing.
-    bytes32 immutable public VERSION;
+    bytes32 public immutable VERSION;
 
     /////////////
     // Storage //
@@ -41,8 +40,7 @@ contract Fuel {
     mapping(bytes32 => BlockCommitment) public s_BlockCommitments;
 
     /// @dev Maps the depositor address => token address => Ethereum block number => token amount.
-    mapping(address => mapping(address => mapping(uint32 => uint256)))
-        public s_Deposits;
+    mapping(address => mapping(address => mapping(uint32 => uint256))) public s_Deposits;
 
     /// @dev Maps the Ethereum block number => withdrawal hash => is withdrawan bool.
     mapping(uint32 => mapping(bytes32 => bool)) public s_Withdrawals;
@@ -77,14 +75,12 @@ contract Fuel {
     /// @param token Token address.
     /// @param amount The amount to deposit.
     /// @dev DepositHandler::deposit
-    function deposit(address account, address token, uint256 amount) external {
-        DepositHandler.deposit(
-            s_Deposits,
-            msg.sender,
-            account,
-            amount,
-            IERC20(token)
-        );
+    function deposit(
+        address account,
+        address token,
+        uint256 amount
+    ) external {
+        DepositHandler.deposit(s_Deposits, msg.sender, account, amount, IERC20(token));
     }
 
     /// @notice Commit a new block.
@@ -141,29 +137,21 @@ contract Fuel {
             );
 
         // Set the new block tip.
-        BlockHandler.commitBlock(
-            s_BlockCommitments,
-            blockHeader
-        );
+        BlockHandler.commitBlock(s_BlockCommitments, blockHeader);
     }
 
     /// @notice Get a commitment child.
     /// @param blockHash The block has in question.
     /// @param index The child index.
     /// @return child The child block hash.
-    function getBlockCommitmentChild(
-        bytes32 blockHash,
-        uint32 index
-    ) external view returns (bytes32 child) {
+    function getBlockCommitmentChild(bytes32 blockHash, uint32 index) external view returns (bytes32 child) {
         return s_BlockCommitments[blockHash].children[index];
     }
 
     /// @notice Get a commitment number of children.
     /// @param blockHash The block has in question.
     /// @return numChildren The number of children.
-    function getBlockCommitmentNumChildren(
-        bytes32 blockHash
-    ) external view returns (uint256 numChildren) {
+    function getBlockCommitmentNumChildren(bytes32 blockHash) external view returns (uint256 numChildren) {
         return s_BlockCommitments[blockHash].children.length;
     }
 

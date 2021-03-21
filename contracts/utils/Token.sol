@@ -9,7 +9,7 @@ contract Token is ERC20 {
     address public _owner;
 
     /// @notice Constructor.
-    constructor () ERC20("Token", "TKN") {
+    constructor() ERC20("Token", "TKN") {
         _owner = msg.sender;
     }
 

@@ -9,7 +9,6 @@ import "../provers/BlockHeader.sol";
 
 /// @title Withdrawal handler.
 library WithdrawalHandler {
-
     ////////////
     // Events //
     ////////////
@@ -44,7 +43,7 @@ library WithdrawalHandler {
     /// @notice Withdraw a block producer bond from a finalizable block.
     /// @param s_Withdrawals The withdrawal state.
     /// @param bondSize The total bond size.
-    /// @param blockHeader The Fuel block header. 
+    /// @param blockHeader The Fuel block header.
     function bondWithdraw(
         mapping(uint32 => mapping(bytes32 => bool)) storage s_Withdrawals,
         uint256 bondSize,
@@ -60,11 +59,7 @@ library WithdrawalHandler {
         require(blockHeader.producer == msg.sender, "caller-producer");
 
         // Block bond withdrawal must not have been processed yet.
-        require(
-            isWithdrawalProcessed(s_Withdrawals, blockHeight, withdrawalId) ==
-                false,
-            "already-withdrawn"
-        );
+        require(isWithdrawalProcessed(s_Withdrawals, blockHeight, withdrawalId) == false, "already-withdrawn");
 
         // Set withdrawal as processed.
         s_Withdrawals[blockHeight][withdrawalId] = true;
@@ -72,15 +67,7 @@ library WithdrawalHandler {
         // Transfer bond back to block producer.
         payable(blockHeader.producer).transfer(bondSize);
 
-        // Emit a WithdrawalMade event. 
-        emit WithdrawalMade(
-            blockHeader.producer,
-            address(0),
-            bondSize,
-            blockHeight,
-            bytes32(0),
-            0,
-            0
-        );
+        // Emit a WithdrawalMade event.
+        emit WithdrawalMade(blockHeader.producer, address(0), bondSize, blockHeight, bytes32(0), 0, 0);
     }
 }

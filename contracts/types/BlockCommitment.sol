@@ -6,7 +6,6 @@ pragma experimental ABIEncoderV2;
 struct BlockCommitment {
     // These are the commitment children.
     bytes32[] children;
-
     // Default: is zero, for less storage use. This is whether the block is valid.
     bool isInvalid;
 }
