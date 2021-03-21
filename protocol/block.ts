@@ -1,5 +1,5 @@
 import { utils, constants } from "ethers";
-import { hash } from "./cryptography";
+import hash from "./cryptography";
 
 // The BlockHeader structure.
 export interface BlockHeader {

@@ -12,5 +12,9 @@
         "plugin:@typescript-eslint/recommended",
         "prettier",
         "prettier/@typescript-eslint"
-    ]
+    ],
+    "rules": {
+        "no-await-in-loop": 0,
+        "prefer-destructuring": 0
+    }
 }

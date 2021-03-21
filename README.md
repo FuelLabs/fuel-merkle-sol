@@ -7,30 +7,42 @@ The Fuel Solidity smart-contract architecture.
 
 ## Pre Requisities
 
-- [Node.js][5]
+- [Node.js](https://nodejs.org/en/blog/release/v14.0.0/)
 
 ## Install
 
+```sh
     npm install
+```
 
 ## Tasks
 
 Build the project
 
+```sh
     npm run build
+```
 
 Run tests
 
+```sh
     npm test
+```
 
 Lint solidity and typescript code
 
+```sh
     npm run lint
+```
 
 Check file formatting
 
+```sh
     npm run lint
+```
 
 Generate code coverage
 
+```sh
     npm run coverage
+```

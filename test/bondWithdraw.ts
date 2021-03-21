@@ -1,125 +1,51 @@
 import chai from "chai";
 import { ethers } from "hardhat";
 import { solidity } from "ethereum-waffle";
-import { Fuel } from "../typechain/Fuel";
-import { 
-    computeCommitmentHash,
-    computeDigestCommitmentHash,
-    computeBlockId,
-    computeTransactionsLength,
-    EMPTY_BLOCK_ID,
-    BlockHeader,
-} from '../protocol/block';
+import { HarnessObject , setupFuel, produceBlock} from "../protocol/harness";
 
 chai.use(solidity);
 const { expect } = chai;
 
 describe("bondWithdraw", async () => {
-    // The Fuel.
-    let fuel: Fuel;
+    let env: HarnessObject;
 
-    // Constructor Arguments.
-    const finalizationDelay = 100;
-    const bond = ethers.utils.parseEther('1.0');
-    const name = ethers.utils.hexZeroPad(ethers.utils.toUtf8Bytes("Fuel"), 32);
-    const version = ethers.utils.hexZeroPad(ethers.utils.toUtf8Bytes("v2.0"), 32);
-
-    // Nice setup.
     beforeEach(async () => {
-        // Factory.
-        const fuelFactory = await ethers.getContractFactory("Fuel");
-
-        // Deployment.
-        fuel = (await fuelFactory.deploy(
-            finalizationDelay,
-            bond,
-            name,
-            version,
-        )) as Fuel;
-
-        // Ensure it's finished deployment.
-        await fuel.deployed();
+        env = await setupFuel({});
     });
 
     it("produce a block", async () => {
-        // Block properties.
-        const producer = (await ethers.getSigners())[0].address;
-        const minimum = await ethers.provider.getBlockNumber();
-        const minimumBlock = await ethers.provider.getBlock(minimum);;
-        const minimumHash = minimumBlock.hash;
-        const height = 0;
-        const previousBlockHash = EMPTY_BLOCK_ID;
-        const merkleTreeRoot = ethers.utils.sha256('0xdeadbeaf');
-        const transactions = ethers.utils.hexZeroPad('0x', 500);
-        const digestMerkleRoot = ethers.utils.sha256('0xdeadbeaf');
-        const digests = [
-            ethers.utils.hexZeroPad('0xdead', 32),
-            ethers.utils.hexZeroPad('0xbeaf', 32),
-            ethers.utils.hexZeroPad('0xdeed', 32),
-        ];
-
-        // Commit block to chain.
-        let tx = await fuel.commitBlock(
-            minimum,
-            minimumHash,
-            height,
-            previousBlockHash,
-            merkleTreeRoot,
-            transactions,
-            digestMerkleRoot,
-            digests,
-            {
-                value: bond,
-            },
-        );
-        const receipt = await tx.wait();
-        const blockNumber = receipt.blockNumber;
-
-        const blockHeader:BlockHeader = {
-            producer,
-            previousBlockHash,
-            height,
-            blockNumber,
-            digestCommitmentHash: computeDigestCommitmentHash(digests),
-            digestMerkleRoot,
-            digestLength: digests.length,
-            merkleTreeRoot,
-            commitmentHash: computeCommitmentHash(transactions),
-            length: computeTransactionsLength(transactions),
-        };
-
-        // Compute the block id.
-        const blockHash = computeBlockId(blockHeader);
+        // Produce a block.
+        const block = await produceBlock(env);
 
         // Check for correctness.
-		expect(await fuel.getBlockCommitmentChild(
-            previousBlockHash,
+		expect(await env.fuel.getBlockCommitmentChild(
+            block.blockHeader.previousBlockHash,
             0,
-        )).to.equal(blockHash);
-		expect(await fuel.getBlockCommitmentNumChildren(
-            previousBlockHash,
+        )).to.equal(block.blockId);
+		expect(await env.fuel.getBlockCommitmentNumChildren(
+            block.blockHeader.previousBlockHash,
         )).to.equal(1);
 
         // Mine finalization delay.
-        for (let i = 0; i < finalizationDelay; i++) {
+        for (let i = 0; i < env.constructor.finalizationDelay; i += 1) {
             await ethers.provider.send('evm_mine', []);
         }
 
         // Pre balance of bond poster.
-        const preBalance = await ethers.provider.getBalance(producer);
+        const preBalance = await ethers.provider.getBalance(block.blockHeader.producer);
 
         // Retrieve the bond.
-        const withdrawTx = await fuel.bondWithdraw(blockHeader);
+        const withdrawTx = await env.fuel.bondWithdraw(block.blockHeader);
         const withdrawReceipt = await withdrawTx.wait();
 
         // Post balance.
-        const postBalance = await ethers.provider.getBalance(producer);
+        const postBalance = await ethers.provider.getBalance(block.blockHeader.producer);
 
         // Look for an increase in balance.
         const gasUsed = withdrawReceipt.cumulativeGasUsed
             .mul(withdrawTx.gasPrice);
 
         // Check increase in balance.
-        expect(postBalance).to.equal(preBalance.add(bond).sub(gasUsed));
+        expect(postBalance).to.equal(preBalance.add(env.constructor.bond).sub(gasUsed));
     });
 });

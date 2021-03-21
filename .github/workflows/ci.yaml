@@ -1,4 +1,6 @@
-on: ["push", "pull_request"]
+push:
+  branches:
+    - master
 name: "Continuous Integration"
 jobs:
   build:
@@ -7,7 +9,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: 14.15.4
+          node-version: 14.x
       - run: npm install
       - run: npm run build
       - run: npm test
