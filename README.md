@@ -12,7 +12,7 @@ The Fuel Solidity smart-contract architecture.
 ## Install
 
 ```sh
-    npm install
+npm install
 ```
 
 ## Tasks
@@ -20,29 +20,29 @@ The Fuel Solidity smart-contract architecture.
 Build the project
 
 ```sh
-    npm run build
+npm run build
 ```
 
 Run tests
 
 ```sh
-    npm test
+npm test
 ```
 
 Lint solidity and typescript code
 
 ```sh
-    npm run lint
+npm run lint
 ```
 
 Check file formatting
 
 ```sh
-    npm run lint
+npm run lint
 ```
 
 Generate code coverage
 
 ```sh
-    npm run coverage
+npm run coverage
 ```
