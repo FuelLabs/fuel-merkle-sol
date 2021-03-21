@@ -6,7 +6,7 @@ import "../types/BlockCommitment.sol";
 
 /// @title Fraud proof handler.
 library FraudHandler {
-    /////////////
+    ////////////
     // Events //
     ////////////
 

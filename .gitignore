@@ -4,11 +4,9 @@ node_modules
 coverage
 coverage.json
 
-#Buidler files
+# Hardhat files
 cache
 artifacts
 
 typechain
 yarn-error.log
-
-.vscode
