@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "description": "The Fuel v2.0 Solidity smart contracts.",
   "main": "test/index.js",
+  "private": true,
+  "license" : "Apache-2.0",
   "scripts": {
     "build": "npm run clean && npm run compile",
     "clean": "npx hardhat clean",
