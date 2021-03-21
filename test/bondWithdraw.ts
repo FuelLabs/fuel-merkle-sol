@@ -8,12 +8,13 @@ import {
     computeBlockId,
     computeTransactionsLength,
     EMPTY_BLOCK_ID,
+    BlockHeader,
 } from '../protocol/block';
 
 chai.use(solidity);
 const { expect } = chai;
 
-describe("commitBlock", async () => {
+describe("bondWithdraw", async () => {
     // The Fuel.
     let fuel: Fuel;
 
@@ -74,8 +75,7 @@ describe("commitBlock", async () => {
         const receipt = await tx.wait();
         const blockNumber = receipt.blockNumber;
 
-        // Compute the block id.
-        const blockHash = computeBlockId({
+        const blockHeader:BlockHeader = {
             producer,
             previousBlockHash,
             height,
@@ -86,7 +86,10 @@ describe("commitBlock", async () => {
             merkleTreeRoot,
             commitmentHash: computeCommitmentHash(transactions),
             length: computeTransactionsLength(transactions),
-        });
+        };
+
+        // Compute the block id.
+        const blockHash = computeBlockId(blockHeader);
 
         // Check for correctness.
 		expect(await fuel.getBlockCommitmentChild(
@@ -94,7 +97,29 @@ describe("commitBlock", async () => {
             0,
         )).to.equal(blockHash);
 		expect(await fuel.getBlockCommitmentNumChildren(
-            previousBlockHash
+            previousBlockHash,
         )).to.equal(1);
+
+        // Mine finalization delay.
+        for (let i = 0; i < finalizationDelay; i++) {
+            await ethers.provider.send('evm_mine', []);
+        }
+
+        // Pre balance of bond poster.
+        const preBalance = await ethers.provider.getBalance(producer);
+
+        // Retrieve the bond.
+        const withdrawTx = await fuel.bondWithdraw(blockHeader);
+        const withdrawReceipt = await withdrawTx.wait();
+
+        // Post balance.
+        const postBalance = await ethers.provider.getBalance(producer);
+
+        // Look for an increase in balance.
+        const gasUsed = withdrawReceipt.cumulativeGasUsed
+            .mul(withdrawTx.gasPrice);
+
+        // Check increase in balance.
+        expect(postBalance).to.equal(preBalance.add(bond).sub(gasUsed));
     });
 });

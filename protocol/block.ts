@@ -1,7 +1,8 @@
 import { utils, constants } from "ethers";
+import { hash } from "./cryptography";
 
 // The BlockHeader structure.
-interface BlockHeader {
+export interface BlockHeader {
     producer: string;
     previousBlockHash: string;
     height: number;
@@ -54,12 +55,12 @@ export function computeTransactionsLength(transactions: string): number {
 
 // Compute commitment hash.
 export function computeCommitmentHash(transactions: string): string {
-    return utils.sha256(transactions);
+    return hash(transactions);
 }
 
 // Compute digest commitment hash.
 export function computeDigestCommitmentHash(digests: Array<string>): string {
-    return utils.sha256(utils.solidityPack(
+    return hash(utils.solidityPack(
         [ 'bytes32[]' ],
         [ digests ],
     ));
@@ -67,5 +68,5 @@ export function computeDigestCommitmentHash(digests: Array<string>): string {
 
 // Compute the blockId.
 export function computeBlockId(blockHeader: BlockHeader): string {
-    return utils.sha256(serialize(blockHeader));
+    return hash(serialize(blockHeader));
 }

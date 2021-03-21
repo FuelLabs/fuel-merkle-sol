@@ -147,6 +147,26 @@ contract Fuel {
         );
     }
 
+    /// @notice Get a commitment child.
+    /// @param blockHash The block has in question.
+    /// @param index The child index.
+    /// @return child The child block hash.
+    function getBlockCommitmentChild(
+        bytes32 blockHash,
+        uint32 index
+    ) external view returns (bytes32 child) {
+        return s_BlockCommitments[blockHash].children[index];
+    }
+
+    /// @notice Get a commitment number of children.
+    /// @param blockHash The block has in question.
+    /// @return numChildren The number of children.
+    function getBlockCommitmentNumChildren(
+        bytes32 blockHash
+    ) external view returns (uint256 numChildren) {
+        return s_BlockCommitments[blockHash].children.length;
+    }
+
     /// @notice Register a fraud commitment hash.
     /// @param fraudHash The hash of the calldata used for a fraud commitment.
     /// @dev Uses the message sender (caller()) in the commitment.

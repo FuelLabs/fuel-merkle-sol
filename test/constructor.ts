@@ -1,7 +1,7 @@
 import chai from "chai";
 import { ethers } from "hardhat";
 import { solidity } from "ethereum-waffle";
-import { Fuel } from "../typechain/Fuel";
+import { Fuel } from "../typechain/Fuel.d";
 
 chai.use(solidity);
 const { expect } = chai;
