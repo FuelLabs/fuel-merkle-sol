@@ -6,8 +6,12 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /// @notice This token is for testing purposes.
 contract Token is ERC20 {
+    address public _owner;
+
     /// @notice Constructor.
-    constructor () ERC20("Token", "TKN") {}
+    constructor () ERC20("Token", "TKN") {
+        _owner = msg.sender;
+    }
 
     /// @notice This is a simple mint function.
     /// @param owner The owner of the token.

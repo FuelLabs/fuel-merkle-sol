@@ -21,7 +21,7 @@ describe("deposit", async () => {
     let token: Token;
 
     // Signer.
-    let signer = (await ethers.getSigners())[0].address;
+    let signer = "";
 
     // Initial token amount
     const initialTokenAmount = ethers.utils.parseEther('1000');
@@ -51,6 +51,9 @@ describe("deposit", async () => {
         // Ensure it's finished deployment.
         await token.deployed();
 
+        // Set signer.
+        signer = (await ethers.getSigners())[0].address;
+
         // Mint token to the first signer.
         await token.mint(signer, initialTokenAmount);
     });
@@ -60,6 +63,9 @@ describe("deposit", async () => {
     });
 
     it("make a deposit with the token", async () => {
+        // Approve the Fuel contract.
+        await token.approve(fuel.address, initialTokenAmount);
+
         // Make a deposit.
         await fuel.deposit(signer, token.address, initialTokenAmount);
 
