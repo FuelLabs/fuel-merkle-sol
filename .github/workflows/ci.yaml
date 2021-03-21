@@ -1,6 +1,4 @@
-push:
-  branches:
-    - master
+on: ["push", "pull_request"]
 name: "Continuous Integration"
 jobs:
   build:
