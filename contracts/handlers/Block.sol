@@ -16,8 +16,8 @@ library BlockHandler {
     // Maximum number of transactions in list of transactions.
     uint32 public constant MAX_TRANSACTIONS_IN_BLOCK = 2048;
 
-    // Maximum number of addresses registered in a block.
-    uint32 public constant MAX_BLOCK_DIGESTS = 0xFF;
+    // Maximum number of digests registered in a block (2 bytes).
+    uint32 public constant MAX_BLOCK_DIGESTS = 0xFFFF;
 
     ////////////
     // Events //
