@@ -41,7 +41,7 @@ export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
   const finalizationDelay = opts.finalizationDelay || 100;
   const bond = ethers.utils.parseEther("1.0");
   const name = ethers.utils.hexZeroPad(ethers.utils.toUtf8Bytes("Fuel"), 32);
-  const version = ethers.utils.hexZeroPad(ethers.utils.toUtf8Bytes("v2.0"), 32);
+  const version = ethers.utils.hexZeroPad(ethers.utils.toUtf8Bytes("v2"), 32);
 
   // Initial token amount
   const initialTokenAmount = ethers.utils.parseEther("1000");
