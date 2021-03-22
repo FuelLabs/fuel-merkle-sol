@@ -3,8 +3,8 @@
 import { ethers } from "hardhat";
 import { BigNumberish, Signer } from "ethers";
 import { TransactionReceipt } from "@ethersproject/abstract-provider";
-import { Fuel } from "../typechain/Fuel";
-import { Token } from "../typechain/Token";
+import { Fuel } from "../typechain/Fuel.d";
+import { Token } from "../typechain/Token.d";
 import {
   computeCommitmentHash,
   computeDigestCommitmentHash,
