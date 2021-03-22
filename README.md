@@ -38,7 +38,7 @@ npm run lint
 Check file formatting
 
 ```sh
-npm run lint
+npm run format
 ```
 
 Generate code coverage
