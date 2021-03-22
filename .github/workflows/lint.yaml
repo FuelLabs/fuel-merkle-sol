@@ -5,7 +5,7 @@ on:
   pull_request:
     branches:
       - "**" # matches every branch
-name: "Continuous Integration"
+name: "Linting and Formatting"
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,6 +15,5 @@ jobs:
         with:
           node-version: 14.x
       - run: npm install
-      - run: npm run build
       - run: npm run lint
       - run: npm run format
