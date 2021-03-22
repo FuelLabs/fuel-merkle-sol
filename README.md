@@ -3,7 +3,7 @@
 ![ci](https://github.com/fuellabs/fuel-sol/workflows/Continuous%20Integration/badge.svg?branch=master)
 [![codecov](https://codecov.io/gh/fuellabs/fuel-sol/branch/master/graph/badge.svg?token=FVXeaaBA3d)](https://codecov.io/gh/fuellabs/fuel-sol)
 
-The Fuel Solidity smart-contract architecture.
+The Fuel Solidity smart contract architecture.
 
 ## Pre Requisities
 
