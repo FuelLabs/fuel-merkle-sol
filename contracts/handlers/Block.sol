@@ -39,7 +39,7 @@ library BlockHandler {
         internal
     {
         // Calldata max size enforcement (~2M gas / 16 gas per byte/32kb payload target).
-        require(blockHeader.length <= uint256(MAX_BLOCK_SIZE), "transactions-size-overflow");
+        require(blockHeader.transactionLength <= MAX_TRANSACTIONS_IN_BLOCK, "transactions-size-overflow");
 
         // Calldata max size enforcement (~2M gas / 16 gas per byte/32kb payload target).
         require(blockHeader.digestLength < uint256(MAX_BLOCK_DIGESTS), "digest-length-overflow");
