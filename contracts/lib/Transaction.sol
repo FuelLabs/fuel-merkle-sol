@@ -6,9 +6,6 @@ library TransactionLib {
     // Constants //
     ///////////////
 
-    /// @dev Minimum transaction size in bytes.
-    uint256 internal constant TRANSACTION_SIZE_MIN = 44;
-
     /// @dev Maximum transaction size in bytes.
     uint256 internal constant TRANSACTION_SIZE_MAX = 21000;
 
