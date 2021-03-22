@@ -92,7 +92,7 @@ export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
   };
 }
 
-// The block object containing pertinant block info.
+// The block object containing pertinent block info.
 export interface HarnessBlock {
   blockId: string;
   digests: Array<string>;
