@@ -16,9 +16,6 @@ library BlockHandler {
     // Maximum number of transactions in list of transactions.
     uint32 public constant MAX_TRANSACTIONS_IN_BLOCK = 2048;
 
-    // Maximum size of list of transactions, in bytes.
-    uint32 public constant MAX_BLOCK_SIZE = 32000;
-
     // Maximum number of addresses registered in a block.
     uint32 public constant MAX_BLOCK_DIGESTS = 0xFF;
 
