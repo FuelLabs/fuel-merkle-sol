@@ -5,7 +5,7 @@ on:
   pull_request:
     branches:
       - "**" # matches every branch
-name: "Continuous Integration"
+name: "Node.js Tests and Coverage"
 jobs:
   build:
     runs-on: ubuntu-latest

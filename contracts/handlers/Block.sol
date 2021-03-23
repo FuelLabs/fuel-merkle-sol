@@ -13,13 +13,10 @@ library BlockHandler {
     // Constants //
     ///////////////
 
-    // Maximum number of transactions in list of transactions.
-    uint32 public constant MAX_TRANSACTIONS_IN_BLOCK = 2048;
+    // Maximum raw transaction data size in bytes.
+    uint32 public constant MAX_TRANSACTION_IN_BLOCK = 32000;
 
-    // The maximum size of the raw compressed transaction data in bytes.
-    uint32 public constant MAX_BLOCK_SIZE = 32000;
-
-    // Maximum number of digests registered in a block (2 bytes).
+    // Maximum number of digests registered in a block.
     uint32 public constant MAX_BLOCK_DIGESTS = 0xFFFF;
 
     ////////////
@@ -44,7 +41,7 @@ library BlockHandler {
     ) internal {
         // Ensure the amount of transaction data is below the max block bound.
         require(
-            blockHeader.transactionLength <= uint256(MAX_BLOCK_SIZE),
+            blockHeader.transactionLength <= uint256(MAX_TRANSACTION_IN_BLOCK),
             "transactions-size-overflow"
         );
 
