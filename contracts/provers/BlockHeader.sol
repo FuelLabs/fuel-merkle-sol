@@ -36,7 +36,10 @@ library BlockHeaderProver {
         AssertFinalized assertFinalized
     ) internal view {
         // Block must be known and valid (already committed).
-        require(s_BlockCommitments[BlockLib.computeBlockId(blockHeader)].isInvalid == false, "block-commitment");
+        require(
+            s_BlockCommitments[BlockLib.computeBlockId(blockHeader)].isInvalid == false,
+            "block-commitment"
+        );
 
         // Check finalization assertion.
         if (assertFinalized == AssertFinalized.Finalized) {

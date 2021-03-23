@@ -59,7 +59,10 @@ library WithdrawalHandler {
         require(blockHeader.producer == msg.sender, "caller-producer");
 
         // Block bond withdrawal must not have been processed yet.
-        require(isWithdrawalProcessed(s_Withdrawals, blockHeight, withdrawalId) == false, "already-withdrawn");
+        require(
+            isWithdrawalProcessed(s_Withdrawals, blockHeight, withdrawalId) == false,
+            "already-withdrawn"
+        );
 
         // Set withdrawal as processed.
         s_Withdrawals[blockHeight][withdrawalId] = true;
@@ -68,6 +71,14 @@ library WithdrawalHandler {
         payable(blockHeader.producer).transfer(bondSize);
 
         // Emit a WithdrawalMade event.
-        emit WithdrawalMade(blockHeader.producer, address(0), bondSize, blockHeight, bytes32(0), 0, 0);
+        emit WithdrawalMade(
+            blockHeader.producer,
+            address(0),
+            bondSize,
+            blockHeight,
+            bytes32(0),
+            0,
+            0
+        );
     }
 }

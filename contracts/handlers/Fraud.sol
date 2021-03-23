@@ -27,9 +27,10 @@ library FraudHandler {
     /// @notice This will commit a fraud hash in storage.
     /// @param s_FraudCommitments the state to be modified by this method.
     /// @param fraudHash the fraud hash of one-time fraud commitment.
-    function commitFraudHash(mapping(address => mapping(bytes32 => uint32)) storage s_FraudCommitments, bytes32 fraudHash)
-        internal
-    {
+    function commitFraudHash(
+        mapping(address => mapping(bytes32 => uint32)) storage s_FraudCommitments,
+        bytes32 fraudHash
+    ) internal {
         // Ensure block number downcasing is correct.
         require(uint256(uint32(block.number)) == block.number, "block-number");
 
