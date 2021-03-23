@@ -2,6 +2,7 @@
 pragma solidity ^0.7.4;
 
 import "../types/BlockHeader.sol";
+import "./Cryptography.sol";
 
 library BlockLib {
     /////////////
@@ -18,12 +19,12 @@ library BlockLib {
             header.previousBlockHash,
             header.height,
             header.blockNumber,
-            header.digestCommitmentHash,
-            header.digestMerkleRoot,
+            header.digestRoot,
+            header.digestHash,
             header.digestLength,
-            header.merkleTreeRoot,
+            header.transactionRoot,
             header.commitmentHash,
-            header.length
+            header.transactionLength
         );
     }
 
@@ -31,6 +32,6 @@ library BlockLib {
     /// @param header The block header structure.
     /// @return blockHash The returned block header hash.
     function computeBlockId(BlockHeader memory header) internal pure returns (bytes32 blockHash) {
-        return sha256(serialize(header));
+        return CryptographyLib.hash(serialize(header));
     }
 }

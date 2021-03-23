@@ -3,7 +3,7 @@
     {
       "files": "*.sol",
       "options": {
-        "printWidth": 125,
+        "printWidth": 100,
         "tabWidth": 4,
         "useTabs": false,
         "singleQuote": false,
@@ -12,17 +12,19 @@
       }
     },
     {
-      "files": ["*.js"],
+      "files": ["*.js", "*.ts"],
       "options": {
         "printWidth": 100,
         "semi": true,
+        "tabWidth": 4,
+        "useTabs": false,
         "singleQuote": true,
         "bracketSpacing": true,
         "trailingComma": "es5"
       }
     },
     {
-      "files": ["*.js", "*.json"],
+      "files": ["*.js", "*.ts", "*.json"],
       "options": {
         "useTabs": true
       }

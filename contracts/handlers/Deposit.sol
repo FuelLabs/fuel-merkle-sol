@@ -33,6 +33,7 @@ library DepositHandler {
         IERC20 token
     ) internal {
         // Ensure the funds are transfered over.
+        // TODO: ensure re-entrancy modelling is done and has no negative effects.
         require(token.transferFrom(sender, address(this), amount), "deposit-transfer");
 
         // Get the balance amount from state.

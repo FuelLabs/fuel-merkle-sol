@@ -10,6 +10,7 @@ import "./handlers/Block.sol";
 import "./handlers/Fraud.sol";
 import "./handlers/Withdrawal.sol";
 
+import "./lib/Cryptography.sol";
 import "./types/BlockCommitment.sol";
 import "./provers/BlockHeader.sol";
 
@@ -88,9 +89,9 @@ contract Fuel {
     /// @param minimumHash Minimum Ethereum block hash that this commitment is valid for.
     /// @param height Rollup block height.
     /// @param previousBlockHash This is the previous merkle root.
-    /// @param merkleTreeRoot The transaciton merkle tree root.
+    /// @param transactionRoot The transaciton merkle tree root.
     /// @param transactions The raw transaction data for this block.
-    /// @param digestMerkleRoot The merkle root of the registered digests.
+    /// @param digestRoot The merkle root of the registered digests.
     /// @param digests The digests being registered.
     /// @dev BlockHandler::commitBlock.
     function commitBlock(
@@ -98,9 +99,9 @@ contract Fuel {
         bytes32 minimumHash,
         uint32 height,
         bytes32 previousBlockHash,
-        bytes32 merkleTreeRoot,
+        bytes32 transactionRoot,
         bytes calldata transactions,
-        bytes32 digestMerkleRoot,
+        bytes32 digestRoot,
         bytes32[] calldata digests
     ) external payable {
         // Check origin.
@@ -116,10 +117,10 @@ contract Fuel {
 
         // Transactions packed together in a single bytes store.
         bytes memory packedTransactions = abi.encodePacked(transactions);
-        bytes32 commitmentHash = sha256(packedTransactions);
+        bytes32 commitmentHash = CryptographyLib.hash(packedTransactions);
 
         // Digest commitment hash.
-        bytes32 digestCommitmentHash = sha256(abi.encodePacked(digests));
+        bytes32 digestHash = CryptographyLib.hash(abi.encodePacked(digests));
 
         // Create a Fuel block header.
         BlockHeader memory blockHeader =
@@ -128,10 +129,10 @@ contract Fuel {
                 previousBlockHash,
                 height,
                 SafeCast.toUint32(block.number),
-                digestCommitmentHash,
-                digestMerkleRoot,
+                digestRoot,
+                digestHash,
                 SafeCast.toUint16(digests.length),
-                merkleTreeRoot,
+                transactionRoot,
                 commitmentHash,
                 SafeCast.toUint32(packedTransactions.length)
             );

@@ -16,6 +16,9 @@ library BlockHandler {
     // Maximum number of transactions in list of transactions.
     uint32 public constant MAX_TRANSACTIONS_IN_BLOCK = 2048;
 
+    // The maximum size of the raw compressed transaction data in bytes.
+    uint32 public constant MAX_BLOCK_SIZE = 32000;
+
     // Maximum number of digests registered in a block (2 bytes).
     uint32 public constant MAX_BLOCK_DIGESTS = 0xFFFF;
 
@@ -35,22 +38,18 @@ library BlockHandler {
     /////////////
 
     /// @notice Commits a new rollup block.
-    function commitBlock(mapping(bytes32 => BlockCommitment) storage s_BlockCommitments, BlockHeader memory blockHeader)
-        internal
-    {
-        // Calldata max size enforcement (~2M gas / 16 gas per byte/32kb payload target).
-        require(blockHeader.length <= uint256(MAX_BLOCK_SIZE), "transactions-size-overflow");
+    function commitBlock(
+        mapping(bytes32 => BlockCommitment) storage s_BlockCommitments,
+        BlockHeader memory blockHeader
+    ) internal {
+        // Ensure the amount of transaction data is below the max block bound.
+        require(
+            blockHeader.transactionLength <= uint256(MAX_BLOCK_SIZE),
+            "transactions-size-overflow"
+        );
 
-        // Calldata max size enforcement (~2M gas / 16 gas per byte/32kb payload target).
+        // Ensure the digest length is below the max digest bound.
         require(blockHeader.digestLength < uint256(MAX_BLOCK_DIGESTS), "digest-length-overflow");
-
-        // Check caller is not a contract.
-        uint256 callerCodeSize;
-        address producer = blockHeader.producer;
-        assembly {
-            callerCodeSize := extcodesize(producer)
-        }
-        require(callerCodeSize == 0, "is-contract");
 
         // Block hash.
         bytes32 blockHash = BlockLib.computeBlockId(blockHeader);
@@ -59,6 +58,11 @@ library BlockHandler {
         s_BlockCommitments[blockHeader.previousBlockHash].children.push(blockHash);
 
         // Emit the block committed event.
-        emit BlockCommitted(blockHeader.previousBlockHash, blockHeader.height, blockHeader.producer, blockHeader);
+        emit BlockCommitted(
+            blockHeader.previousBlockHash,
+            blockHeader.height,
+            blockHeader.producer,
+            blockHeader
+        );
     }
 }
