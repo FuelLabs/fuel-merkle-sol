@@ -46,3 +46,11 @@ Generate code coverage
 ```sh
 npm run coverage
 ```
+
+## License
+
+The primary license for this repo is `Apache-2.0`, see [`LICENSE`](./LICENSE).
+
+### Exceptions
+
+- [`SafeCast.sol`](./contracts/utils/SafeCast.sol) is licensed under `MIT` (as indicated in the SPDX header) by [OpenZeppelin](https://github.com/OpenZeppelin/openzeppelin-contracts).
