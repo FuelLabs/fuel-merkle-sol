@@ -1,5 +1,8 @@
 # Fuel Solidity Contracts
 
+<!-- Disable markdownlint for long lines. -->
+<!-- markdownlint-disable-file MD013 -->
+
 ![ci](https://github.com/fuellabs/fuel-sol/workflows/Node.js%20Tests%20and%20Coverage/badge.svg?branch=master)
 [![codecov](https://codecov.io/gh/fuellabs/fuel-sol/branch/master/graph/badge.svg?token=FVXeaaBA3d)](https://codecov.io/gh/fuellabs/fuel-sol)
 
@@ -46,3 +49,11 @@ Generate code coverage
 ```sh
 npm run coverage
 ```
+
+## License
+
+The primary license for this repo is `Apache-2.0`, see [`LICENSE`](./LICENSE).
+
+### Exceptions
+
+- [`SafeCast.sol`](./contracts/utils/SafeCast.sol) is licensed under `MIT` (as indicated in the SPDX header) by [OpenZeppelin](https://github.com/OpenZeppelin/openzeppelin-contracts).
