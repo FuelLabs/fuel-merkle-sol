@@ -14,7 +14,7 @@ struct BlockHeader {
     uint32 blockNumber;
     // Digest registry merkle root.
     bytes32 digestRoot;
-    // Digest registry commitment hashes.
+    // Hash of digests registered in this block.
     bytes32 digestHash;
     // The length of the provided digests.
     uint16 digestLength;
