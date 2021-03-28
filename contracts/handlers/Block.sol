@@ -39,7 +39,7 @@ library BlockHandler {
         mapping(bytes32 => BlockCommitment) storage s_BlockCommitments,
         BlockHeader memory blockHeader
     ) internal {
-        // Ensure the amount of transaction data is below the max block bound.
+        // Ensure at most a maximum number of transactions can be posted.
         require(
             blockHeader.transactionLength <= uint256(MAX_TRANSACTION_IN_BLOCK),
             "transactions-size-overflow"
