@@ -12,7 +12,7 @@ struct BlockHeader {
     uint32 height;
     // Ethereum block number when this rollup block is committed.
     uint32 blockNumber;
-    // Digest registry merkle root.
+    // Merkle root of digests registered in this block.
     bytes32 digestRoot;
     // Hash of digests registered in this block.
     bytes32 digestHash;
