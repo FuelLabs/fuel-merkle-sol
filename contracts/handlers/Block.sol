@@ -13,7 +13,7 @@ library BlockHandler {
     // Constants //
     ///////////////
 
-    // Maximum raw transaction data size in bytes.
+    // Maximum number of transactions in a block.
     uint32 public constant MAX_TRANSACTION_IN_BLOCK = 32000;
 
     // Maximum number of digests registered in a block.
