@@ -18,7 +18,7 @@ struct BlockHeader {
     bytes32 digestHash;
     // The number of registered digests.
     uint16 digestLength;
-    // The merkle root of a binary merkle tree, where the leafs are hashes of the uncompressed transactions.
+    // The Merkle root of a binary Merkle tree, where the leaves are the expanded transactions.
     bytes32 transactionRoot;
     // Simple hash of list of transactions.
     bytes32 commitmentHash;
