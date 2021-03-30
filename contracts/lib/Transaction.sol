@@ -42,6 +42,6 @@ library TransactionLib {
     /// @dev Maximum number of static contracts.
     uint64 internal constant MAX_STATIC_CONTRACTS = 256;
 
-    /// @dev  Max witnesses.
+    /// @dev Max witnesses.
     uint64 internal constant MAX_WITNESSES = 16;
 }
