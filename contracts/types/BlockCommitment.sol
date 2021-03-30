@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 
 /// @notice BlockCommitment structure.
 struct BlockCommitment {
-    // These are the commitment children.
+    // The direct children to this block. Only at most one can be finalized.
     bytes32[] children;
     // Default: is zero, for less storage use. This is whether the block is valid.
     bool isInvalid;
