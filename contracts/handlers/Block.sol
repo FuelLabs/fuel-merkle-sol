@@ -51,7 +51,7 @@ library BlockHandler {
         // Block hash.
         bytes32 blockHash = BlockLib.computeBlockId(blockHeader);
 
-        // Store block commitment.
+        // Store block commitment as the latest direct child of the claimed parent.
         s_BlockCommitments[blockHeader.previousBlockHash].children.push(blockHash);
 
         // Emit the block committed event.
