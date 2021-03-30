@@ -2,10 +2,25 @@
 pragma solidity ^0.7.4;
 pragma experimental ABIEncoderV2;
 
+/// @dev The block commitment status.
+enum BlockCommitmentStatus {
+    // The block has not been committed.
+    NotCommitted,
+
+    // The block commitment is committed has been submitted and is valid.
+    Committed,
+
+    // The block commitment is in dispute.
+    Disputed,
+
+    // The block commitment is deemed invalid.
+    Invalid
+}
+
 /// @notice BlockCommitment structure.
 struct BlockCommitment {
     // These are the commitment children.
     bytes32[] children;
-    // Default: is zero, for less storage use. This is whether the block is valid.
-    bool isInvalid;
+    // The status of the block commitment.
+    BlockCommitmentStatus status;
 }

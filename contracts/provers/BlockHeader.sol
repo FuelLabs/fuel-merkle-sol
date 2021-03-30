@@ -27,7 +27,9 @@ library BlockHeaderProver {
     /////////////
 
     /// @notice Prove a block header.
-    /// @param blockHeader The block header.
+    /// @param s_BlockCommitments The block commitments storage pointer.
+    /// @param finalizationDelay The block finalization delay.
+    /// @param blockHeader The block header structure in memory.
     /// @param assertFinalized Enum flag of if the block should be finalized.
     function proveBlockHeader(
         mapping(bytes32 => BlockCommitment) storage s_BlockCommitments,
@@ -37,7 +39,7 @@ library BlockHeaderProver {
     ) internal view {
         // Block must be known and valid (already committed).
         require(
-            s_BlockCommitments[BlockLib.computeBlockId(blockHeader)].isInvalid == false,
+            s_BlockCommitments[BlockLib.computeBlockId(blockHeader)].status == BlockCommitmentStatus.Committed,
             "block-commitment"
         );
 

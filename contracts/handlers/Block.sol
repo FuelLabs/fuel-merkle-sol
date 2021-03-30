@@ -14,6 +14,7 @@ library BlockHandler {
     ///////////////
 
     // Maximum raw transaction data size in bytes.
+    // TODO: switch to MAX_COMPRESSED_TX_BYTES
     uint32 public constant MAX_TRANSACTION_IN_BLOCK = 32000;
 
     // Maximum number of digests registered in a block.
@@ -39,20 +40,32 @@ library BlockHandler {
         mapping(bytes32 => BlockCommitment) storage s_BlockCommitments,
         BlockHeader memory blockHeader
     ) internal {
-        // Ensure the amount of transaction data is below the max block bound.
+        // Require that the amount of transaction data is below the max block bound.
         require(
             blockHeader.transactionLength <= uint256(MAX_TRANSACTION_IN_BLOCK),
             "transactions-size-overflow"
         );
 
-        // Ensure the digest length is below the max digest bound.
+        // Require that the digest length is below the max digest bound.
         require(blockHeader.digestLength < uint256(MAX_BLOCK_DIGESTS), "digest-length-overflow");
+        
+        // Require that genesis previous block is an empty hash.
+        require(blockHeader.height > 0 || blockHeader.previousBlockHash == bytes32(0), "genesis");
 
-        // Block hash.
-        bytes32 blockHash = BlockLib.computeBlockId(blockHeader);
+        // Require that the previous block is committed and valid.
+        require(s_BlockCommitments[blockHeader.previousBlockHash].status == BlockCommitmentStatus.Committed, "previous-block");
+
+        // Compute the block id.
+        bytes32 blockId = BlockLib.computeBlockId(blockHeader);
+
+        // Require that the current block is not committed.
+        require(s_BlockCommitments[blockId].status == BlockCommitmentStatus.NotCommitted, "committed");
+
+        // Set this block commitment to valid.
+        s_BlockCommitments[blockId].status = BlockCommitmentStatus.Committed;
 
         // Store block commitment.
-        s_BlockCommitments[blockHeader.previousBlockHash].children.push(blockHash);
+        s_BlockCommitments[blockHeader.previousBlockHash].children.push(blockId);
 
         // Emit the block committed event.
         emit BlockCommitted(

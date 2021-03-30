@@ -24,6 +24,7 @@ library DepositHandler {
     /// @param account the owner of the funds in Fuel.
     /// @param sender the sender of the funds in Fuel.
     /// @param amount the amount ot deposit to the owner.
+    /// @param token the ERC20 token address of this deposit.
     /// @dev For Ether: require the use of wrapped Ether for simplicity.
     function deposit(
         mapping(address => mapping(address => mapping(uint32 => uint256))) storage s_Deposit,
@@ -32,19 +33,21 @@ library DepositHandler {
         uint256 amount,
         IERC20 token
     ) internal {
+        // Safley downcast the current uint256 Ethereum block number to a uint32.
+        uint32 blockNumber = SafeCast.toUint32(block.number);
+
         // Ensure the funds are transfered over.
         // TODO: ensure re-entrancy modelling is done and has no negative effects.
         require(token.transferFrom(sender, address(this), amount), "deposit-transfer");
 
         // Get the balance amount from state.
-        uint256 balanceAmount = s_Deposit[account][address(token)][SafeCast.toUint32(block.number)];
+        uint256 balanceAmount = s_Deposit[account][address(token)][blockNumber];
 
         // Increase amount.
-        s_Deposit[account][address(token)][SafeCast.toUint32(block.number)] =
+        s_Deposit[account][address(token)][blockNumber] =
             balanceAmount +
             amount;
 
-        // Deposit made.
         emit DepositMade(account, address(token), amount);
     }
 }
