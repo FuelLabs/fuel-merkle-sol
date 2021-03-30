@@ -12,7 +12,7 @@ library TransactionLib {
     /// @dev Empty leaf hash default value.
     bytes32 internal constant EMPTY_LEAF_HASH = bytes32(0);
 
-    /// @dev  Gas charged per byte of the transaction.
+    /// @dev Gas charged per byte of the transaction.
     uint64 internal constant GAS_PER_BYTE = 1;
 
     /// @dev Maximum gas per transaction.
