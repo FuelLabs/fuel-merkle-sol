@@ -19,7 +19,7 @@ enum BlockCommitmentStatus {
 
 /// @notice BlockCommitment structure.
 struct BlockCommitment {
-    // These are the commitment children.
+    // The direct children to this block. Only at most one can be finalized.
     bytes32[] children;
     // The status of the block commitment.
     BlockCommitmentStatus status;

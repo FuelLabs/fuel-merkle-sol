@@ -23,9 +23,9 @@ library DepositHandler {
     /// @param s_Deposit the internal storage being changed by the logic.
     /// @param account the owner of the funds in Fuel.
     /// @param sender the sender of the funds in Fuel.
-    /// @param amount the amount ot deposit to the owner.
+    /// @param amount the amount to deposit to the owner.
     /// @param token the ERC20 token address of this deposit.
-    /// @dev For Ether: require the use of wrapped Ether for simplicity.
+    /// @dev Deposits of ETH are not supported, instead use e.g. WETH.
     function deposit(
         mapping(address => mapping(address => mapping(uint32 => uint256))) storage s_Deposit,
         address account,
@@ -48,6 +48,7 @@ library DepositHandler {
             balanceAmount +
             amount;
 
+        // Deposit made.
         emit DepositMade(account, address(token), amount);
     }
 }

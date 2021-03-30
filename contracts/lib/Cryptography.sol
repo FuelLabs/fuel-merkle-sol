@@ -9,8 +9,8 @@ library CryptographyLib {
 
     /// @notice The primary hash method for Fuel.
     /// @param data The bytes input data.
-    /// @return result The returned hash result.
-    function hash(bytes memory data) internal pure returns (bytes32 result) {
+    /// @return The returned hash result.
+    function hash(bytes memory data) internal pure returns (bytes32) {
         return sha256(data);
     }
 }

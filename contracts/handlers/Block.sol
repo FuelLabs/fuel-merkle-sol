@@ -14,8 +14,7 @@ library BlockHandler {
     ///////////////
 
     // Maximum raw transaction data size in bytes.
-    // TODO: switch to MAX_COMPRESSED_TX_BYTES
-    uint32 public constant MAX_TRANSACTION_IN_BLOCK = 32000;
+    uint32 public constant MAX_COMPRESSED_TX_BYTES = 32000;
 
     // Maximum number of digests registered in a block.
     uint32 public constant MAX_BLOCK_DIGESTS = 0xFFFF;
@@ -40,9 +39,9 @@ library BlockHandler {
         mapping(bytes32 => BlockCommitment) storage s_BlockCommitments,
         BlockHeader memory blockHeader
     ) internal {
-        // Require that the amount of transaction data is below the max block bound.
+        // Ensure at most a maximum number of transactions can be posted.
         require(
-            blockHeader.transactionLength <= uint256(MAX_TRANSACTION_IN_BLOCK),
+            blockHeader.transactionLength <= uint256(MAX_COMPRESSED_TX_BYTES),
             "transactions-size-overflow"
         );
 
@@ -64,10 +63,9 @@ library BlockHandler {
         // Set this block commitment to valid.
         s_BlockCommitments[blockId].status = BlockCommitmentStatus.Committed;
 
-        // Store block commitment.
+        // Store block commitment as the latest direct child of the claimed parent.
         s_BlockCommitments[blockHeader.previousBlockHash].children.push(blockId);
 
-        // Emit the block committed event.
         emit BlockCommitted(
             blockHeader.previousBlockHash,
             blockHeader.height,

@@ -30,8 +30,8 @@ library BlockLib {
 
     /// @notice Produce the Block header ID.
     /// @param header The block header structure.
-    /// @return blockHash The returned block header hash.
-    function computeBlockId(BlockHeader memory header) internal pure returns (bytes32 blockHash) {
+    /// @return The returned block header hash.
+    function computeBlockId(BlockHeader memory header) internal pure returns (bytes32) {
         return CryptographyLib.hash(serialize(header));
     }
 }
