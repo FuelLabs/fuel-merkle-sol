@@ -44,7 +44,6 @@ library DepositHandler {
             balanceAmount +
             amount;
 
-        // Deposit made.
         emit DepositMade(account, address(token), amount);
     }
 }
