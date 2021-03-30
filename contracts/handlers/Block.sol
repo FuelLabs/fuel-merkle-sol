@@ -54,7 +54,6 @@ library BlockHandler {
         // Store block commitment as the latest direct child of the claimed parent.
         s_BlockCommitments[blockHeader.previousBlockHash].children.push(blockHash);
 
-        // Emit the block committed event.
         emit BlockCommitted(
             blockHeader.previousBlockHash,
             blockHeader.height,
