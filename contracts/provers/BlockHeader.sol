@@ -39,7 +39,8 @@ library BlockHeaderProver {
     ) internal view {
         // Block must be known and valid (already committed).
         require(
-            s_BlockCommitments[BlockLib.computeBlockId(blockHeader)].status == BlockCommitmentStatus.Committed,
+            s_BlockCommitments[BlockLib.computeBlockId(blockHeader)].status ==
+                BlockCommitmentStatus.Committed,
             "block-commitment"
         );
 

@@ -6,13 +6,10 @@ pragma experimental ABIEncoderV2;
 enum BlockCommitmentStatus {
     // The block has not been committed.
     NotCommitted,
-
     // The block commitment is committed has been submitted and is valid.
     Committed,
-
     // The block commitment is in dispute.
     Disputed,
-
     // The block commitment is deemed invalid.
     Invalid
 }

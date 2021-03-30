@@ -44,9 +44,7 @@ library DepositHandler {
         uint256 balanceAmount = s_Deposit[account][address(token)][blockNumber];
 
         // Increase amount.
-        s_Deposit[account][address(token)][blockNumber] =
-            balanceAmount +
-            amount;
+        s_Deposit[account][address(token)][blockNumber] = balanceAmount + amount;
 
         // Deposit made.
         emit DepositMade(account, address(token), amount);

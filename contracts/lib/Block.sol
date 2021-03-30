@@ -14,18 +14,19 @@ library BlockLib {
     /// @return The returned serialized block header.
     function serialize(BlockHeader memory header) internal pure returns (bytes memory) {
         // Encode packed.
-        return abi.encodePacked(
-            header.producer,
-            header.previousBlockHash,
-            header.height,
-            header.blockNumber,
-            header.digestRoot,
-            header.digestHash,
-            header.digestLength,
-            header.transactionRoot,
-            header.commitmentHash,
-            header.transactionLength
-        );
+        return
+            abi.encodePacked(
+                header.producer,
+                header.previousBlockHash,
+                header.height,
+                header.blockNumber,
+                header.digestRoot,
+                header.digestHash,
+                header.digestLength,
+                header.transactionRoot,
+                header.commitmentHash,
+                header.transactionLength
+            );
     }
 
     /// @notice Produce the Block header ID.
