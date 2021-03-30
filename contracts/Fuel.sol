@@ -116,7 +116,7 @@ contract Fuel {
         require(msg.value == BOND_SIZE, "bond-size");
 
         // Transactions packed together in a single bytes store.
-        bytes memory packedTransactions = abi.encodePacked(transactions);
+        bytes memory packedTransactions = transactions;
         bytes32 commitmentHash = CryptographyLib.hash(packedTransactions);
 
         // Digest commitment hash.
