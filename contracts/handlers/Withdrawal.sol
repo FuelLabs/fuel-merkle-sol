@@ -70,7 +70,6 @@ library WithdrawalHandler {
         // Transfer bond back to block producer.
         payable(blockHeader.producer).transfer(bondSize);
 
-        // Emit a WithdrawalMade event.
         emit WithdrawalMade(
             blockHeader.producer,
             address(0),
