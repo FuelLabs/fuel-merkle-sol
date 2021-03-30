@@ -11,10 +11,10 @@ library BlockLib {
 
     /// @notice Serialize a block header.
     /// @param header The block header structure.
-    /// @return data The returned serialized block header.
-    function serialize(BlockHeader memory header) internal pure returns (bytes memory data) {
+    /// @return The returned serialized block header.
+    function serialize(BlockHeader memory header) internal pure returns (bytes memory) {
         // Encode packed.
-        data = abi.encodePacked(
+        return abi.encodePacked(
             header.producer,
             header.previousBlockHash,
             header.height,
