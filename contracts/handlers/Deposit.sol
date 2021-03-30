@@ -24,7 +24,7 @@ library DepositHandler {
     /// @param account the owner of the funds in Fuel.
     /// @param sender the sender of the funds in Fuel.
     /// @param amount the amount to deposit to the owner.
-    /// @dev For Ether: require the use of wrapped Ether for simplicity.
+    /// @dev Deposits of ETH are not supported, instead use e.g. WETH.
     function deposit(
         mapping(address => mapping(address => mapping(uint32 => uint256))) storage s_Deposit,
         address account,
