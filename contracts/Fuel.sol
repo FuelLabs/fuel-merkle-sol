@@ -1,204 +1,170 @@
 // SPDX-License-Identifier: Apache-2.0
+pragma solidity ^0.7.4;
+pragma experimental ABIEncoderV2;
 
-pragma solidity >=0.8.0 <0.9.0;
-pragma abicoder v2;
+import "./utils/SafeCast.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "./AddressHandler.sol";
-import "./BlockHandler.sol";
-import "./DepositHandler.sol";
-import "./FraudHandler.sol";
-import "./RootHandler.sol";
-import "./WithdrawalHandler.sol";
-import "./WitnessHandler.sol";
-import "./sanitizers/BlockHeader.sol";
-import "./sanitizers/TransactionProof.sol";
-import "./types/BlockHeader.sol";
-import "./types/TransactionProof.sol";
+import "./handlers/Deposit.sol";
+import "./handlers/Block.sol";
+import "./handlers/Fraud.sol";
+import "./handlers/Withdrawal.sol";
 
-/// @title Fuel optimistic rollup top-level contract
+import "./lib/Cryptography.sol";
+import "./types/BlockCommitment.sol";
+import "./provers/BlockHeader.sol";
+
+/// @notice The Fuel v2.0 Optimistic Rollup.
+/// @dev In this model, the Fuel contract holds all the working state, with libraries providing ORU logic.
 contract Fuel {
-    ////////////
-    // Events //
-    ////////////
+    ////////////////
+    // Immutables //
+    ////////////////
 
-    event FraudCommitted(
-        uint32 indexed previousTip,
-        uint32 indexed currentTip,
-        uint256 indexed fraudCode
-    );
+    /// @dev The Fuel block bond size in wei.
+    uint256 public immutable BOND_SIZE;
 
-    ///////////////
-    // Constants //
-    ///////////////
+    /// @dev The Fuel block finalization delay in Ethereum block numbers.
+    uint32 public immutable FINALIZATION_DELAY;
 
-    uint32 constant GENESIS_BLOCK_HEIGHT = 0;
-    uint16 constant GENESIS_ROOTS_LENGTH = 0;
-    uint32 constant NUM_ADDRESSES_INIT = 1;
-    uint32 constant NUM_TOKENS_INIT = 1;
+    /// @dev The contract name identifier used for EIP712 signing.
+    bytes32 public immutable NAME;
 
-    uint256 immutable BOND_SIZE;
-    uint256 immutable CHAIN_ID;
-    uint32 immutable FINALIZATION_DELAY;
-    bytes32 immutable NAME;
-    address immutable OPERATOR;
-    uint32 immutable PENALTY_DELAY;
-    uint32 immutable SUBMISSION_DELAY;
-    bytes32 immutable VERSION;
+    /// @dev The version identifier used for EIP712 signing.
+    bytes32 public immutable VERSION;
 
-    ///////////
-    // State //
-    ///////////
+    /////////////
+    // Storage //
+    /////////////
 
-    mapping(address => uint32) public s_Addresses;
-    mapping(uint32 => bytes32) public s_BlockCommitments;
-    uint32 public s_BlockTip;
-    mapping(address => mapping(uint32 => mapping(uint32 => uint256)))
-        public s_Deposits;
-    mapping(address => mapping(bytes32 => uint32)) public s_FraudCommitments;
-    uint32 public s_NumAddresses;
-    uint32 public s_NumTokens;
-    uint32 public s_PenaltyUntil;
-    mapping(bytes32 => uint32) public s_Roots;
-    mapping(address => uint32) public s_Tokens;
+    /// @dev Maps Fuel block number => Fuel block hash.
+    mapping(bytes32 => BlockCommitment) public s_BlockCommitments;
+
+    /// @dev Maps the depositor address => token address => Ethereum block number => token amount.
+    mapping(address => mapping(address => mapping(uint32 => uint256))) public s_Deposits;
+
+    /// @dev Maps the Ethereum block number => withdrawal hash => is withdrawan bool.
     mapping(uint32 => mapping(bytes32 => bool)) public s_Withdrawals;
-    mapping(address => mapping(uint32 => bytes32)) public s_Witnesses;
 
-    /////////////////
-    // Constructor //
-    /////////////////
+    /// @dev Maps the fraud commiter address => Fraud commitment hash => Ethereum block number.
+    mapping(address => mapping(bytes32 => uint32)) public s_FraudCommitments;
 
+    /// @dev The Fuel block tip number.
+    uint32 public s_BlockTip;
+
+    /// @notice The Fuel ORU construction method.
+    /// @dev This will setup the Fuel ORU system.
+    /// @param finalizationDelay The delay in block time for Fuel block finalization.
+    /// @param bond The bond in Ether put up for each block.
+    /// @param name The name string used for EIP712 signing.
+    /// @param version The version used for EIP712 signing.
     constructor(
-        address operator,
         uint32 finalizationDelay,
-        uint32 submissionDelay,
-        uint32 penaltyDelay,
         uint256 bond,
         bytes32 name,
-        bytes32 version,
-        uint256 chainId,
-        bytes32 genesis
+        bytes32 version
     ) {
-        // Implicitly commit genesis block
-        s_BlockCommitments[GENESIS_BLOCK_HEIGHT] = genesis;
-        emit BlockHandler.BlockCommitted(
-            operator,
-            NUM_TOKENS_INIT,
-            NUM_ADDRESSES_INIT,
-            genesis,
-            GENESIS_BLOCK_HEIGHT,
-            new bytes32[](0)
-        );
-
-        // Set constants
+        // Set immutable constants.
         BOND_SIZE = bond;
-        CHAIN_ID = chainId;
         FINALIZATION_DELAY = finalizationDelay;
         NAME = name;
-        OPERATOR = operator;
-        PENALTY_DELAY = penaltyDelay;
-        SUBMISSION_DELAY = submissionDelay;
         VERSION = version;
 
-        // Set storage
-        s_NumAddresses = NUM_ADDRESSES_INIT;
-        s_NumTokens = NUM_TOKENS_INIT;
+        // Set the genesis block to be valid.
+        s_BlockCommitments[bytes32(0)].status = BlockCommitmentStatus.Committed;
     }
-
-    /////////////
-    // Methods //
-    /////////////
 
     /// @notice Deposit a token.
     /// @param account Address of token owner.
     /// @param token Token address.
+    /// @param amount The amount to deposit.
     /// @dev DepositHandler::deposit
-    function deposit(address account, address token) external {
-        s_NumTokens = DepositHandler.deposit(
-            s_Deposits,
-            s_Tokens,
-            s_NumTokens,
-            account,
-            token
-        );
-    }
-
-    /// @notice Commit a new root.
-    /// @param merkleTreeRoot Root of transactions tree.
-    /// @param token Token ID for fee payments for this root.
-    /// @param fee Feerate for this root.
-    /// @param transactions List of transactions.
-    /// @dev RootHandler::commitRoot
-    function commitRoot(
-        bytes32 merkleTreeRoot,
-        uint32 token,
-        uint256 fee,
-        bytes calldata transactions
+    function deposit(
+        address account,
+        address token,
+        uint256 amount
     ) external {
-        RootHandler.commitRoot(
-            s_Roots,
-            s_NumTokens,
-            merkleTreeRoot,
-            token,
-            fee,
-            transactions
-        );
+        DepositHandler.deposit(s_Deposits, msg.sender, account, amount, IERC20(token));
     }
 
     /// @notice Commit a new block.
     /// @param minimum Minimum Ethereum block number that this commitment is valid for.
     /// @param minimumHash Minimum Ethereum block hash that this commitment is valid for.
     /// @param height Rollup block height.
-    /// @param roots List of roots in block.
-    /// @dev BlockHandler::commitBlock
+    /// @param previousBlockHash This is the previous merkle root.
+    /// @param transactionRoot The transaciton merkle tree root.
+    /// @param transactions The raw transaction data for this block.
+    /// @param digestRoot The merkle root of the registered digests.
+    /// @param digests The digests being registered.
+    /// @dev BlockHandler::commitBlock.
     function commitBlock(
         uint32 minimum,
         bytes32 minimumHash,
         uint32 height,
-        bytes32[] calldata roots
+        bytes32 previousBlockHash,
+        bytes32 transactionRoot,
+        bytes calldata transactions,
+        bytes32 digestRoot,
+        bytes32[] calldata digests
     ) external payable {
-        // To avoid Ethereum re-org attacks, commitment transactions include a minimum
-        //  Ethereum block number and block hash. Check will fail if transaction is > 256 block old.
+        // Check transaction origin.
+        require(tx.origin == msg.sender, "origin-not-caller");
+
+        // To avoid Ethereum re-org attacks, commitment transactions include a minimum.
+        // Ethereum block number and block hash. Check will fail if transaction is > 256 block old.
         require(block.number > minimum, "minimum-block-number");
         require(blockhash(minimum) == minimumHash, "minimum-block-hash");
 
-        // Build a BlockHeader object from calldata and state
-        require(uint256(uint32(block.number)) == block.number);
+        // Require value be bond size.
+        require(msg.value == BOND_SIZE, "bond-size");
+
+        // Transactions packed together in a single bytes store.
+        bytes memory packedTransactions = transactions;
+        bytes32 commitmentHash = CryptographyLib.hash(packedTransactions);
+
+        // Digest commitment hash.
+        bytes32 digestHash = CryptographyLib.hash(abi.encodePacked(digests));
+
+        // Create a Fuel block header.
         BlockHeader memory blockHeader =
             BlockHeader(
-                OPERATOR,
-                s_BlockCommitments[height - 1],
+                msg.sender,
+                previousBlockHash,
                 height,
-                uint32(block.number),
-                s_NumTokens,
-                s_NumAddresses,
-                roots
+                SafeCast.toUint32(block.number),
+                digestRoot,
+                digestHash,
+                SafeCast.toUint16(digests.length),
+                transactionRoot,
+                commitmentHash,
+                SafeCast.toUint32(packedTransactions.length)
             );
 
-        s_BlockTip = BlockHandler.commitBlock(
-            s_BlockCommitments,
-            blockHeader,
-            s_BlockTip,
-            BOND_SIZE,
-            s_Roots,
-            SUBMISSION_DELAY,
-            s_PenaltyUntil,
-            roots
-        );
+        // Set the new block tip.
+        BlockHandler.commitBlock(s_BlockCommitments, blockHeader);
     }
 
-    /// @notice Commit a new witness. Used for authorizing rollup transactions via an Ethereum smart contract.
-    /// @param transactionId Transaction ID to authorize.
-    /// @dev WitnessHandler::commitWitness
-    function commitWitness(bytes32 transactionId) external {
-        WitnessHandler.commitWitness(s_Witnesses, transactionId);
+    /// @notice Get a commitment child.
+    /// @param blockHash The block has in question.
+    /// @param index The child index.
+    /// @return child The child block hash.
+    function getBlockCommitmentChild(bytes32 blockHash, uint32 index)
+        external
+        view
+        returns (bytes32 child)
+    {
+        return s_BlockCommitments[blockHash].children[index];
     }
 
-    /// @notice Register a new address for cheaper transactions.
-    /// @param addr Address to register.
-    /// @return New ID assigned to address, or existing ID if already assigned.
-    /// @dev AddressHandler::commitAddress
-    function commitAddress(address addr) external returns (uint32) {
-        return AddressHandler.commitAddress(s_Addresses, s_NumAddresses, addr);
+    /// @notice Get a commitment number of children.
+    /// @param blockHash The block has in question.
+    /// @return numChildren The number of children.
+    function getBlockCommitmentNumChildren(bytes32 blockHash)
+        external
+        view
+        returns (uint256 numChildren)
+    {
+        return s_BlockCommitments[blockHash].children.length;
     }
 
     /// @notice Register a fraud commitment hash.
@@ -209,101 +175,19 @@ contract Fuel {
         FraudHandler.commitFraudHash(s_FraudCommitments, fraudHash);
     }
 
-    //////////////////////////////////////////////////////////////////////////
-    /// FRAUD PROOFS BEGIN
-    //////////////////////////////////////////////////////////////////////////
-
-    /// @notice Prove that a block was malformed.
-    /// @param blockHeader Block header.
-    /// @param rootHeader Full root header.
-    /// @param rootIndex Index to root in block header.
-    /// @param transactions List of transactions committed to in root.
-    /// @dev provers::MalformedBlock::proveMalformedBlock
-    function proveMalformedBlock(
-        bytes calldata blockHeader,
-        bytes calldata rootHeader,
-        uint16 rootIndex,
-        bytes calldata transactions
-    ) external {}
-
-    /// @notice Prove that a transaction was invalid.
-    /// @param transactionProof Proof.
-    /// @dev provers::InvalidTransaction::proveInvalidTransaction
-    function proveInvalidTransaction(TransactionProof calldata transactionProof)
-        external
-    {}
-
-    /// @notice Prove that an input was invalid.
-    /// @param proofA First proof.
-    /// @param proofB Second proof.
-    /// @dev provers::InvalidInput::proveInvalidInput
-    function proveInvalidInput(
-        TransactionProof calldata proofA,
-        TransactionProof calldata proofB
-    ) external {}
-
-    /// @notice Prove that a UTXO was double-spent.
-    /// @param proofA Proof of UTXO being spent once.
-    /// @param proofB Proof of UTXO being spent again.
-    /// @dev provers::DoubleSpend::proveDoubleSpend
-    function proveDoubleSpend(
-        TransactionProof calldata proofA,
-        TransactionProof calldata proofB
-    ) external {}
-
-    /// @notice Prove that a witness was invalid.
-    /// @param transactionProof Transaction proof.
-    /// @param inputProofs Input proofs, one per input.
-    /// @dev provers::InvalidWitness::proveInvalidWitness
-    function proveInvalidWitness(
-        TransactionProof calldata transactionProof,
-        TransactionProof[] calldata inputProofs
-    ) external {}
-
-    /// @notice Prove that a transation produced more than it consumed.
-    /// @param transactionProof Transaction proof.
-    /// @param inputProofs Input proofs, one per input.
-    /// @dev provers::InvalidSum::proveInvalidSum
-    function proveInvalidSum(
-        TransactionProof calldata transactionProof,
-        TransactionProof[] calldata inputProofs
-    ) external {}
-
-    //////////////////////////////////////////////////////////////////////////
-    /// FRAUD PROOFS END
-    //////////////////////////////////////////////////////////////////////////
-
-    /// @notice Complete a withdrawal.
-    /// @param proof Inclusion proof for withdrawal on the rollup chain.
-    /// @dev WithdrawalHandler::withdraw
-    function withdraw(TransactionProof calldata proof) external {
-        TransactionProofSanitizer.sanitizeTransactionProof(
-            s_BlockCommitments,
-            FINALIZATION_DELAY,
-            proof,
-            BlockHeaderSanitizer.AssertFinalized.Finalized
-        );
-
-        (TransactionLeaf memory transactionLeaf, bool success) =
-            TransactionLeafHelper.parseTransactionLeaf(
-                proof.transactionLeafBytes
-            );
-        require(success);
-
-        WithdrawalHandler.withdraw(s_Withdrawals, transactionLeaf, proof);
-    }
-
     /// @notice Withdraw the block proposer's bond for a finalized block.
     /// @param blockHeader Rollup block header of block to withdraw bond for.
     /// @dev WithdrawalHandler::bondWithdraw
     function bondWithdraw(BlockHeader calldata blockHeader) external {
-        BlockHeaderSanitizer.sanitizeBlockHeader(
+        // Ensure that the block header provided is real.
+        BlockHeaderProver.proveBlockHeader(
             s_BlockCommitments,
             FINALIZATION_DELAY,
             blockHeader,
-            BlockHeaderSanitizer.AssertFinalized.Finalized
+            BlockHeaderProver.AssertFinalized.Finalized
         );
 
+        // Handle the withdrawal of the bond.
         WithdrawalHandler.bondWithdraw(s_Withdrawals, BOND_SIZE, blockHeader);
     }
 }
