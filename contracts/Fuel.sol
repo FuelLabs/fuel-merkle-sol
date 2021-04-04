@@ -118,7 +118,7 @@ contract Fuel {
         require(block.number > minimumNumber, "minimum-block-number");
         require(blockhash(minimumNumber) == expectedHash, "expected-block-hash");
 
-        // Value be exactly bond size.
+        // Sent value must be exactly bond size.
         require(msg.value == BOND_SIZE, "bond-size");
 
         // Compute the simple hash of the submitted transactions. If this
