@@ -19,10 +19,10 @@ describe('bondWithdraw', async () => {
 
 		// Check for correctness.
 		expect(
-			await env.fuel.getBlockCommitmentChild(block.blockHeader.previousBlockHash, 0)
+			await env.fuel.getBlockChildAt(block.blockHeader.previousBlockHash, 0)
 		).to.equal(block.blockId);
 		expect(
-			await env.fuel.getBlockCommitmentNumChildren(block.blockHeader.previousBlockHash)
+			await env.fuel.getBlockNumChildren(block.blockHeader.previousBlockHash)
 		).to.equal(1);
 
 		// Mine finalization delay.
