@@ -90,7 +90,7 @@ contract Fuel {
 
     /// @notice Commit a new block.
     /// @param minimumNumber Minimum Ethereum block number that this commitment is valid for.
-    /// @param minimumHash Minimum Ethereum block hash that this commitment is valid for.
+    /// @param expectedHash Ethereum block hash that this commitment is valid for.
     /// @param height Rollup block height.
     /// @param previousBlockHash This is the previous merkle root.
     /// @param transactionRoot The transaction merkle tree root.
@@ -100,7 +100,7 @@ contract Fuel {
     /// @dev BlockHandler::commitBlock
     function commitBlock(
         uint32 minimumNumber,
-        bytes32 minimumHash,
+        bytes32 expectedHash,
         uint32 height,
         bytes32 previousBlockHash,
         bytes32 transactionRoot,
@@ -112,19 +112,21 @@ contract Fuel {
         // TODO remove this check https://github.com/FuelLabs/fuel-sol/issues/5
         require(tx.origin == msg.sender, "origin-not-caller");
 
-        // To avoid Ethereum re-org attacks, commitment transactions include a minimum.
-        // Ethereum block number and block hash. Check will fail if transaction is > 256 block old.
+        // To avoid Ethereum re-org attacks, commitment transactions include a
+        // minimum Ethereum block number and expected block hash. Check will
+        // fail if transaction is > 256 block old.
         require(block.number > minimumNumber, "minimum-block-number");
-        require(blockhash(minimumNumber) == minimumHash, "minimum-block-hash");
+        require(blockhash(minimumNumber) == expectedHash, "expected-block-hash");
 
-        // Require value be bond size.
+        // Value be exactly bond size.
         require(msg.value == BOND_SIZE, "bond-size");
 
-        // Transactions packed together in a single bytes store.
-        bytes memory packedTransactions = transactions;
-        bytes32 commitmentHash = CryptographyLib.hash(packedTransactions);
+        // Compute the simple hash of the submitted transactions. If this
+        // doesn't match up with the submitted transactions root, it's
+        // fraudulent.
+        bytes32 transactionHash = CryptographyLib.hash(transactions);
 
-        // Digest commitment hash.
+        // Compute the simple hash of the submitted digests.
         bytes32 digestHash = CryptographyLib.hash(abi.encodePacked(digests));
 
         // Create a Fuel block header.
@@ -138,11 +140,11 @@ contract Fuel {
                 digestHash,
                 SafeCast.toUint16(digests.length),
                 transactionRoot,
-                commitmentHash,
-                SafeCast.toUint32(packedTransactions.length)
+                transactionHash,
+                SafeCast.toUint32(transactions.length)
             );
 
-        // Set the new block tip.
+        // Process the new block.
         BlockHandler.commitBlock(s_BlockCommitments, blockHeader);
     }
 
