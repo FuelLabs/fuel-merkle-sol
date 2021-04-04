@@ -108,7 +108,8 @@ contract Fuel {
         bytes32 digestRoot,
         bytes32[] calldata digests
     ) external payable {
-        // Check transaction origin.
+        // Only accept calls directly from an EOA.
+        // TODO remove this check https://github.com/FuelLabs/fuel-sol/issues/5
         require(tx.origin == msg.sender, "origin-not-caller");
 
         // To avoid Ethereum re-org attacks, commitment transactions include a minimum.
