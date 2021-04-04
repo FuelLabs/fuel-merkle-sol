@@ -45,7 +45,7 @@ contract Fuel {
     /// @dev Maps depositor address => token address => Ethereum block number => token amount.
     mapping(address => mapping(address => mapping(uint32 => uint256))) public s_Deposits;
 
-    /// @dev Maps Ethereum block number => withdrawal ID => is withdrawan bool.
+    /// @dev Maps Ethereum block number => withdrawal ID => is withdrawn bool.
     mapping(uint32 => mapping(bytes32 => bool)) public s_Withdrawals;
 
     /// @dev Maps fraud prover address => fraud commitment hash => Ethereum block number.
@@ -89,17 +89,17 @@ contract Fuel {
     }
 
     /// @notice Commit a new block.
-    /// @param minimum Minimum Ethereum block number that this commitment is valid for.
+    /// @param minimumNumber Minimum Ethereum block number that this commitment is valid for.
     /// @param minimumHash Minimum Ethereum block hash that this commitment is valid for.
     /// @param height Rollup block height.
     /// @param previousBlockHash This is the previous merkle root.
-    /// @param transactionRoot The transaciton merkle tree root.
+    /// @param transactionRoot The transaction merkle tree root.
     /// @param transactions The raw transaction data for this block.
     /// @param digestRoot The merkle root of the registered digests.
     /// @param digests The digests being registered.
-    /// @dev BlockHandler::commitBlock.
+    /// @dev BlockHandler::commitBlock
     function commitBlock(
-        uint32 minimum,
+        uint32 minimumNumber,
         bytes32 minimumHash,
         uint32 height,
         bytes32 previousBlockHash,
@@ -113,8 +113,8 @@ contract Fuel {
 
         // To avoid Ethereum re-org attacks, commitment transactions include a minimum.
         // Ethereum block number and block hash. Check will fail if transaction is > 256 block old.
-        require(block.number > minimum, "minimum-block-number");
-        require(blockhash(minimum) == minimumHash, "minimum-block-hash");
+        require(block.number > minimumNumber, "minimum-block-number");
+        require(blockhash(minimumNumber) == minimumHash, "minimum-block-hash");
 
         // Require value be bond size.
         require(msg.value == BOND_SIZE, "bond-size");
@@ -171,7 +171,7 @@ contract Fuel {
     /// @notice Register a fraud commitment hash.
     /// @param fraudHash The hash of the calldata used for a fraud commitment.
     /// @dev Uses the message sender (caller()) in the commitment.
-    /// @dev Fraudhandler::commitFraudHash
+    /// @dev FraudHandler::commitFraudHash
     function commitFraudHash(bytes32 fraudHash) external {
         FraudHandler.commitFraudHash(s_FraudCommitments, fraudHash);
     }
