@@ -2,17 +2,19 @@
 pragma solidity ^0.7.4;
 pragma experimental ABIEncoderV2;
 
-import "./utils/SafeCast.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "./handlers/Deposit.sol";
 import "./handlers/Block.sol";
+import "./handlers/BlockHeader.sol";
+import "./handlers/Deposit.sol";
 import "./handlers/Fraud.sol";
 import "./handlers/Withdrawal.sol";
 
 import "./lib/Cryptography.sol";
+
 import "./types/BlockCommitment.sol";
-import "./provers/BlockHeader.sol";
+
+import "./utils/SafeCast.sol";
 
 /// @notice The Fuel v2.0 Optimistic Rollup.
 /// @dev In this model, the Fuel contract holds all the working state, with libraries providing ORU logic.
