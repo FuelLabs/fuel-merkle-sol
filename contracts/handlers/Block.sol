@@ -45,8 +45,8 @@ library BlockHandler {
             "transactions-size-overflow"
         );
 
-        // Require that the digest length is below the max digest bound.
-        require(blockHeader.digestLength < uint256(MAX_BLOCK_DIGESTS), "digest-length-overflow");
+        // Require that the digest length is at most the max digest bound.
+        require(blockHeader.digestLength <= uint256(MAX_BLOCK_DIGESTS), "digest-length-overflow");
 
         // Require that genesis previous block is an empty hash.
         require(blockHeader.height > 0 || blockHeader.previousBlockHash == bytes32(0), "genesis");
