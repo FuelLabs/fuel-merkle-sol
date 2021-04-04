@@ -24,7 +24,7 @@ library BlockLib {
                 header.digestHash,
                 header.digestLength,
                 header.transactionRoot,
-                header.commitmentHash,
+                header.transactionHash,
                 header.transactionLength
             );
     }

@@ -6,8 +6,8 @@ import { TransactionReceipt } from '@ethersproject/abstract-provider';
 import { Fuel } from '../typechain/Fuel.d';
 import { Token } from '../typechain/Token.d';
 import {
-	computeCommitmentHash,
-	computedigestHash,
+	computeTransactionsHash,
+	computeDigestHash,
 	computeBlockId,
 	computeTransactionsLength,
 	EMPTY_BLOCK_ID,
@@ -137,10 +137,10 @@ export async function produceBlock(env: HarnessObject): Promise<HarnessBlock> {
 		height,
 		blockNumber,
 		digestRoot,
-		digestHash: computedigestHash(digests),
+		digestHash: computeDigestHash(digests),
 		digestLength: digests.length,
 		transactionRoot,
-		commitmentHash: computeCommitmentHash(transactions),
+		transactionHash: computeTransactionsHash(transactions),
 		transactionLength: computeTransactionsLength(transactions),
 	};
 

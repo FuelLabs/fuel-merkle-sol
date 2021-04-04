@@ -11,7 +11,7 @@ export interface BlockHeader {
 	digestHash: string;
 	digestLength: number;
 	transactionRoot: string;
-	commitmentHash: string;
+	transactionHash: string;
 	transactionLength: number;
 }
 
@@ -39,7 +39,7 @@ export function serialize(blockHeader: BlockHeader): string {
 			blockHeader.digestHash,
 			blockHeader.digestLength,
 			blockHeader.transactionRoot,
-			blockHeader.commitmentHash,
+			blockHeader.transactionHash,
 			blockHeader.transactionLength,
 		]
 	);
@@ -53,13 +53,13 @@ export function computeTransactionsLength(transactions: string): number {
 	return utils.hexDataLength(transactions);
 }
 
-// Compute commitment hash.
-export function computeCommitmentHash(transactions: string): string {
+// Compute transactions hash.
+export function computeTransactionsHash(transactions: string): string {
 	return hash(transactions);
 }
 
-// Compute digest commitment hash.
-export function computedigestHash(digests: Array<string>): string {
+// Compute digest hash.
+export function computeDigestHash(digests: Array<string>): string {
 	return hash(utils.solidityPack(['bytes32[]'], [digests]));
 }
 
