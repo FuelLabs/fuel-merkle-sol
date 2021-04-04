@@ -3,6 +3,7 @@ pragma solidity ^0.7.4;
 pragma experimental ABIEncoderV2;
 
 import "../types/BlockCommitment.sol";
+import "../utils/SafeCast.sol";
 
 /// @title Fraud proof handler.
 library FraudHandler {
@@ -31,10 +32,10 @@ library FraudHandler {
         mapping(address => mapping(bytes32 => uint32)) storage s_FraudCommitments,
         bytes32 fraudHash
     ) internal {
-        // Ensure block number downcasing is correct.
-        require(uint256(uint32(block.number)) == block.number, "block-number");
+        // Safely down-cast the current uint256 Ethereum block number to a uint32.
+        uint32 blockNumber = SafeCast.toUint32(block.number);
 
         // Commit this fraud hash.
-        s_FraudCommitments[msg.sender][fraudHash] = uint32(block.number);
+        s_FraudCommitments[msg.sender][fraudHash] = blockNumber;
     }
 }

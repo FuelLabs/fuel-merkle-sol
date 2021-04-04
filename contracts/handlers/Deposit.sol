@@ -33,10 +33,10 @@ library DepositHandler {
         uint256 amount,
         IERC20 token
     ) internal {
-        // Safley downcast the current uint256 Ethereum block number to a uint32.
+        // Safely down-cast the current uint256 Ethereum block number to a uint32.
         uint32 blockNumber = SafeCast.toUint32(block.number);
 
-        // Ensure the funds are transfered over.
+        // Ensure the funds are transferred over.
         // TODO: ensure re-entrancy modelling is done and has no negative effects.
         require(token.transferFrom(sender, address(this), amount), "deposit-transfer");
 
