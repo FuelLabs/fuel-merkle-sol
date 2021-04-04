@@ -16,8 +16,8 @@ import "./types/BlockCommitment.sol";
 
 import "./utils/SafeCast.sol";
 
-/// @notice The Fuel v2.0 Optimistic Rollup.
-/// @dev In this model, the Fuel contract holds all the working state, with libraries providing ORU logic.
+/// @notice The Fuel v2 optimistic rollup system.
+/// @dev This contract holds storage and immutable fields, with libraries providing the logic.
 contract Fuel {
     ////////////////
     // Immutables //
@@ -26,7 +26,7 @@ contract Fuel {
     /// @dev The Fuel block bond size in wei.
     uint256 public immutable BOND_SIZE;
 
-    /// @dev The Fuel block finalization delay in Ethereum block numbers.
+    /// @dev The Fuel block finalization delay in Ethereum block.
     uint32 public immutable FINALIZATION_DELAY;
 
     /// @dev The contract name identifier used for EIP712 signing.
@@ -39,25 +39,24 @@ contract Fuel {
     // Storage //
     /////////////
 
-    /// @dev Maps Fuel block number => Fuel block hash.
+    /// @dev Maps Fuel block height => Fuel block ID.
     mapping(bytes32 => BlockCommitment) public s_BlockCommitments;
 
-    /// @dev Maps the depositor address => token address => Ethereum block number => token amount.
+    /// @dev Maps depositor address => token address => Ethereum block number => token amount.
     mapping(address => mapping(address => mapping(uint32 => uint256))) public s_Deposits;
 
-    /// @dev Maps the Ethereum block number => withdrawal hash => is withdrawan bool.
+    /// @dev Maps Ethereum block number => withdrawal ID => is withdrawan bool.
     mapping(uint32 => mapping(bytes32 => bool)) public s_Withdrawals;
 
-    /// @dev Maps the fraud commiter address => Fraud commitment hash => Ethereum block number.
+    /// @dev Maps fraud prover address => fraud commitment hash => Ethereum block number.
     mapping(address => mapping(bytes32 => uint32)) public s_FraudCommitments;
 
-    /// @dev The Fuel block tip number.
+    /// @dev The Fuel block height of the finalized tip.
     uint32 public s_BlockTip;
 
-    /// @notice The Fuel ORU construction method.
-    /// @dev This will setup the Fuel ORU system.
-    /// @param finalizationDelay The delay in block time for Fuel block finalization.
-    /// @param bond The bond in Ether put up for each block.
+    /// @notice Contract constructor.
+    /// @param finalizationDelay The delay in blocks for Fuel block finalization.
+    /// @param bond The bond in wei to put up for each block.
     /// @param name The name string used for EIP712 signing.
     /// @param version The version used for EIP712 signing.
     constructor(
