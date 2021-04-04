@@ -20,9 +20,18 @@ library BlockHeaderHandler {
         mapping(bytes32 => BlockCommitment) storage s_BlockCommitments,
         BlockHeader memory blockHeader
     ) internal view returns (bool) {
-        return
-            s_BlockCommitments[BlockLib.computeBlockId(blockHeader)].status !=
-            BlockCommitmentStatus.NotCommitted;
+        return isBlockCommitted(s_BlockCommitments, BlockLib.computeBlockId(blockHeader));
+    }
+
+    /// @notice Check if a block header has been committed.
+    /// @param s_BlockCommitments The block commitments storage pointer.
+    /// @param blockId The block header structure in memory.
+    /// @return True if block header has been committed, false otherwise.
+    function isBlockCommitted(
+        mapping(bytes32 => BlockCommitment) storage s_BlockCommitments,
+        bytes32 blockId
+    ) internal view returns (bool) {
+        return s_BlockCommitments[blockId].status != BlockCommitmentStatus.NotCommitted;
     }
 
     /// @notice Assert that a block header is finalizable.
