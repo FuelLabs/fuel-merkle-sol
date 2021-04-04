@@ -182,12 +182,11 @@ contract Fuel {
     /// @dev WithdrawalHandler::bondWithdraw
     function bondWithdraw(BlockHeader calldata blockHeader) external {
         // Ensure that the block header provided is real.
-        BlockHeaderProver.proveBlockHeader(
-            s_BlockCommitments,
-            FINALIZATION_DELAY,
-            blockHeader,
-            BlockHeaderProver.AssertFinalized.Finalized
+        require(
+            BlockHeaderHandler.isBlockHeaderCommitted(s_BlockCommitments, blockHeader),
+            "not-committed"
         );
+        BlockHeaderHandler.requireBlockHeaderFinalizable(FINALIZATION_DELAY, blockHeader);
 
         // Handle the withdrawal of the bond.
         WithdrawalHandler.bondWithdraw(s_Withdrawals, BOND_SIZE, blockHeader);
