@@ -2,6 +2,7 @@
 pragma solidity ^0.7.4;
 pragma experimental ABIEncoderV2;
 
+import "./BlockHeader.sol";
 import "../types/BlockCommitment.sol";
 import "../types/BlockHeader.sol";
 import "../lib/Block.sol";
@@ -39,35 +40,31 @@ library BlockHandler {
         mapping(bytes32 => BlockCommitment) storage s_BlockCommitments,
         BlockHeader memory blockHeader
     ) internal {
-        // Ensure at most a maximum number of transactions can be posted.
+        // Bound maximum number of bytes for compressed transactions.
         require(
             blockHeader.transactionLength <= uint256(MAX_COMPRESSED_TX_BYTES),
             "transactions-size-overflow"
         );
 
-        // Require that the digest length is below the max digest bound.
-        require(blockHeader.digestLength < uint256(MAX_BLOCK_DIGESTS), "digest-length-overflow");
+        // Require that the digest length is at most the max digest bound.
+        require(blockHeader.digestLength <= uint256(MAX_BLOCK_DIGESTS), "digest-length-overflow");
 
         // Require that genesis previous block is an empty hash.
         require(blockHeader.height > 0 || blockHeader.previousBlockHash == bytes32(0), "genesis");
 
-        // Require that the previous block is committed and valid.
+        // Require that the previous block was committed.
         require(
-            s_BlockCommitments[blockHeader.previousBlockHash].status ==
-                BlockCommitmentStatus.Committed,
-            "previous-block"
+            BlockHeaderHandler.isBlockCommitted(s_BlockCommitments, blockHeader.previousBlockHash),
+            "not-committed"
         );
 
-        // Compute the block id.
+        // Compute the block ID.
         bytes32 blockId = BlockLib.computeBlockId(blockHeader);
 
         // Require that the current block is not committed.
-        require(
-            s_BlockCommitments[blockId].status == BlockCommitmentStatus.NotCommitted,
-            "committed"
-        );
+        require(!BlockHeaderHandler.isBlockCommitted(s_BlockCommitments, blockId), "committed");
 
-        // Set this block commitment to valid.
+        // Set this block as committed.
         s_BlockCommitments[blockId].status = BlockCommitmentStatus.Committed;
 
         // Store block commitment as the latest direct child of the claimed parent.

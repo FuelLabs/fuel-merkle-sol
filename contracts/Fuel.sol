@@ -16,8 +16,8 @@ import "./types/BlockCommitment.sol";
 
 import "./utils/SafeCast.sol";
 
-/// @notice The Fuel v2.0 Optimistic Rollup.
-/// @dev In this model, the Fuel contract holds all the working state, with libraries providing ORU logic.
+/// @notice The Fuel v2 optimistic rollup system.
+/// @dev This contract holds storage and immutable fields, with libraries providing the logic.
 contract Fuel {
     ////////////////
     // Immutables //
@@ -26,7 +26,7 @@ contract Fuel {
     /// @dev The Fuel block bond size in wei.
     uint256 public immutable BOND_SIZE;
 
-    /// @dev The Fuel block finalization delay in Ethereum block numbers.
+    /// @dev The Fuel block finalization delay in Ethereum block.
     uint32 public immutable FINALIZATION_DELAY;
 
     /// @dev The contract name identifier used for EIP712 signing.
@@ -39,25 +39,24 @@ contract Fuel {
     // Storage //
     /////////////
 
-    /// @dev Maps Fuel block number => Fuel block hash.
+    /// @dev Maps Fuel block height => Fuel block ID.
     mapping(bytes32 => BlockCommitment) public s_BlockCommitments;
 
-    /// @dev Maps the depositor address => token address => Ethereum block number => token amount.
+    /// @dev Maps depositor address => token address => Ethereum block number => token amount.
     mapping(address => mapping(address => mapping(uint32 => uint256))) public s_Deposits;
 
-    /// @dev Maps the Ethereum block number => withdrawal hash => is withdrawan bool.
+    /// @dev Maps Ethereum block number => withdrawal ID => is withdrawn bool.
     mapping(uint32 => mapping(bytes32 => bool)) public s_Withdrawals;
 
-    /// @dev Maps the fraud commiter address => Fraud commitment hash => Ethereum block number.
+    /// @dev Maps fraud prover address => fraud commitment hash => Ethereum block number.
     mapping(address => mapping(bytes32 => uint32)) public s_FraudCommitments;
 
-    /// @dev The Fuel block tip number.
+    /// @dev The Fuel block height of the finalized tip.
     uint32 public s_BlockTip;
 
-    /// @notice The Fuel ORU construction method.
-    /// @dev This will setup the Fuel ORU system.
-    /// @param finalizationDelay The delay in block time for Fuel block finalization.
-    /// @param bond The bond in Ether put up for each block.
+    /// @notice Contract constructor.
+    /// @param finalizationDelay The delay in blocks for Fuel block finalization.
+    /// @param bond The bond in wei to put up for each block.
     /// @param name The name string used for EIP712 signing.
     /// @param version The version used for EIP712 signing.
     constructor(
@@ -90,18 +89,18 @@ contract Fuel {
     }
 
     /// @notice Commit a new block.
-    /// @param minimum Minimum Ethereum block number that this commitment is valid for.
-    /// @param minimumHash Minimum Ethereum block hash that this commitment is valid for.
+    /// @param minimumNumber Minimum Ethereum block number that this commitment is valid for.
+    /// @param expectedHash Ethereum block hash that this commitment is valid for.
     /// @param height Rollup block height.
     /// @param previousBlockHash This is the previous merkle root.
-    /// @param transactionRoot The transaciton merkle tree root.
+    /// @param transactionRoot The transaction merkle tree root.
     /// @param transactions The raw transaction data for this block.
     /// @param digestRoot The merkle root of the registered digests.
     /// @param digests The digests being registered.
-    /// @dev BlockHandler::commitBlock.
+    /// @dev BlockHandler::commitBlock
     function commitBlock(
-        uint32 minimum,
-        bytes32 minimumHash,
+        uint32 minimumNumber,
+        bytes32 expectedHash,
         uint32 height,
         bytes32 previousBlockHash,
         bytes32 transactionRoot,
@@ -109,22 +108,25 @@ contract Fuel {
         bytes32 digestRoot,
         bytes32[] calldata digests
     ) external payable {
-        // Check transaction origin.
+        // Only accept calls directly from an EOA.
+        // TODO remove this check https://github.com/FuelLabs/fuel-sol/issues/5
         require(tx.origin == msg.sender, "origin-not-caller");
 
-        // To avoid Ethereum re-org attacks, commitment transactions include a minimum.
-        // Ethereum block number and block hash. Check will fail if transaction is > 256 block old.
-        require(block.number > minimum, "minimum-block-number");
-        require(blockhash(minimum) == minimumHash, "minimum-block-hash");
+        // To avoid Ethereum re-org attacks, commitment transactions include a
+        // minimum Ethereum block number and expected block hash. Check will
+        // fail if transaction is > 256 block old.
+        require(block.number > minimumNumber, "minimum-block-number");
+        require(blockhash(minimumNumber) == expectedHash, "expected-block-hash");
 
-        // Require value be bond size.
+        // Sent value must be exactly bond size.
         require(msg.value == BOND_SIZE, "bond-size");
 
-        // Transactions packed together in a single bytes store.
-        bytes memory packedTransactions = transactions;
-        bytes32 commitmentHash = CryptographyLib.hash(packedTransactions);
+        // Compute the simple hash of the submitted transactions. If this
+        // doesn't match up with the submitted transactions root, it's
+        // fraudulent.
+        bytes32 transactionHash = CryptographyLib.hash(transactions);
 
-        // Digest commitment hash.
+        // Compute the simple hash of the submitted digests.
         bytes32 digestHash = CryptographyLib.hash(abi.encodePacked(digests));
 
         // Create a Fuel block header.
@@ -138,41 +140,33 @@ contract Fuel {
                 digestHash,
                 SafeCast.toUint16(digests.length),
                 transactionRoot,
-                commitmentHash,
-                SafeCast.toUint32(packedTransactions.length)
+                transactionHash,
+                SafeCast.toUint32(transactions.length)
             );
 
-        // Set the new block tip.
+        // Process the new block.
         BlockHandler.commitBlock(s_BlockCommitments, blockHeader);
     }
 
-    /// @notice Get a commitment child.
-    /// @param blockHash The block has in question.
+    /// @notice Get a child for a particular block.
+    /// @param blockId The block ID.
     /// @param index The child index.
-    /// @return child The child block hash.
-    function getBlockCommitmentChild(bytes32 blockHash, uint32 index)
-        external
-        view
-        returns (bytes32 child)
-    {
-        return s_BlockCommitments[blockHash].children[index];
+    /// @return The child block hash.
+    function getBlockChildAt(bytes32 blockId, uint32 index) external view returns (bytes32) {
+        return s_BlockCommitments[blockId].children[index];
     }
 
-    /// @notice Get a commitment number of children.
-    /// @param blockHash The block has in question.
-    /// @return numChildren The number of children.
-    function getBlockCommitmentNumChildren(bytes32 blockHash)
-        external
-        view
-        returns (uint256 numChildren)
-    {
-        return s_BlockCommitments[blockHash].children.length;
+    /// @notice Get the number of children for a particular block.
+    /// @param blockId The block ID.
+    /// @return The number of children.
+    function getBlockNumChildren(bytes32 blockId) external view returns (uint256) {
+        return s_BlockCommitments[blockId].children.length;
     }
 
-    /// @notice Register a fraud commitment hash.
+    /// @notice Register a fraud hash.
     /// @param fraudHash The hash of the calldata used for a fraud commitment.
     /// @dev Uses the message sender (caller()) in the commitment.
-    /// @dev Fraudhandler::commitFraudHash
+    /// @dev FraudHandler::commitFraudHash
     function commitFraudHash(bytes32 fraudHash) external {
         FraudHandler.commitFraudHash(s_FraudCommitments, fraudHash);
     }
@@ -181,7 +175,7 @@ contract Fuel {
     /// @param blockHeader Rollup block header of block to withdraw bond for.
     /// @dev WithdrawalHandler::bondWithdraw
     function bondWithdraw(BlockHeader calldata blockHeader) external {
-        // Ensure that the block header provided is real.
+        // Ensure that the block header was previously submitted and is finalizable.
         require(
             BlockHeaderHandler.isBlockHeaderCommitted(s_BlockCommitments, blockHeader),
             "not-committed"
