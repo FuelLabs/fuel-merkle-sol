@@ -21,7 +21,7 @@ struct BlockHeader {
     // The Merkle root of a binary Merkle tree, where the leaves are the expanded transactions.
     bytes32 transactionRoot;
     // Simple hash of list of transactions.
-    bytes32 commitmentHash;
+    bytes32 transactionHash;
     // Number of transactions in this block.
     uint32 transactionLength;
 }
