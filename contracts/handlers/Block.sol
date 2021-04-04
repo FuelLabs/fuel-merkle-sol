@@ -39,7 +39,7 @@ library BlockHandler {
         mapping(bytes32 => BlockCommitment) storage s_BlockCommitments,
         BlockHeader memory blockHeader
     ) internal {
-        // Ensure at most a maximum number of transactions can be posted.
+        // Bound maximum number of bytes for compressed transactions.
         require(
             blockHeader.transactionLength <= uint256(MAX_COMPRESSED_TX_BYTES),
             "transactions-size-overflow"
@@ -58,7 +58,7 @@ library BlockHandler {
             "previous-block"
         );
 
-        // Compute the block id.
+        // Compute the block ID.
         bytes32 blockId = BlockLib.computeBlockId(blockHeader);
 
         // Require that the current block is not committed.
