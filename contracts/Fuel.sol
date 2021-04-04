@@ -148,30 +148,22 @@ contract Fuel {
         BlockHandler.commitBlock(s_BlockCommitments, blockHeader);
     }
 
-    /// @notice Get a commitment child.
-    /// @param blockHash The block has in question.
+    /// @notice Get a child for a particular block.
+    /// @param blockId The block ID.
     /// @param index The child index.
-    /// @return child The child block hash.
-    function getBlockCommitmentChild(bytes32 blockHash, uint32 index)
-        external
-        view
-        returns (bytes32 child)
-    {
-        return s_BlockCommitments[blockHash].children[index];
+    /// @return The child block hash.
+    function getBlockChildAt(bytes32 blockId, uint32 index) external view returns (bytes32) {
+        return s_BlockCommitments[blockId].children[index];
     }
 
-    /// @notice Get a commitment number of children.
-    /// @param blockHash The block has in question.
-    /// @return numChildren The number of children.
-    function getBlockCommitmentNumChildren(bytes32 blockHash)
-        external
-        view
-        returns (uint256 numChildren)
-    {
-        return s_BlockCommitments[blockHash].children.length;
+    /// @notice Get the number of children for a particular block.
+    /// @param blockId The block ID.
+    /// @return The number of children.
+    function getBlockNumChildren(bytes32 blockId) external view returns (uint256) {
+        return s_BlockCommitments[blockId].children.length;
     }
 
-    /// @notice Register a fraud commitment hash.
+    /// @notice Register a fraud hash.
     /// @param fraudHash The hash of the calldata used for a fraud commitment.
     /// @dev Uses the message sender (caller()) in the commitment.
     /// @dev FraudHandler::commitFraudHash
@@ -183,7 +175,7 @@ contract Fuel {
     /// @param blockHeader Rollup block header of block to withdraw bond for.
     /// @dev WithdrawalHandler::bondWithdraw
     function bondWithdraw(BlockHeader calldata blockHeader) external {
-        // Ensure that the block header provided is real.
+        // Ensure that the block header was previously submitted and is finalizable.
         require(
             BlockHeaderHandler.isBlockHeaderCommitted(s_BlockCommitments, blockHeader),
             "not-committed"
