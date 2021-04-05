@@ -30,8 +30,6 @@ export interface HarnessObject {
 	constructor: {
 		finalizationDelay: number;
 		bond: BigNumberish;
-		name: string;
-		version: string;
 	};
 }
 
@@ -40,8 +38,6 @@ export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
 	// Constructor Arguments.
 	const finalizationDelay = opts.finalizationDelay || 100;
 	const bond = ethers.utils.parseEther('1.0');
-	const name = ethers.utils.hexZeroPad(ethers.utils.toUtf8Bytes('Fuel'), 32);
-	const version = ethers.utils.hexZeroPad(ethers.utils.toUtf8Bytes('v2'), 32);
 
 	// Initial token amount
 	const initialTokenAmount = ethers.utils.parseEther('1000');
@@ -50,7 +46,7 @@ export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
 	const fuelFactory = await ethers.getContractFactory('Fuel');
 
 	// Deployment.
-	const fuel: Fuel = (await fuelFactory.deploy(finalizationDelay, bond, name, version)) as Fuel;
+	const fuel: Fuel = (await fuelFactory.deploy(finalizationDelay, bond)) as Fuel;
 
 	// Ensure it's finished deployment.
 	await fuel.deployed();
@@ -81,8 +77,6 @@ export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
 		constructor: {
 			finalizationDelay,
 			bond,
-			name,
-			version,
 		},
 	};
 }

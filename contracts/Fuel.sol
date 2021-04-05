@@ -29,12 +29,6 @@ contract Fuel {
     /// @dev The Fuel block finalization delay in Ethereum block.
     uint32 public immutable FINALIZATION_DELAY;
 
-    /// @dev The contract name identifier used for EIP712 signing.
-    bytes32 public immutable NAME;
-
-    /// @dev The version identifier used for EIP712 signing.
-    bytes32 public immutable VERSION;
-
     /////////////
     // Storage //
     /////////////
@@ -57,19 +51,10 @@ contract Fuel {
     /// @notice Contract constructor.
     /// @param finalizationDelay The delay in blocks for Fuel block finalization.
     /// @param bond The bond in wei to put up for each block.
-    /// @param name The name string used for EIP712 signing.
-    /// @param version The version used for EIP712 signing.
-    constructor(
-        uint32 finalizationDelay,
-        uint256 bond,
-        bytes32 name,
-        bytes32 version
-    ) {
+    constructor(uint32 finalizationDelay, uint256 bond) {
         // Set immutable constants.
         BOND_SIZE = bond;
         FINALIZATION_DELAY = finalizationDelay;
-        NAME = name;
-        VERSION = version;
 
         // Set the genesis block to be valid.
         s_BlockCommitments[bytes32(0)].status = BlockCommitmentStatus.Committed;
