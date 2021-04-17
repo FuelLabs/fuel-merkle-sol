@@ -38,10 +38,16 @@ Lint solidity and typescript code
 npm run lint
 ```
 
-Check file formatting
+Format files 
 
 ```sh
 npm run format
+```
+
+Check file formatting
+
+```sh
+npm run format-check
 ```
 
 Generate code coverage
