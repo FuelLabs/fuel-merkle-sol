@@ -38,7 +38,7 @@ Lint solidity and typescript code
 npm run lint
 ```
 
-Format files 
+Format files
 
 ```sh
 npm run format
