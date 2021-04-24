@@ -8,52 +8,36 @@
 
 The Fuel Solidity smart contract architecture.
 
-## Dependencies
+## Building From Source
 
-- [Node.js](https://nodejs.org/en/blog/release/v14.0.0/)
+### Dependencies
 
-## Install
+| dep     | version                                                  |
+| ------- | -------------------------------------------------------- |
+| Node.js | [>=v14.0.0](https://nodejs.org/en/blog/release/v14.0.0/) |
+
+### Building
+
+Install dependencies:
 
 ```sh
-npm install
+npm ci
 ```
 
-## Tasks
-
-Build the project
+Build and run tests:
 
 ```sh
 npm run build
-```
-
-Run tests
-
-```sh
 npm test
 ```
 
-Lint solidity and typescript code
+## Contributing
 
-```sh
-npm run lint
-```
-
-Format files
+Code must be formatted and linted.
 
 ```sh
 npm run format
-```
-
-Check file formatting
-
-```sh
-npm run format-check
-```
-
-Generate code coverage
-
-```sh
-npm run coverage
+npm run lint
 ```
 
 ## License
