@@ -3,8 +3,8 @@
 <!-- Disable markdownlint for long lines. -->
 <!-- markdownlint-disable-file MD013 -->
 
-![ci](https://github.com/fuellabs/fuel-sol/workflows/Node.js%20Tests%20and%20Coverage/badge.svg?branch=master)
-[![codecov](https://codecov.io/gh/fuellabs/fuel-sol/branch/master/graph/badge.svg?token=FVXeaaBA3d)](https://codecov.io/gh/fuellabs/fuel-sol)
+![ci](https://github.com/fuellabs/fuel-v2-contracts/workflows/Node.js%20Tests%20and%20Coverage/badge.svg?branch=master)
+[![codecov](https://codecov.io/gh/fuellabs/fuel-v2-contracts/branch/master/graph/badge.svg?token=FVXeaaBA3d)](https://codecov.io/gh/fuellabs/fuel-v2-contracts)
 
 The Fuel Solidity smart contract architecture.
 
