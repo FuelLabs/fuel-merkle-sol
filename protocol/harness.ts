@@ -5,6 +5,9 @@ import { BigNumberish, Signer } from 'ethers';
 import { TransactionReceipt } from '@ethersproject/abstract-provider';
 import { Fuel } from '../typechain/Fuel.d';
 import { Token } from '../typechain/Token.d';
+import { DsGuard } from '../typechain/DsGuard.d';
+import { DsToken } from '../typechain/DsToken.d';
+import { PerpetualBurnAuction } from '../typechain/PerpetualBurnAuction.d';
 import {
 	computeTransactionsHash,
 	computeDigestHash,
@@ -23,6 +26,9 @@ export interface HarnessOptions {
 export interface HarnessObject {
 	fuel: Fuel;
 	token: Token;
+	fuelToken: DsToken;
+	guard: DsGuard;
+	burnAuction: PerpetualBurnAuction;
 	signers: Array<Signer>;
 	addresses: Array<string>;
 	signer: string;
@@ -60,6 +66,43 @@ export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
 	// Ensure it's finished deployment.
 	await token.deployed();
 
+	// Deploy guard contract (contains auth mapping)
+	const guardFactory = await ethers.getContractFactory('DSGuard');
+	const guard: DsGuard = (await guardFactory.deploy()) as DsGuard;
+	await guard.deployed();
+
+	// Deploy token
+	const dstokenFactory = await ethers.getContractFactory('DSToken');
+	const symbol = ethers.utils.formatBytes32String('FUEL');
+	const fuelToken: DsToken = (await dstokenFactory.deploy(symbol)) as DsToken;
+	await fuelToken.deployed();
+
+	// Set guard as DSAuthority on token
+	await fuelToken.setAuthority(guard.address);
+
+	// Deploy auction contract
+	const burnAuctionFactory = await ethers.getContractFactory('PerpetualBurnAuction');
+	const tokenAddress = fuelToken.address;
+	const lotSize = 1000; // 1000 tokens
+	const auctionDuration = 43200; // 12 hours
+	const burnAuction: PerpetualBurnAuction = (await burnAuctionFactory.deploy(
+		tokenAddress,
+		lotSize,
+		auctionDuration
+	)) as PerpetualBurnAuction;
+	await burnAuction.deployed();
+
+	// Use guard to authorize auction contract to mint tokens
+
+	// 'guard.permit(burnAuction.address,fuelToken.address,sig)' syntax seems to not work when
+	// contract has 2 functions with same name & number of args
+	// e.g. permit(address,address,bytes32) and permit(bytes32,bytes32,bytes32)
+	await guard.functions['permit(address,address,bytes32)'](
+		burnAuction.address,
+		fuelToken.address,
+		await guard.ANY()
+	);
+
 	// Set signer.
 	const signer = (await ethers.getSigners())[0].address;
 
@@ -70,6 +113,9 @@ export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
 	return {
 		fuel,
 		token,
+		fuelToken,
+		guard,
+		burnAuction,
 		signers: await ethers.getSigners(),
 		addresses: (await ethers.getSigners()).map((v) => v.address),
 		signer,
