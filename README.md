@@ -46,5 +46,5 @@ The primary license for this repo is `Apache-2.0`, see [`LICENSE`](./LICENSE).
 
 ### Exceptions
 
-- [`SafeCast.sol`](./contracts/utils/SafeCast.sol) is licensed under `MIT` (as indicated in the SPDX header) by [OpenZeppelin](https://github.com/OpenZeppelin/openzeppelin-contracts).
+- [`SafeCast.sol`](./contracts/vendor/openzeppelin/SafeCast.sol) is licensed under `MIT` (as indicated in the SPDX header) by [OpenZeppelin](https://github.com/OpenZeppelin/openzeppelin-contracts).
 - [`ds-token.sol`](./contracts/vendor/ds/ds-token.sol), [`ds-math.sol`](./contracts/vendor/ds/ds-math.sol), [`ds-auth.sol`](./contracts/vendor/ds/ds-auth.sol), [`ds-guard.sol`](./contracts/vendor/ds/ds-guard.sol) are licensed under `GPL-3.0-or-later` (as indicated in the SPDX headers) by [DappHub](https://github.com/dapphub).

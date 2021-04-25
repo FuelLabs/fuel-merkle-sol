@@ -3,7 +3,7 @@ pragma solidity ^0.7.4;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../utils/SafeCast.sol";
+import "../vendor/openzeppelin/SafeCast.sol";
 
 /// @title This handles the Fuel deposit logic.
 /// @notice Uniquely indexes an on-chain ETH or token deposit.

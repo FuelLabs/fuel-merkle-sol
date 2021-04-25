@@ -3,7 +3,7 @@ pragma solidity ^0.7.4;
 pragma experimental ABIEncoderV2;
 
 import "../types/BlockCommitment.sol";
-import "../utils/SafeCast.sol";
+import "../vendor/openzeppelin/SafeCast.sol";
 
 /// @title Fraud proof handler.
 library FraudHandler {

@@ -14,7 +14,7 @@ import "./lib/Cryptography.sol";
 
 import "./types/BlockCommitment.sol";
 
-import "./utils/SafeCast.sol";
+import "./vendor/openzeppelin/SafeCast.sol";
 
 /// @notice The Fuel v2 optimistic rollup system.
 /// @dev This contract holds storage and immutable fields, with libraries providing the logic.
