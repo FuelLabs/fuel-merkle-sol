@@ -8,6 +8,7 @@ import { Token } from '../typechain/Token.d';
 import { DsGuard } from '../typechain/DsGuard.d';
 import { DsToken } from '../typechain/DsToken.d';
 import { PerpetualBurnAuction } from '../typechain/PerpetualBurnAuction.d';
+import { LeaderSelection } from '../typechain/LeaderSelection.d';
 import {
 	computeTransactionsHash,
 	computeDigestHash,
@@ -29,6 +30,7 @@ export interface HarnessObject {
 	fuelToken: DsToken;
 	guard: DsGuard;
 	burnAuction: PerpetualBurnAuction;
+	leaderSelection: LeaderSelection;
 	signers: Array<Signer>;
 	addresses: Array<string>;
 	signer: string;
@@ -77,12 +79,27 @@ export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
 	const fuelToken: DsToken = (await dstokenFactory.deploy(symbol)) as DsToken;
 	await fuelToken.deployed();
 
+	// Deploy leader selection module
+	const leaderSelectionFactory = await ethers.getContractFactory('LeaderSelection');
+	const tokenAddress = fuelToken.address;
+	const roundLength = 3600; // 1 hour
+	const selectionWindowLength = 600; // 10 minutes
+	const ticketRatio = ethers.utils.parseEther('10'); // 10 tokens per entry
+	const genesisSeed = ethers.utils.formatBytes32String('seed');
+
+	const leaderSelection: LeaderSelection = (await leaderSelectionFactory.deploy(
+		tokenAddress,
+		roundLength,
+		selectionWindowLength,
+		ticketRatio,
+		genesisSeed
+	)) as LeaderSelection;
+
 	// Set guard as DSAuthority on token
 	await fuelToken.setAuthority(guard.address);
 
-	// Deploy auction contract
+	// Deploy perpetual auction module
 	const burnAuctionFactory = await ethers.getContractFactory('PerpetualBurnAuction');
-	const tokenAddress = fuelToken.address;
 	const lotSize = 1000; // 1000 tokens
 	const auctionDuration = 43200; // 12 hours
 	const burnAuction: PerpetualBurnAuction = (await burnAuctionFactory.deploy(
@@ -108,6 +125,7 @@ export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
 
 	// Mint token to the first signer.
 	await token.mint(signer, initialTokenAmount);
+	await fuelToken.functions['mint(uint256)'](initialTokenAmount);
 
 	// Return the Fuel harness object.
 	return {
@@ -116,6 +134,7 @@ export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
 		fuelToken,
 		guard,
 		burnAuction,
+		leaderSelection,
 		signers: await ethers.getSigners(),
 		addresses: (await ethers.getSigners()).map((v) => v.address),
 		signer,
