@@ -46,8 +46,8 @@ contract DSMath {
         return x >= y ? x : y;
     }
 
-    uint constant WAD = 10**18;
-    uint constant RAY = 10**27;
+    uint private constant WAD = 10**18;
+    uint private constant RAY = 10**27;
 
     //rounds to zero if x*y < WAD / 2
     function wmul(uint x, uint y) internal pure returns (uint z) {

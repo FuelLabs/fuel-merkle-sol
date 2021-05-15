@@ -31,7 +31,7 @@ contract DSToken is DSMath, DSAuth {
     uint256 public decimals = 18; // standard token precision. override to customize
     bytes32 public name = ""; // Optional token name
 
-    constructor(bytes32 symbol_) public {
+    constructor(bytes32 symbol_) {
         symbol = symbol_;
     }
 
