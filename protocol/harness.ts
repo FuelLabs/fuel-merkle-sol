@@ -5,8 +5,8 @@ import { BigNumberish, Signer } from 'ethers';
 import { TransactionReceipt } from '@ethersproject/abstract-provider';
 import { Fuel } from '../typechain/Fuel.d';
 import { Token } from '../typechain/Token.d';
-import { DsGuard } from '../typechain/DsGuard.d';
-import { DsToken } from '../typechain/DsToken.d';
+import { DSGuard } from '../typechain/DSGuard.d';
+import { DSToken } from '../typechain/DSToken.d';
 import { PerpetualBurnAuction } from '../typechain/PerpetualBurnAuction.d';
 import { LeaderSelection } from '../typechain/LeaderSelection.d';
 import {
@@ -27,8 +27,8 @@ export interface HarnessOptions {
 export interface HarnessObject {
 	fuel: Fuel;
 	token: Token;
-	fuelToken: DsToken;
-	guard: DsGuard;
+	fuelToken: DSToken;
+	guard: DSGuard;
 	burnAuction: PerpetualBurnAuction;
 	leaderSelection: LeaderSelection;
 	signers: Array<Signer>;
@@ -70,13 +70,13 @@ export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
 
 	// Deploy guard contract (contains auth mapping)
 	const guardFactory = await ethers.getContractFactory('DSGuard');
-	const guard: DsGuard = (await guardFactory.deploy()) as DsGuard;
+	const guard: DSGuard = (await guardFactory.deploy()) as DSGuard;
 	await guard.deployed();
 
 	// Deploy token
 	const dstokenFactory = await ethers.getContractFactory('DSToken');
 	const symbol = ethers.utils.formatBytes32String('FUEL');
-	const fuelToken: DsToken = (await dstokenFactory.deploy(symbol)) as DsToken;
+	const fuelToken: DSToken = (await dstokenFactory.deploy(symbol)) as DSToken;
 	await fuelToken.deployed();
 
 	// Deploy leader selection module

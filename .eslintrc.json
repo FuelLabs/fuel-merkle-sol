@@ -8,8 +8,7 @@
 	"extends": [
 		"airbnb-typescript",
 		"plugin:@typescript-eslint/recommended",
-		"prettier",
-		"prettier/@typescript-eslint"
+		"prettier"
 	],
 	"rules": {
 		// Disable error on devDependencies importing since this isn't a TS library
