@@ -14,16 +14,16 @@ contract LeaderSelection {
     // Immutables //
     ////////////////
 
-    ///@dev The address of the deposit token
+    /// @dev The address of the deposit token
     address public immutable TOKEN_ADDRESS;
 
-    ///@dev The length of each round
+    /// @dev The length of each round
     uint256 public immutable ROUND_LENGTH;
 
-    ///@dev The length of the submission window
+    /// @dev The length of the submission window
     uint256 public immutable SUBMISSION_WINDOW_LENGTH;
 
-    ///@dev The ratio of "tickets" to deposited tokens
+    /// @dev The ratio of "tickets" to deposited tokens
     uint256 public immutable TICKET_RATIO;
 
     /////////////
@@ -50,7 +50,7 @@ contract LeaderSelection {
     /// @dev Store whether the submission window is open (hence a new target hash has been generated)
     bool public s_submissionWindowOpen;
 
-    ///@dev Store the deposited balances of each address
+    /// @dev Store the deposited balances of each address
     mapping(address => uint) public s_balances;
 
     ////////////

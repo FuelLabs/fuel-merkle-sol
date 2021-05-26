@@ -14,6 +14,17 @@
 		// Disable error on devDependencies importing since this isn't a TS library
 		"import/no-extraneous-dependencies": ["error", {"devDependencies": true}],
 		"no-await-in-loop": 0,
-		"prefer-destructuring": 0
-	}
+		"prefer-destructuring": 0,
+		"no-bitwise": 0
+	},
+
+	"overrides": [
+        {
+            "files": ["test/*.ts", "*test.ts"],
+            "rules": {
+                "no-unused-expressions": "off"
+            }
+        }
+    ]
+
 }

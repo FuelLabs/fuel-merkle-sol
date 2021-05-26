@@ -4,7 +4,7 @@ import '@nomiclabs/hardhat-etherscan';
 import 'hardhat-typechain';
 import 'hardhat-deploy';
 import 'solidity-coverage';
-import 'hardhat-gas-reporter';
+// import 'hardhat-gas-reporter';
 import { config as dotEnvConfig } from 'dotenv';
 
 dotEnvConfig();
@@ -23,6 +23,9 @@ const config: HardhatUserConfig = {
 				version: '0.7.4',
 			},
 		],
+	},
+	mocha: {
+		timeout: 180_000,
 	},
 	networks: {
 		ropsten: {

@@ -77,10 +77,10 @@ contract Fuel {
     /// @param minimumNumber Minimum Ethereum block number that this commitment is valid for.
     /// @param expectedHash Ethereum block hash that this commitment is valid for.
     /// @param height Rollup block height.
-    /// @param previousBlockHash This is the previous merkle root.
-    /// @param transactionRoot The transaction merkle tree root.
+    /// @param previousBlockHash This is the previous Merkle root.
+    /// @param transactionRoot The transaction Merkle tree root.
     /// @param transactions The raw transaction data for this block.
-    /// @param digestRoot The merkle root of the registered digests.
+    /// @param digestRoot The Merkle root of the registered digests.
     /// @param digests The digests being registered.
     /// @dev BlockHandler::commitBlock
     function commitBlock(

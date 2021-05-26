@@ -10,8 +10,8 @@ contract PerpetualBurnAuction {
     // Immutables //
     ////////////////
 
-    ///@dev Store the address of the auctioned token, the auction lot size, and the auction length
-    ///@dev These are all immutable constants
+    /// @dev Store the address of the auctioned token, the auction lot size, and the auction length
+    /// @dev These are all immutable constants
     address public immutable TOKEN_ADDRESS;
     uint256 public immutable LOT_SIZE;
     uint256 public immutable AUCTION_DURATION;
