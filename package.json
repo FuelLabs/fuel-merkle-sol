@@ -4,7 +4,7 @@
 	"description": "The Fuel v2 Solidity smart contracts.",
 	"main": "test/index.js",
 	"private": true,
-	"license": "Apache-2.0",
+	"license": "UNLICENSED",
 	"scripts": {
 		"build": "npm run clean && npm run compile",
 		"clean": "npx hardhat clean",
