@@ -1,19 +1,11 @@
 //SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.7.4;
 pragma experimental ABIEncoderV2;
-import "./treeHasher.sol";
-import "./proofs.sol";
-import "../constants.sol";
+import "./TreeHasher.sol";
+import "./Proofs.sol";
+import "../Constants.sol";
 
 /// @notice Contains utility functions for sparse merkle trees
-
-/// @notice A struct for holding a pair of siblings
-/// @dev This abstraction introduced to reduce too many intermediate variables
-/// @dev causing stack-too-deep compiler errors
-struct NodePair {
-    bytes32 nodeHash;
-    bytes32 sideNode;
-}
 
 /// @notice Gets the bit at an offset from the most significant bit
 /// @param data: The data to check the bit
@@ -73,24 +65,6 @@ function shrinkBytes32Array(bytes32[] memory inputArray, uint256 length)
     returns (bytes32[] memory finalArray)
 {
     finalArray = new bytes32[](length);
-    for (uint256 i = 0; i < length; i++) {
-        finalArray[i] = inputArray[i];
-    }
-    return finalArray;
-}
-
-/// @notice Shrinks an over-allocated dynamic array of Updates to the correct size
-/// @param inputArray: The Updates array to be shrunk
-/// @param length: The length to shrink to
-/// @return finalArray : The full array of updates
-/// @dev Needed where an unknown number of elements are to be pushed to a dynamic array
-/// @dev We fist allocate a large-enough array, and then shrink once we're done populating it
-// solhint-disable-next-line func-visibility
-function shrinkUpdatesArray(UpdateFromProof[] memory inputArray, uint256 length)
-    pure
-    returns (UpdateFromProof[] memory finalArray)
-{
-    finalArray = new UpdateFromProof[](length);
     for (uint256 i = 0; i < length; i++) {
         finalArray[i] = inputArray[i];
     }

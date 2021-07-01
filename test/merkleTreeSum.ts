@@ -1,7 +1,7 @@
 import chai from 'chai';
 import { solidity } from 'ethereum-waffle';
-import { BigNumber as BN } from 'ethers';
-import { MerkleTreeObject, deployMerkleTree } from '../protocol/common';
+import { ethers } from 'hardhat';
+import { BigNumber as BN, Contract } from 'ethers';
 import { calcRoot, checkVerify } from '../protocol/sumMerkleTree/sumMerkleTree';
 import hash from '../protocol/cryptography';
 
@@ -9,10 +9,12 @@ chai.use(solidity);
 const { expect } = chai;
 
 describe('sum Merkle tree', async () => {
-	let smto: MerkleTreeObject;
+	let msto: Contract;
 
 	beforeEach(async () => {
-		smto = await deployMerkleTree('MockSumMerkleTree');
+		const merkleSumTreeFactory = await ethers.getContractFactory('MerkleSumTree');
+		msto = await merkleSumTreeFactory.deploy();
+		await msto.deployed();
 	});
 
 	it('Compute root', async () => {
@@ -25,7 +27,7 @@ describe('sum Merkle tree', async () => {
 			values.push(BN.from(1).toHexString());
 			valuesBN.push(BN.from(1));
 		}
-		const result = await smto.mock.computeRoot(data, values);
+		const result = await msto.computeRoot(data, values);
 		const res = calcRoot(valuesBN, data);
 
 		// Compare results
@@ -46,7 +48,7 @@ describe('sum Merkle tree', async () => {
 			// Expect success
 			expect(
 				await checkVerify(
-					smto,
+					msto,
 					testCases[i].numLeaves,
 					testCases[i].proveLeaf,
 					false,
@@ -56,12 +58,12 @@ describe('sum Merkle tree', async () => {
 
 			// Tamper with data
 			expect(
-				await checkVerify(smto, testCases[i].numLeaves, testCases[i].proveLeaf, false, true)
+				await checkVerify(msto, testCases[i].numLeaves, testCases[i].proveLeaf, false, true)
 			).to.equal(false);
 
 			// Tamper with sums
 			expect(
-				await checkVerify(smto, testCases[i].numLeaves, testCases[i].proveLeaf, true, false)
+				await checkVerify(msto, testCases[i].numLeaves, testCases[i].proveLeaf, true, false)
 			).to.equal(false);
 		}
 	});

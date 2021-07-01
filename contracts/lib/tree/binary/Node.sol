@@ -4,10 +4,9 @@ pragma experimental ABIEncoderV2;
 
 /// @notice Merkle Tree Node structure.
 struct Node {
+    bytes32 digest;
     // Left child.
-    bytes32 left;
+    bytes32 leftChildPtr;
     // Right child.
-    bytes32 right;
-    // Parent
-    bytes32 parent;
+    bytes32 rightChildPtr;
 }

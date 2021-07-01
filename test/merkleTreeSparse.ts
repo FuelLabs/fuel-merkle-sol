@@ -1,59 +1,93 @@
 import chai from 'chai';
 import { solidity } from 'ethereum-waffle';
 import { ethers } from 'hardhat';
-import { MerkleTreeObject, deployMerkleTree, uintToBytes32 } from '../protocol/common';
+import { uintToBytes32 } from '../protocol/common';
 import SparseMerkleTree from '../protocol/sparseMerkleTree/sparseMerkleTree';
+import SparseCompactMerkleBranch from '../protocol/sparseMerkleTree/types/sparseCompactMerkleBranch';
 import hash from '../protocol/cryptography';
 import DeepSparseMerkleSubTree from '../protocol/sparseMerkleTree/deepSparseMerkleSubTree';
+import SparseCompactMerkleSolidityProof from '../protocol/sparseMerkleTree/types/sparseCompactMerkleSolidityProof';
+import SparseMerkleSolidityNode from '../protocol/sparseMerkleTree/types/sparseMerkleSolidityNode';
+import { ZERO } from '../protocol/sparseMerkleTree/utils';
 
 chai.use(solidity);
 const { expect } = chai;
 
 describe('Sparse Merkle Tree', async () => {
-	let smto: MerkleTreeObject;
-
-	beforeEach(async () => {
-		smto = await deployMerkleTree('SparseMerkleTree');
-	});
-
-	it('Updating and deleting', async () => {
+	it('Proof verification', async () => {
+		// Create a SMT
 		const smt = new SparseMerkleTree();
-
 		const data = uintToBytes32(42);
-		const newData = uintToBytes32(43);
-
-		const n = 100;
 
 		// Add some leaves
-		for (let i = 0; i < n; i += 1) {
+		for (let i = 0; i < 100; i += 1) {
 			const key = hash(uintToBytes32(i));
 			smt.update(key, data);
-			await smto.mock.update(key, data);
 		}
-		expect(await smto.mock.root()).to.equal(smt.root);
 
-		// Update an existing leaf to a new value
-		smt.update(hash(uintToBytes32(n / 10)), newData);
-		await smto.mock.update(hash(uintToBytes32(n / 10)), newData);
-		expect(await smto.mock.root()).to.equal(smt.root);
+		const merkleTreeFactory = await ethers.getContractFactory('DeepSparseMerkleSubTree');
+		const dsmsto = await merkleTreeFactory.deploy();
+		await dsmsto.deployed();
 
-		// Update that leaf back to original value
-		smt.update(hash(uintToBytes32(n / 10)), data);
-		await smto.mock.update(hash(uintToBytes32(n / 10)), data);
-		expect(await smto.mock.root()).to.equal(smt.root);
+		const indexToProve = 51;
+		const keyToProve = hash(uintToBytes32(indexToProve));
+		let compactMembershipProof = smt.proveCompacted(keyToProve);
 
-		// Add an new leaf
-		smt.update(hash(uintToBytes32(n + 50)), data);
-		await smto.mock.update(hash(uintToBytes32(n + 50)), data);
-		expect(await smto.mock.root()).to.equal(smt.root);
+		// Need to convert typescript proof (with raw data) into solidity proof (with nodes):
+		let proofSideNodes = compactMembershipProof.SideNodes;
+		let nonMembershipLeaf = new SparseMerkleSolidityNode(
+			compactMembershipProof.NonMembershipLeafData
+		);
+		let bitmask = compactMembershipProof.BitMask;
+		let numSideNodes = compactMembershipProof.NumSideNodes;
+		let sibling = new SparseMerkleSolidityNode(compactMembershipProof.SiblingData);
 
-		// Delete that leaf
-		smt.delete(hash(uintToBytes32(n + 50)));
-		await smto.mock.del(hash(uintToBytes32(n + 50)));
-		expect(await smto.mock.root()).to.equal(smt.root);
+		let solidityProof = new SparseCompactMerkleSolidityProof(
+			proofSideNodes,
+			nonMembershipLeaf,
+			bitmask,
+			numSideNodes,
+			sibling
+		);
+
+		const badData = uintToBytes32(999);
+
+		// Valid membership proof
+		expect(await dsmsto.verifyCompact(solidityProof, keyToProve, data, smt.root)).to.be.true;
+		// Invalid membership proof
+		expect(await dsmsto.verifyCompact(solidityProof, keyToProve, badData, smt.root)).to.be
+			.false;
+
+		const nonMembershipIndex = 200;
+		const nonMembershipKey = hash(uintToBytes32(nonMembershipIndex));
+
+		compactMembershipProof = smt.proveCompacted(nonMembershipKey);
+
+		// Need to convert typescript proof (with raw data) into solidity proof (with nodes):
+		proofSideNodes = compactMembershipProof.SideNodes;
+		nonMembershipLeaf = new SparseMerkleSolidityNode(
+			compactMembershipProof.NonMembershipLeafData
+		);
+		bitmask = compactMembershipProof.BitMask;
+		numSideNodes = compactMembershipProof.NumSideNodes;
+		sibling = new SparseMerkleSolidityNode(compactMembershipProof.SiblingData);
+
+		solidityProof = new SparseCompactMerkleSolidityProof(
+			proofSideNodes,
+			nonMembershipLeaf,
+			bitmask,
+			numSideNodes,
+			sibling
+		);
+
+		// Valid Non-membership proof
+		expect(await dsmsto.verifyCompact(solidityProof, nonMembershipKey, ZERO, smt.root)).to.be
+			.true;
+		// Invalid Non-membership proof
+		expect(await dsmsto.verifyCompact(solidityProof, keyToProve, ZERO, smt.root)).to.be.false;
 	});
 
-	it('addBranch and update', async () => {
+	it('add branches and update', async () => {
 		// Create a SMT
 		const smt = new SparseMerkleTree();
 		const data = uintToBytes32(42);
@@ -65,12 +99,14 @@ describe('Sparse Merkle Tree', async () => {
 			smt.update(key, data);
 		}
 
-		// Create DSMST (sol + ts) and add some branches from the full SMT using compact proofs:
+		// Create DSMST (ts) and add some branches from the full SMT using compact proofs:
 		const dsmst = new DeepSparseMerkleSubTree(smt.root);
 
 		const merkleTreeFactory = await ethers.getContractFactory('DeepSparseMerkleSubTree');
-		const dsmsto = await merkleTreeFactory.deploy(smt.root);
+		const dsmsto = await merkleTreeFactory.deploy();
 		await dsmsto.deployed();
+
+		const branches: SparseCompactMerkleBranch[] = [];
 
 		const keyNumbers = [4, 8, 15, 16, 23, 42];
 		const keys: string[] = [];
@@ -79,40 +115,65 @@ describe('Sparse Merkle Tree', async () => {
 		}
 
 		for (let i = 0; i < keys.length; i += 1) {
-			const keyToProveMembership = keys[i];
-			const valueToProveMembership = data;
-			const compactMembershipProof = smt.proveCompacted(keyToProveMembership);
-			const res = dsmst.addBranchCompact(
-				compactMembershipProof,
-				keyToProveMembership,
-				valueToProveMembership
+			const keyToAdd = keys[i];
+			const valueToAdd = data;
+			const compactMembershipProof = smt.proveCompacted(keyToAdd);
+			const res = dsmst.addBranchCompact(compactMembershipProof, keyToAdd, valueToAdd);
+
+			// Need to convert typescript proof (with raw data) into solidity proof (with nodes):
+
+			const proofSideNodes = compactMembershipProof.SideNodes;
+			const nonMembershipLeaf = new SparseMerkleSolidityNode(
+				compactMembershipProof.NonMembershipLeafData
+			);
+			const bitmask = compactMembershipProof.BitMask;
+			const numSideNodes = compactMembershipProof.NumSideNodes;
+			const sibling = new SparseMerkleSolidityNode(compactMembershipProof.SiblingData);
+
+			const solidityProof = new SparseCompactMerkleSolidityProof(
+				proofSideNodes,
+				nonMembershipLeaf,
+				bitmask,
+				numSideNodes,
+				sibling
 			);
 
-			// Solidity needs "0x" for empty byte array
-			if (compactMembershipProof.NonMembershipLeafData === '') {
-				compactMembershipProof.NonMembershipLeafData = '0x';
-			}
-
-			await dsmsto.addBranchCompact(
-				compactMembershipProof,
-				keyToProveMembership,
-				valueToProveMembership
-			);
+			branches.push(new SparseCompactMerkleBranch(solidityProof, keyToAdd, valueToAdd));
 
 			// Check proof is valid and branch was successfully added for typescript
 			expect(res);
 		}
 
-		// Update a leaf on the full SMT
+		// UPDATE
 		const keyToUpdate = keys[3];
+		// Add branches and update on the DSMST (solidity)
+		let solRoot = await dsmsto.addBranchesAndUpdate(branches, smt.root, keyToUpdate, newData);
+
+		// Update a leaf on the full SMT
 		smt.update(keyToUpdate, newData);
 
-		// Update same leaf on the DSMST (sol + ts)
+		// Update same leaf on the DSMST (ts)
 		dsmst.update(keyToUpdate, newData);
-		await dsmsto.update(keyToUpdate, newData);
 
 		// Check roots are equal
 		expect(dsmst.root).to.equal(smt.root);
-		expect(await dsmsto.root()).to.equal(dsmst.root);
+		expect(solRoot).to.equal(dsmst.root);
+
+		// DELETION
+		// Delete the key we just updated
+		const keyToDelete = keyToUpdate;
+
+		// Delete a leaf on the full SMT
+		smt.delete(keyToDelete);
+
+		// Delete same leaf on the DSMST (ts)
+		dsmst.delete(keyToDelete);
+
+		// Add branches and delete on the DSMST (solidity)
+		solRoot = await dsmsto.addBranchesAndDelete(branches, smt.root, keyToDelete);
+
+		// Check roots are equal
+		expect(dsmst.root).to.equal(smt.root);
+		expect(solRoot).to.equal(dsmst.root);
 	});
 });

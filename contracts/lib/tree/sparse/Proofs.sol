@@ -2,41 +2,26 @@
 pragma solidity ^0.7.4;
 pragma experimental ABIEncoderV2;
 
-import "./treeHasher.sol";
-import "./utils.sol";
-import "../constants.sol";
+import "./TreeHasher.sol";
+import "./Utils.sol";
+import "../Constants.sol";
+import "./Node.sol";
 
 /// @notice A full (non-compact) sparse Merkle proof
 struct SparseMerkleProof {
     bytes32[] SideNodes;
-    bytes NonMembershipLeafData;
-    bytes SiblingData;
+    Node NonMembershipLeaf;
+    Node Sibling;
 }
 
 /// @notice A sparse Merkle proof
 /// @dev Minimal sidenodes are provided, with a bitmask indicating at which height they occur
 struct SparseCompactMerkleProof {
     bytes32[] SideNodes;
-    bytes NonMembershipLeafData;
+    Node NonMembershipLeaf;
     uint256[] BitMask;
     uint256 NumSideNodes;
-    bytes SiblingData;
-}
-
-/// @notice An update (hash-value pair) to apply to a DSMST
-struct UpdateFromProof {
-    bytes32 updatedHash;
-    bytes updatedValue;
-}
-
-/// @notice A struct to hold variables of the verify function in memory
-/// @dev Necessary to circumvent stack-too-deep errors caused by too many
-/// @dev variables on the stack.
-struct VerifyFunctionVariables {
-    bytes32 currentHash;
-    bytes currentData;
-    bytes32 actualPath;
-    bytes32 valueHash;
+    Node Sibling;
 }
 
 /// @notice Verify a proof is valid
@@ -45,57 +30,45 @@ struct VerifyFunctionVariables {
 /// @param key: The key of the leave being proved
 /// @param value: The value of the leaf
 /// @return result : Whether the proof is valid or not
-/// @return updates :  An array of updates to be applied to add the branch
 // solhint-disable-next-line func-visibility
 function verifyProof(
     SparseMerkleProof memory proof,
     bytes32 root,
     bytes32 key,
     bytes memory value
-) pure returns (bool, UpdateFromProof[] memory) {
-    UpdateFromProof[] memory updates = new UpdateFromProof[](256);
-
-    VerifyFunctionVariables memory variables;
+) pure returns (bool) {
+    bytes32 currentHash;
+    bytes32 actualPath;
+    bytes memory data;
 
     /// @dev No bytes comparison in solidity, compare hashes instead
     if (isDefaultValue(value)) {
         // Non-membership proof
-        if (proof.NonMembershipLeafData.length == 0) {
-            variables.currentHash = Constants.ZERO;
+        if (proof.NonMembershipLeaf.digest == Constants.ZERO) {
+            currentHash = Constants.ZERO;
         } else {
             // leaf is an unrelated leaf
-            (variables.actualPath, variables.valueHash) = parseLeaf(proof.NonMembershipLeafData);
-            if (variables.actualPath == key) {
+            (actualPath, data) = parseLeaf(proof.NonMembershipLeaf);
+            if (actualPath == key) {
                 // Leaf does exist: non-membership proof failed
-                return (false, updates);
+                return false;
             }
-            (variables.currentHash, variables.currentData) = hashLeaf(
-                variables.actualPath,
-                abi.encodePacked(variables.valueHash)
-            );
-            updates[0] = UpdateFromProof(variables.currentHash, variables.currentData);
+            currentHash = leafDigest(actualPath, data);
         }
     } else {
         // Membership proof
-        variables.valueHash = hash(value);
-        (variables.currentHash, variables.currentData) = hashLeaf(key, value);
-        updates[0] = UpdateFromProof(variables.currentHash, variables.currentData);
+        currentHash = leafDigest(key, value);
     }
 
-    // Recompute root
+    // Recompute root.
     for (uint256 i = 0; i < proof.SideNodes.length; i += 1) {
-        bytes32 node = proof.SideNodes[i];
-
         if (getBitAtFromMSB(key, proof.SideNodes.length - 1 - i) == 1) {
-            (variables.currentHash, variables.currentData) = hashNode(node, variables.currentHash);
+            currentHash = nodeDigest(proof.SideNodes[i], currentHash);
         } else {
-            (variables.currentHash, variables.currentData) = hashNode(variables.currentHash, node);
+            currentHash = nodeDigest(currentHash, proof.SideNodes[i]);
         }
-
-        updates[i + 1] = UpdateFromProof(variables.currentHash, variables.currentData);
     }
-
-    return (variables.currentHash == root, shrinkUpdatesArray(updates, proof.SideNodes.length + 1));
+    return (currentHash == root);
 }
 
 /// @notice Turn a sparse Merkle proof into a compact sparse Merkle proof
@@ -129,10 +102,10 @@ function compactProof(SparseMerkleProof memory proof)
     return
         SparseCompactMerkleProof(
             finalCompactedSideNodes,
-            proof.NonMembershipLeafData,
+            proof.NonMembershipLeaf,
             bitMask,
             proof.SideNodes.length,
-            proof.SiblingData
+            proof.Sibling
         );
 }
 
@@ -155,5 +128,5 @@ function decompactProof(SparseCompactMerkleProof memory proof)
         }
     }
 
-    return SparseMerkleProof(decompactedSideNodes, proof.NonMembershipLeafData, proof.SiblingData);
+    return SparseMerkleProof(decompactedSideNodes, proof.NonMembershipLeaf, proof.Sibling);
 }

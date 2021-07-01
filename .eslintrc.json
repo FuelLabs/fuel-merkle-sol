@@ -18,11 +18,12 @@
 		"no-bitwise": 0
 	},
 
+	// Disable no-unused-expressions to allow chai 'expect' expressions in testing
 	"overrides": [
         {
             "files": ["test/*.ts", "*test.ts"],
             "rules": {
-                "no-unused-expressions": "off"
+                "@typescript-eslint/no-unused-expressions": "off"
             }
         }
     ]

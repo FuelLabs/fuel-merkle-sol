@@ -15,4 +15,7 @@ library Constants {
 
     /// @dev Default value for sparse Merkle tree node
     bytes32 internal constant ZERO = bytes32(0);
+
+    /// @dev The null pointer
+    bytes32 internal constant NULL = bytes32(0);
 }

@@ -1,9 +1,8 @@
 /// A set of useful helper methods for testing binary Merkle trees.
 import { ethers } from 'hardhat';
-import { BigNumber as BN } from 'ethers';
-import { MerkleTreeObject, padBytes } from '../common';
+import { BigNumber as BN, Contract } from 'ethers';
+import { padBytes } from '../common';
 import Node from './types/node';
-import Proof from './types/proof';
 import hash from '../cryptography';
 
 export function hashLeaf(data: string): string {
@@ -94,13 +93,14 @@ export function calcRoot(data: string[]): string {
 }
 
 // get proof for the leaf
-export function getProof(nodes: Node[], id: number): Proof {
-	const proof = new Proof([]);
+export function getProof(nodes: Node[], id: number): string[] {
+	// const proof = new Proof([]);
+	const proof: string[] = [];
 	for (let prev = id, cur = nodes[id].parent; cur !== -1; prev = cur, cur = nodes[cur].parent) {
 		if (nodes[cur].left === prev) {
-			proof.sideNodes.push(nodes[nodes[cur].right].hash);
+			proof.push(nodes[nodes[cur].right].hash);
 		} else {
-			proof.sideNodes.push(nodes[nodes[cur].left].hash);
+			proof.push(nodes[nodes[cur].left].hash);
 		}
 	}
 	return proof;
@@ -108,7 +108,7 @@ export function getProof(nodes: Node[], id: number): Proof {
 
 // Build a tree, generate a proof for a given leaf (with optional tampering), and verify using contract
 export async function checkVerify(
-	bmto: MerkleTreeObject,
+	bmto: Contract,
 	numLeaves: number,
 	leafNumber: number,
 	tamper: boolean
@@ -131,7 +131,7 @@ export async function checkVerify(
 		dataToProve = badData;
 	}
 
-	const result = await bmto.mock.verify(
+	const result = await bmto.verify(
 		root.hash,
 		dataToProve,
 		proof,
@@ -143,7 +143,7 @@ export async function checkVerify(
 }
 
 export async function checkAppend(
-	bmto: MerkleTreeObject,
+	bmto: Contract,
 	numLeaves: number,
 	badProof: boolean
 ): Promise<boolean> {
@@ -160,94 +160,9 @@ export async function checkAppend(
 	const proof = getProof(nodes, numLeaves);
 
 	if (badProof) {
-		proof.sideNodes.push(ethers.constants.HashZero);
+		proof.push(ethers.constants.HashZero);
 	}
 
-	const result = await bmto.mock.append(numLeaves, leafToAppend, proof);
-	const root = result[0];
-
+	const root = (await bmto.append(numLeaves, leafToAppend, proof))[0];
 	return root === calcRoot(data);
-}
-
-export async function checkAddBranch(
-	bmto: MerkleTreeObject,
-	numLeaves: number,
-	leafNumber: number
-): Promise<boolean> {
-	// First build a tree
-	const data = [];
-	const keys = [];
-	const size = numLeaves;
-	let nodes: Node[] = [];
-
-	// Build a tree offline
-	for (let i = 0; i < size; i += 1) {
-		data.push(BN.from(i).toHexString());
-		keys.push(BN.from(i).toHexString());
-	}
-
-	// Create a proof for a given leaf
-	const leafToProve = leafNumber - 1;
-	const key = keys[leafToProve];
-	const leaf = data[leafToProve];
-	nodes = constructTree(data);
-	const proof = getProof(nodes, leafToProve);
-
-	// Add branch to tree
-	await bmto.mock.addBranch(padBytes(key), leaf, proof, size);
-
-	// Compare roots
-	const root = nodes[nodes.length - 1].hash;
-	const storageRoot = await bmto.mock.getRoot();
-
-	return storageRoot === root;
-}
-
-export async function checkUpdate(
-	bmto: MerkleTreeObject,
-	numLeaves: number,
-	leavesToAdd: number[],
-	leavesToUpdate: number[]
-): Promise<boolean> {
-	// First build a full tree in ts
-	const leaves = [];
-	const keys = [];
-
-	for (let i = 0; i < numLeaves; i += 1) {
-		const leaf = BN.from(i).toHexString();
-		const key = BN.from(i).toHexString();
-
-		leaves.push(leaf);
-		keys.push(key);
-	}
-	let nodes = constructTree(leaves);
-
-	// Add some branches to the storage tree
-	let proof;
-	let leafNum;
-
-	for (let j = 0; j < leavesToAdd.length; j += 1) {
-		leafNum = leavesToAdd[j] - 1;
-		proof = getProof(nodes, leafNum);
-		await bmto.mock.addBranch(padBytes(keys[leafNum]), leaves[leafNum], proof, numLeaves);
-	}
-
-	// Update a couple of the leaves on the storage tree
-	const d = 1337;
-	const data = BN.from(d).toHexString();
-
-	for (let k = 0; k < leavesToUpdate.length; k += 1) {
-		const updateKey = leavesToUpdate[k] - 1;
-		await bmto.mock.update(padBytes(keys[updateKey]), data);
-		leaves[updateKey] = data;
-	}
-
-	// Build the entire tree with the updated leaves in ts from scratch
-	nodes = constructTree(leaves);
-
-	// Compare roots
-	const root = nodes[nodes.length - 1].hash;
-	const storageRoot = await bmto.mock.getRoot();
-
-	return storageRoot === root;
 }

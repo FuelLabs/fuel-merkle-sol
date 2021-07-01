@@ -1,9 +1,9 @@
 /// @dev The Fuel testing Merkle trees.
 /// A set of useful helper methods for testing and deploying Merkle trees.
 import { ethers } from 'hardhat';
-import { BigNumber as BN } from 'ethers';
+import { BigNumber as BN, Contract } from 'ethers';
 import hash from '../cryptography';
-import { MerkleTreeObject, padUint, padBytes } from '../common';
+import { padUint, padBytes } from '../common';
 import Node from './types/node';
 import Proof from './types/proof';
 
@@ -137,7 +137,7 @@ export function getProof(nodes: Node[], id: number): Proof {
 
 // Build a tree, generate a proof for a given leaf (with optional tampering), and verify using contract
 export async function checkVerify(
-	smto: MerkleTreeObject,
+	msto: Contract,
 	numLeaves: number,
 	leafNumber: number,
 	tamper_data: boolean,
@@ -173,7 +173,7 @@ export async function checkVerify(
 		sumToProve = badSum;
 	}
 
-	const result = await smto.mock.verify(
+	const result = await msto.verify(
 		root.hash,
 		root.sum,
 		dataToProve,

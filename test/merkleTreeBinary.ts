@@ -1,23 +1,28 @@
 import chai from 'chai';
+import { ethers } from 'hardhat';
 import { solidity } from 'ethereum-waffle';
-import { BigNumber as BN } from 'ethers';
-import { MerkleTreeObject, deployMerkleTree } from '../protocol/common';
+import { BigNumber as BN, Contract } from 'ethers';
 import {
+	constructTree,
+	getProof,
 	calcRoot,
 	checkVerify,
 	checkAppend,
-	checkAddBranch,
-	checkUpdate,
+	hashLeaf,
 } from '../protocol/binaryMerkleTree/binaryMerkleTree';
+import { uintToBytes32, ZERO } from '../protocol/common';
+import BinaryMerkleBranch from '../protocol/binaryMerkleTree/types/branch';
 
 chai.use(solidity);
 const { expect } = chai;
 
 describe('binary Merkle tree', async () => {
-	let bmto: MerkleTreeObject;
+	let bmto: Contract;
 
 	beforeEach(async () => {
-		bmto = await deployMerkleTree('MockBinaryMerkleTree');
+		const merkleSumTreeFactory = await ethers.getContractFactory('BinaryMerkleTree');
+		bmto = await merkleSumTreeFactory.deploy();
+		await bmto.deployed();
 	});
 
 	it('Compute root', async () => {
@@ -26,18 +31,11 @@ describe('binary Merkle tree', async () => {
 		for (let i = 0; i < size; i += 1) {
 			data.push(BN.from(i).toHexString());
 		}
-		const result = await bmto.mock.computeRoot(data);
+		const result = await bmto.computeRoot(data);
 		const res = calcRoot(data);
 
 		// Compare results
 		expect(result).to.be.equal(res);
-	});
-
-	it('Set root', async () => {
-		const root = '0xe4b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
-		await bmto.mock.setRoot(root);
-		// Check the result
-		expect(await bmto.mock.getRoot()).to.be.equal(root);
 	});
 
 	it('Verifications', async () => {
@@ -71,43 +69,67 @@ describe('binary Merkle tree', async () => {
 		}
 	});
 
-	it('AddBranch', async () => {
-		const testCases = [
-			{ numLeaves: 100, proveLeaf: 100 },
-			{ numLeaves: 100, proveLeaf: 99 },
-			{ numLeaves: 99, proveLeaf: 42 },
-			{ numLeaves: 1, proveLeaf: 1 },
-		];
+	it('AddBranches and update', async () => {
+		// First build a full tree in TS
+		const numLeaves = 100;
+		const data = [];
+		const keys = [];
+		const size = numLeaves;
 
-		for (let i = 0; i < testCases.length; i += 1) {
-			// Expect success
-			bmto = await deployMerkleTree('MockBinaryMerkleTree');
-			expect(
-				await checkAddBranch(bmto, testCases[i].numLeaves, testCases[i].proveLeaf)
-			).to.equal(true);
+		for (let i = 0; i < size; i += 1) {
+			data.push(BN.from(i).toHexString());
+			keys.push(BN.from(i).toHexString());
 		}
-	});
 
-	it('Update', async () => {
-		const testCases = [
-			{ numLeaves: 20, leavesToAdd: [1, 4, 12, 19], leavesToUpdate: [4, 12] },
-			{ numLeaves: 100, leavesToAdd: [22, 73, 100], leavesToUpdate: [73, 100] },
-			{ numLeaves: 10000, leavesToAdd: [342, 1152, 600, 1], leavesToUpdate: [1152, 1] },
-			{ numLeaves: 2, leavesToAdd: [1, 2], leavesToUpdate: [1, 2] },
-			{ numLeaves: 1, leavesToAdd: [1], leavesToUpdate: [1] },
-		];
+		let nodes = constructTree(data);
 
-		for (let i = 0; i < testCases.length; i += 1) {
-			// Expect success
-			bmto = await deployMerkleTree('MockBinaryMerkleTree');
-			expect(
-				await checkUpdate(
-					bmto,
-					testCases[i].numLeaves,
-					testCases[i].leavesToAdd,
-					testCases[i].leavesToUpdate
-				)
-			).to.equal(true);
+		// Build branches for a selection of keys
+		const branches: BinaryMerkleBranch[] = [];
+		const keyNumbers = [4, 8, 15, 16, 23, 42];
+		const keysToAdd: string[] = [];
+		for (let i = 0; i < keyNumbers.length; i += 1) {
+			keysToAdd.push(uintToBytes32(keyNumbers[i]));
 		}
+
+		for (let i = 0; i < keysToAdd.length; i += 1) {
+			const keyToAdd = keysToAdd[i];
+			const valueToAdd = data[BN.from(keysToAdd[i]).toNumber()];
+			const proof = getProof(nodes, BN.from(keysToAdd[i]).toNumber());
+			branches.push(new BinaryMerkleBranch(proof, keyToAdd, valueToAdd));
+		}
+
+		// Add branches and update a key
+		const keyToUpdate = keysToAdd[4]; // Index into 'keyNumbers', not 'keys'
+		const newData = BN.from(9999).toHexString();
+		let newSolRoot = await bmto.addBranchesAndUpdate(
+			branches,
+			nodes[nodes.length - 1].hash,
+			keyToUpdate,
+			newData,
+			numLeaves
+		);
+
+		// Change data and rebuild tree (ts)
+		data[parseInt(keyToUpdate, 16)] = newData;
+		nodes = constructTree(data);
+		const newTSRoot = nodes[nodes.length - 1].hash;
+
+		// Check roots are equal
+		expect(newSolRoot).to.equal(newTSRoot);
+
+		// Trivial cases
+		// Tree is empty
+		newSolRoot = await bmto.addBranchesAndUpdate([], ZERO, ZERO, newData, 0);
+		expect(newSolRoot).to.equal(hashLeaf(newData));
+
+		// Tree has only one leaf
+		newSolRoot = await bmto.addBranchesAndUpdate(
+			[new BinaryMerkleBranch([], ZERO, uintToBytes32(42))],
+			hashLeaf(uintToBytes32(42)),
+			ZERO,
+			uintToBytes32(43),
+			1
+		);
+		expect(newSolRoot).to.equal(hashLeaf(uintToBytes32(43)));
 	});
 });

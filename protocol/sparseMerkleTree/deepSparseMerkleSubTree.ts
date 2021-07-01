@@ -30,7 +30,6 @@ class DeepSparseMerkleSubTree extends SparseMerkleTree {
 				this.set(proof.SideNodes[0], proof.SiblingData);
 			}
 		}
-
 		return true;
 	}
 

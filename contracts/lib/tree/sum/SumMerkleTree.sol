@@ -3,49 +3,16 @@ pragma solidity ^0.7.4;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "../lib/Cryptography.sol";
-import "../types/SumMerkleProof.sol";
-import "./constants.sol";
+import "../../../lib/Cryptography.sol";
+import "./SumMerkleProof.sol";
+import "../Constants.sol";
+import "./Utils.sol";
+import "./TreeHasher.sol";
 
 /// @title Sum Merkle Tree.
 /// @notice spec can be found at https://github.com/FuelLabs/fuel-specs/blob/master/specs/protocol/cryptographic_primitives.md#binary-merkle-sum-tree.
-library MerkleSumTree {
-    ///////////////
-    // Libraries //
-    ///////////////
+contract MerkleSumTree {
     using SafeMath for uint256;
-
-    ////////////////
-    //   Methods  //
-    ////////////////
-    /// @dev Modifier to check proof length of sums and nodes arrays are equal.
-    modifier checkProof(SumMerkleProof memory proof) {
-        require(proof.sideNodes.length == proof.nodeSums.length, "Invalid proof format");
-        _;
-    }
-
-    /// @notice Hash a leaf node.
-    /// @param value fee of the leaf.
-    /// @param data, raw data of the leaf.
-    function _hashLeaf(uint256 value, bytes memory data) internal pure returns (bytes32) {
-        return CryptographyLib.hash(abi.encodePacked(bytes1(0x00), value, data));
-    }
-
-    /// @notice Hash a node, which is not a leaf.
-    /// @param leftValue, sum of fees in left subtree.
-    /// @param left, left child hash.
-    /// @param right, right child hash.
-    function _hashNode(
-        uint256 leftValue,
-        bytes32 left,
-        uint256 rightValue,
-        bytes32 right
-    ) internal pure returns (bytes32) {
-        return
-            CryptographyLib.hash(
-                abi.encodePacked(bytes1(0x01), leftValue, left, rightValue, right)
-            );
-    }
 
     /// @notice Verify if element (key, data) exists in Merkle tree, decompacts proof, goes through side nodes and calculates hashes up to the root, compares roots.
     /// @param root: The root of the tree in which verify the given leaf
@@ -60,7 +27,12 @@ library MerkleSumTree {
         SumMerkleProof memory proof,
         uint256 key,
         uint256 numLeaves
-    ) internal pure returns (bool) {
+    ) external pure returns (bool) {
+        // Check proof is correct length for the key it is proving
+        if (proof.sideNodes.length != pathLengthFromKey(key, numLeaves)) {
+            return false;
+        }
+
         // Check key is in tree
         if (key >= numLeaves) {
             return false;
@@ -72,13 +44,13 @@ library MerkleSumTree {
         }
 
         // A sibling at height 1 is created by getting the LeafSum of the original data.
-        bytes32 hash = _hashLeaf(_sum, data);
+        bytes32 digest = hashLeaf(_sum, data);
         uint256 sum = _sum;
 
         // Handle case where proof is empty: i.e, only one leaf exists, so verify hash(data) is root
         if (proof.sideNodes.length == 0) {
             if (numLeaves == 1) {
-                return (hash == root) && (sum == rootSum);
+                return (digest == root) && (sum == rootSum);
             } else {
                 return false;
             }
@@ -117,18 +89,18 @@ library MerkleSumTree {
                 return false;
             }
             if (key - subTreeStartIndex < (1 << (height - 1))) {
-                hash = _hashNode(
+                digest = hashNode(
                     sum,
-                    hash,
+                    digest,
                     proof.nodeSums[height - 1],
                     proof.sideNodes[height - 1]
                 );
             } else {
-                hash = _hashNode(
+                digest = hashNode(
                     proof.nodeSums[height - 1],
                     proof.sideNodes[height - 1],
                     sum,
-                    hash
+                    digest
                 );
             }
             sum += proof.nodeSums[height - 1];
@@ -143,32 +115,32 @@ library MerkleSumTree {
             if (proof.sideNodes.length <= height - 1) {
                 return false;
             }
-            hash = _hashNode(sum, hash, proof.nodeSums[height - 1], proof.sideNodes[height - 1]);
+            digest = hashNode(sum, digest, proof.nodeSums[height - 1], proof.sideNodes[height - 1]);
             sum += proof.nodeSums[height - 1];
             height += 1;
         }
 
         // All remaining elements in the proof set will belong to a left sibling.
         while (height - 1 < proof.sideNodes.length) {
-            hash = _hashNode(proof.nodeSums[height - 1], proof.sideNodes[height - 1], sum, hash);
+            digest = hashNode(proof.nodeSums[height - 1], proof.sideNodes[height - 1], sum, digest);
             sum += proof.nodeSums[height - 1];
             height += 1;
         }
 
-        return (hash == root) && (sum == rootSum);
+        return (digest == root) && (sum == rootSum);
     }
 
     /// @notice Computes sparse Merkle tree root from leaves.
     /// @param data, list of leaves' data in ascending order of leaves.
     /// @param values, list of leaves' values in ascending order of leaves.
     function computeRoot(bytes[] memory data, uint256[] memory values)
-        internal
+        external
         pure
         returns (bytes32, uint256)
     {
         bytes32[] memory nodes = new bytes32[](data.length);
         for (uint256 i = 0; i < data.length; ++i) {
-            nodes[i] = _hashLeaf(values[i], data[i]);
+            nodes[i] = hashLeaf(values[i], data[i]);
         }
         uint256 odd = nodes.length & 1;
         uint256 size = (nodes.length + 1) >> 1;
@@ -181,7 +153,7 @@ library MerkleSumTree {
             uint256 i = 0;
             for (; i < size - odd; ++i) {
                 uint256 j = i << 1;
-                nodes[i] = _hashNode(pSums[j], pNodes[j], pSums[j + 1], pNodes[j + 1]);
+                nodes[i] = hashNode(pSums[j], pNodes[j], pSums[j + 1], pNodes[j + 1]);
                 sums[i] = pSums[j].add(pSums[j + 1]);
             }
             if (odd == 1) {
