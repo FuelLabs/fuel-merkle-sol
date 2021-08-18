@@ -21,7 +21,7 @@ describe('leaderSelection', async () => {
 		const amount = ethers.utils.parseEther('300');
 		// Deposit should faile : not approved
 		const ls = env.leaderSelection;
-		await expect(ls.deposit(amount)).to.be.reverted;
+		await expect(ls.deposit(amount)).to.be.revertedWith('ds-token-insufficient-approval');
 
 		// Successful deposit
 		await env.fuelToken.functions['approve(address)'](ls.address);
@@ -29,7 +29,9 @@ describe('leaderSelection', async () => {
 		expect(await ls.s_balances(env.signer)).to.equal(amount);
 
 		// Deposit should fail: account balance too low
-		await expect(ls.deposit(ethers.utils.parseEther('800'))).to.be.reverted;
+		await expect(ls.deposit(ethers.utils.parseEther('800'))).to.be.revertedWith(
+			'ds-token-insufficient-balance'
+		);
 
 		// Deposit should fail: not multiple of ticket ratio
 		await expect(ls.deposit(ethers.utils.parseEther('9'))).to.be.revertedWith(
@@ -46,16 +48,16 @@ describe('leaderSelection', async () => {
 		expect(await ls.s_balances(env.signer)).to.equal(0);
 
 		// Withdrawal should fail: account balance too low
-		await expect(ls.withdraw(amount)).to.be.reverted;
+		await expect(ls.withdraw(amount)).to.be.revertedWith('Balance too low');
 
 		// Opening submission window should fail: too early
-		await expect(ls.openSubmissionWindow()).to.be.reverted;
+		await expect(ls.openSubmissionWindow()).to.be.revertedWith('Too early to open');
 
 		// Submission should fail: submission window not open
-		await expect(ls.submit(42)).to.be.reverted;
+		await expect(ls.submit(42)).to.be.revertedWith('submission window not open');
 
 		// End round should fail: too early
-		await expect(ls.newRound()).to.be.reverted;
+		await expect(ls.newRound()).to.be.revertedWith('Current round not finished');
 	});
 
 	it('Submission window phase', async () => {
@@ -76,7 +78,7 @@ describe('leaderSelection', async () => {
 		expect(await ls.s_targetHash()).to.not.equal(oldHash);
 
 		// Submitting a ticket that's too high should fail
-		await expect(ls.submit(30)).to.be.reverted;
+		await expect(ls.submit(30)).to.be.revertedWith('Invalid ticket');
 
 		// Submit valid entry
 		await ls.submit(29);
@@ -110,7 +112,7 @@ describe('leaderSelection', async () => {
 			}
 
 			if (diff.gte(closestSubmission)) {
-				await expect(ls.submit(i)).to.be.reverted;
+				await expect(ls.submit(i)).to.be.revertedWith('Hash not better');
 				found = true;
 			} else {
 				i += 1;
@@ -118,11 +120,11 @@ describe('leaderSelection', async () => {
 		}
 
 		// Second call to openSubmissionWindow should fail
-		await expect(ls.openSubmissionWindow()).to.reverted;
+		await expect(ls.openSubmissionWindow()).to.revertedWith('Submission window already open');
 
 		// Deposits should fail during withdrawal/deposit
 		const amount = ethers.utils.parseEther('10');
-		await expect(ls.deposit(amount)).to.reverted;
+		await expect(ls.deposit(amount)).to.revertedWith('Not allowed in submission window');
 	});
 
 	it('New round phase', async () => {
@@ -132,7 +134,7 @@ describe('leaderSelection', async () => {
 		ethers.provider.send('evm_increaseTime', [submissionWindowLength]);
 
 		// Submission should fail : too late
-		await expect(ls.submit(3)).to.be.reverted;
+		await expect(ls.submit(3)).to.be.revertedWith('Round finished');
 
 		await ls.newRound();
 

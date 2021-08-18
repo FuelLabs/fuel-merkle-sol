@@ -21,7 +21,7 @@ describe('burnAuction', async () => {
 		// Check nobody else can call mint on FuelToken
 		await expect(
 			env.fuelToken.connect(env.signers[1]).functions['mint(address,uint256)'](env.signer, 1)
-		).to.be.reverted;
+		).to.be.revertedWith('ds-auth-unauthorized');
 	});
 
 	it('Place first bid', async () => {
@@ -65,12 +65,15 @@ describe('burnAuction', async () => {
 
 	it('Try to place a bid lower than the higehst bid, expect revert', async () => {
 		const bid = ethers.utils.parseEther('1.5');
-		await expect(env.burnAuction.connect(env.signers[3]).placeBid({ value: bid })).to.be
-			.reverted;
+		await expect(
+			env.burnAuction.connect(env.signers[3]).placeBid({ value: bid })
+		).to.be.revertedWith('FuelAuction/Bid-not-higher');
 	});
 
 	it('Try to end auction too early, expect revert', async () => {
-		await expect(env.burnAuction.endAuction()).to.be.reverted;
+		await expect(env.burnAuction.endAuction()).to.be.revertedWith(
+			'FuelAuction/Auction-not-finished'
+		);
 	});
 
 	it('Fast-forward to auction end, try to place late bid. Expect revert', async () => {
@@ -81,7 +84,9 @@ describe('burnAuction', async () => {
 		ethers.provider.send('evm_increaseTime', [AUCTION_DURATION]);
 
 		const bid = ethers.utils.parseEther('3.0');
-		await expect(env.burnAuction.placeBid({ value: bid })).to.be.reverted;
+		await expect(env.burnAuction.placeBid({ value: bid })).to.be.revertedWith(
+			'FuelAuction/Auction-finshed'
+		);
 	});
 
 	it('Settle auction (burn funds and pay winner) and reset auction state', async () => {
