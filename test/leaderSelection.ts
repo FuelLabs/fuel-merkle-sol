@@ -31,6 +31,16 @@ describe('leaderSelection', async () => {
 		// Deposit should fail: account balance too low
 		await expect(ls.deposit(ethers.utils.parseEther('800'))).to.be.reverted;
 
+		// Deposit should fail: not multiple of ticket ratio
+		await expect(ls.deposit(ethers.utils.parseEther('9'))).to.be.revertedWith(
+			'Not multiple of ticket ratio'
+		);
+
+		// Withdrawal should fail: not multiple of ticket ratio
+		await expect(ls.withdraw(ethers.utils.parseEther('9'))).to.be.revertedWith(
+			'Not multiple of ticket ratio'
+		);
+
 		// Successful withdrawal
 		await ls.withdraw(amount);
 		expect(await ls.s_balances(env.signer)).to.equal(0);
@@ -111,7 +121,7 @@ describe('leaderSelection', async () => {
 		await expect(ls.openSubmissionWindow()).to.reverted;
 
 		// Deposits should fail during withdrawal/deposit
-		const amount = ethers.utils.parseEther('1');
+		const amount = ethers.utils.parseEther('10');
 		await expect(ls.deposit(amount)).to.reverted;
 	});
 
@@ -130,7 +140,7 @@ describe('leaderSelection', async () => {
 		expect(await ls.s_leader()).to.equal(env.signer);
 
 		// Check withdrawals/deposits allowed again
-		const amount = ethers.utils.parseEther('1');
+		const amount = ethers.utils.parseEther('10');
 		const oldBalance = await ls.s_balances(env.signer);
 		await ls.deposit(amount);
 		expect(await ls.s_balances(env.signer)).to.equal(amount.add(oldBalance));

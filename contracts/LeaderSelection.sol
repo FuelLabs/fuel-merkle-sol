@@ -9,6 +9,7 @@ import "./vendor/ds/ds-token.sol";
 /// @dev Submissions are accepted during a window at the end of a round, when a new target hash is generated.
 /// @dev At the end of the window, the closest hash to the target is the winner, and the sender can be instated as the new leader
 /// @dev Deposits and withdrawals are never allowed whilst the target hash is known
+/// @dev Deposits and withdrawals must be multiples of the ticket ratio. This stops participants influencing the next target hash for less than the price of an additional ticket.
 contract LeaderSelection {
     ////////////////
     // Immutables //
@@ -98,9 +99,11 @@ contract LeaderSelection {
     /// @notice Deposit tokens in the contract
     /// @param amount: The amount of tokens to deposit
     /// @dev Requires this contract to be approved for at leas 'amount' on TOKEN_ADDRESS
+    /// @dev amount must be a multiple of the ticket ratio
     function deposit(uint256 amount) public {
         // solhint-disable-next-line not-rely-on-time
         require(!s_submissionWindowOpen, "Not allowed in submission window");
+        require(amount % TICKET_RATIO == 0, "Not multiple of ticket ratio");
         s_balances[msg.sender] += amount;
         s_totalDeposit += amount;
         DSToken(TOKEN_ADDRESS).transferFrom(msg.sender, address(this), amount);
@@ -109,9 +112,11 @@ contract LeaderSelection {
 
     /// @notice Withdraw tokens from the contract
     /// @param amount: The amount of tokens to withdraw
+    /// @dev amount must be a multiple of the ticket ratio
     function withdraw(uint256 amount) public {
         // solhint-disable-next-line not-rely-on-time
         require(amount <= s_balances[msg.sender], "Balance too low");
+        require(amount % TICKET_RATIO == 0, "Not multiple of ticket ratio");
         s_balances[msg.sender] -= amount;
         DSToken(TOKEN_ADDRESS).transfer(msg.sender, amount);
         emit Withdrawal(msg.sender, amount);
