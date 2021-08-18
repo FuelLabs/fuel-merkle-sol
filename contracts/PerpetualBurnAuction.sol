@@ -82,9 +82,14 @@ contract PerpetualBurnAuction {
         highestBid = bid;
         highestBidder = msg.sender;
 
-        // Refund 'outbid' participant
-        prevHighestBidder.transfer(prevHighestBid);
         emit Bid(msg.sender, bid);
+
+        // Refund 'outbid' participant
+        // We use a low-level call since "transfer" is vulnerable to griefing if prevHighestBidder is a contract with a fallback function that reverts
+        // "call" forwards 63/64ths of the remaining gas to the callee, and any revert is caught, meaning the callee can not cause the transaction to fail,
+        // and can not consume all the gas: there will always be enough remaining to complete this function.
+        // solhint-disable-next-line avoid-low-level-calls
+        prevHighestBidder.call{value: prevHighestBid}("");
         return true;
     }
 

@@ -105,4 +105,20 @@ describe('burnAuction', async () => {
 		expect(await auc.highestBidder()).to.be.equal(ethers.constants.AddressZero);
 		expect(await auc.highestBid()).to.be.equal(0);
 	});
+
+	// Tests a griefing vector where attacker can prevent any future bids :
+	// https://github.com/FuelLabs/fuel-v2-contracts/issues/34
+	it('Should not be griefable', async () => {
+		const Griefer = await ethers.getContractFactory('BurnAuctionGriefer');
+		const auc = env.burnAuction;
+		const g = await Griefer.deploy(auc.address);
+
+		const bid = (await auc.highestBid()).add(ethers.utils.parseEther('1.0'));
+		await g.grief({ value: bid });
+		expect(await auc.highestBidder()).to.be.equal(g.address);
+
+		const newBid = bid.add(ethers.utils.parseEther('1.0'));
+		await expect(env.burnAuction.placeBid({ value: newBid })).to.not.be.reverted;
+		expect(await auc.highestBidder()).to.be.equal(env.addresses[0]);
+	});
 });
