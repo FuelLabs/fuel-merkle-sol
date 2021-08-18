@@ -8,8 +8,8 @@ import "./vendor/ds/ds-token.sol";
 /// @dev A submission is an integer, which is hashed with the senders address. To be accepted, it must be closer to the target than the current best
 /// @dev Submissions are accepted during a window at the end of a round, when a new target hash is generated.
 /// @dev At the end of the window, the closest hash to the target is the winner, and the sender can be instated as the new leader
-/// @dev Deposits and withdrawals are never allowed whilst the target hash is known
-/// @dev Deposits and withdrawals must be multiples of the ticket ratio. This stops participants influencing the next target hash for less than the price of an additional ticket.
+/// @dev Deposits are never allowed whilst the target hash is known, to avoid waiting for target hash before depositing.
+/// @dev Since s_totalDeposit is monotonically increasing, withdawals are allowed at any time
 contract LeaderSelection {
     ////////////////
     // Immutables //
@@ -99,7 +99,8 @@ contract LeaderSelection {
     /// @notice Deposit tokens in the contract
     /// @param amount: The amount of tokens to deposit
     /// @dev Requires this contract to be approved for at leas 'amount' on TOKEN_ADDRESS
-    /// @dev amount must be a multiple of the ticket ratio
+    /// @dev Deposits are frozen during the submission window to avoid pre-calculation of the
+    /// @dev minimum ticket number required to approach the revealed target hash
     function deposit(uint256 amount) public {
         // solhint-disable-next-line not-rely-on-time
         require(!s_submissionWindowOpen, "Not allowed in submission window");
