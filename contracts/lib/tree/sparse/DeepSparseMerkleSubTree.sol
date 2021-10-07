@@ -6,7 +6,7 @@ import "./SparseMerkleTree.sol";
 import "./Proofs.sol";
 import "./Branch.sol";
 import "../Constants.sol";
-import "./Utils.sol";
+import "../Utils.sol";
 
 /// @notice A storage backed deep sparse Merkle subtree
 /// @dev A DSMST is a SMT which can be minimally populated with branches

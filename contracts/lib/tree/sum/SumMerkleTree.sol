@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "../../../lib/Cryptography.sol";
 import "./SumMerkleProof.sol";
 import "../Constants.sol";
-import "./Utils.sol";
+import "../Utils.sol";
 import "./TreeHasher.sol";
 
 /// @title Sum Merkle Tree.
@@ -29,7 +29,11 @@ contract MerkleSumTree {
         uint256 numLeaves
     ) external pure returns (bool) {
         // Check proof is correct length for the key it is proving
-        if (proof.sideNodes.length != pathLengthFromKey(key, numLeaves)) {
+        if (numLeaves <= 1) {
+            if (proof.sideNodes.length != 0) {
+                return false;
+            }
+        } else if (proof.sideNodes.length != pathLengthFromKey(key, numLeaves)) {
             return false;
         }
 

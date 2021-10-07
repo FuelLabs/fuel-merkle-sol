@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import "./Node.sol";
 import "../Constants.sol";
-import "./Utils.sol";
+import "../Utils.sol";
 import "./TreeHasher.sol";
 import "./Branch.sol";
 
@@ -56,7 +56,11 @@ contract BinaryMerkleTree {
         uint256 numLeaves
     ) public pure returns (bool) {
         // Check proof is correct length for the key it is proving
-        if (proof.length != pathLengthFromKey(key, numLeaves)) {
+        if (numLeaves <= 1) {
+            if (proof.length != 0) {
+                return false;
+            }
+        } else if (proof.length != pathLengthFromKey(key, numLeaves)) {
             return false;
         }
 
@@ -355,6 +359,7 @@ contract BinaryMerkleTree {
             return emptySideNodes;
         }
 
+        // Tree has at least 2 leaves
         SideNodesFunctionVariables memory variables;
 
         variables.sideNodeCount = 0;
@@ -402,27 +407,30 @@ contract BinaryMerkleTree {
         Node memory currentNode = hashLeaf(value);
         currentPtr = set(currentNode);
 
-        uint256 startingBit = getStartingBit(numLeaves);
-        uint256 pathLength = pathLengthFromKey(uint256(key), numLeaves);
+        // If numleaves <= 1, then the root is just the leaf hash (or ZERO)
+        if (numLeaves > 1) {
+            uint256 startingBit = getStartingBit(numLeaves);
+            uint256 pathLength = pathLengthFromKey(uint256(key), numLeaves);
 
-        for (uint256 i = 0; i < pathLength; i += 1) {
-            if (getBitAtFromMSB(key, startingBit + pathLength - 1 - i) == 1) {
-                currentNode = hashNode(
-                    sideNodes[i],
-                    currentPtr,
-                    get(sideNodes[i]).digest,
-                    currentNode.digest
-                );
-            } else {
-                currentNode = hashNode(
-                    currentPtr,
-                    sideNodes[i],
-                    currentNode.digest,
-                    get(sideNodes[i]).digest
-                );
+            for (uint256 i = 0; i < pathLength; i += 1) {
+                if (getBitAtFromMSB(key, startingBit + pathLength - 1 - i) == 1) {
+                    currentNode = hashNode(
+                        sideNodes[i],
+                        currentPtr,
+                        get(sideNodes[i]).digest,
+                        currentNode.digest
+                    );
+                } else {
+                    currentNode = hashNode(
+                        currentPtr,
+                        sideNodes[i],
+                        currentNode.digest,
+                        get(sideNodes[i]).digest
+                    );
+                }
+
+                currentPtr = set(currentNode);
             }
-
-            currentPtr = set(currentNode);
         }
     }
 

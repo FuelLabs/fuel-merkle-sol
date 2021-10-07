@@ -2,12 +2,11 @@
 pragma solidity ^0.7.4;
 pragma experimental ABIEncoderV2;
 
-import "./Utils.sol";
+import "../Utils.sol";
 import "./TreeHasher.sol";
 import "./Proofs.sol";
 import "../Constants.sol";
 import "./Node.sol";
-import "hardhat/console.sol";
 
 /// @notice A memory-backed Sparse Merkle Tree
 contract SparseMerkleTree {

@@ -3,7 +3,7 @@ pragma solidity ^0.7.4;
 pragma experimental ABIEncoderV2;
 
 import "./TreeHasher.sol";
-import "./Utils.sol";
+import "../Utils.sol";
 import "../Constants.sol";
 import "./Node.sol";
 
