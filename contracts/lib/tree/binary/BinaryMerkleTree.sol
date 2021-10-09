@@ -7,10 +7,11 @@ import "../Constants.sol";
 import "../Utils.sol";
 import "./TreeHasher.sol";
 import "./Branch.sol";
+import "./BinaryMerkleProof.sol";
 
 /// @title Binary Merkle Tree.
 /// @notice spec can be found at https://github.com/FuelLabs/fuel-specs/blob/master/specs/protocol/cryptographic_primitives.md#binary-merkle-tree.
-contract BinaryMerkleTree {
+library BinaryMerkleTree {
     /// @notice Set the value of a node
     /// @param node: The node to be set
     /// @return ptr : The pointer to the node that was set
@@ -226,7 +227,7 @@ contract BinaryMerkleTree {
         bytes32 root,
         bytes32 rootPtr,
         uint256 numLeaves
-    ) public pure returns (bytes32) {
+    ) internal pure returns (bytes32) {
         // Handle case where tree has only one leaf (so it is the root)
         if (numLeaves == 1) {
             Node memory rootNode = Node(root, Constants.NULL, Constants.NULL);

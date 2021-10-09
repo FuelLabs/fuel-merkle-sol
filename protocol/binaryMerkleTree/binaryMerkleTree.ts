@@ -131,13 +131,9 @@ export async function checkVerify(
 		dataToProve = badData;
 	}
 
-	const result = await bmto.verify(
-		root.hash,
-		dataToProve,
-		proof,
-		padBytes(keys[leafToProve]),
-		keys.length
-	);
+	await bmto.verify(root.hash, dataToProve, proof, padBytes(keys[leafToProve]), keys.length);
+
+	const result = await bmto.verified();
 
 	return result;
 }
@@ -163,6 +159,8 @@ export async function checkAppend(
 		proof.push(ethers.constants.HashZero);
 	}
 
-	const root = (await bmto.append(numLeaves, leafToAppend, proof))[0];
+	await bmto.append(numLeaves, leafToAppend, proof);
+
+	const root = await bmto.root();
 	return root === calcRoot(data);
 }

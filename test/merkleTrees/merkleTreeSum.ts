@@ -2,8 +2,9 @@ import chai from 'chai';
 import { solidity } from 'ethereum-waffle';
 import { ethers } from 'hardhat';
 import { BigNumber as BN, Contract } from 'ethers';
-import { calcRoot, checkVerify } from '../protocol/sumMerkleTree/sumMerkleTree';
-import hash from '../protocol/cryptography';
+import { calcRoot, checkVerify } from '../../protocol/sumMerkleTree/sumMerkleTree';
+import { HarnessObject, setupFuel } from '../../protocol/harness';
+import hash from '../../protocol/cryptography';
 
 chai.use(solidity);
 const { expect } = chai;
@@ -11,8 +12,16 @@ const { expect } = chai;
 describe('sum Merkle tree', async () => {
 	let msto: Contract;
 
+	let env: HarnessObject;
+
+	before(async () => {
+		env = await setupFuel({});
+	});
+
 	beforeEach(async () => {
-		const merkleSumTreeFactory = await ethers.getContractFactory('MerkleSumTree');
+		const merkleSumTreeFactory = await ethers.getContractFactory('MockMerkleSumTree', {
+			libraries: { MerkleSumTree: env.merkleSumTreeLib.address },
+		});
 		msto = await merkleSumTreeFactory.deploy();
 		await msto.deployed();
 	});
@@ -27,13 +36,13 @@ describe('sum Merkle tree', async () => {
 			values.push(BN.from(1).toHexString());
 			valuesBN.push(BN.from(1));
 		}
-		const result = await msto.computeRoot(data, values);
+		await msto.computeRoot(data, values);
 		const res = calcRoot(valuesBN, data);
 
 		// Compare results
 		expect(res.sum).to.be.equal(100); // True answer
-		expect(result[0]).to.be.equal(res.hash);
-		expect(result[1]).to.be.equal(res.sum);
+		expect(await msto.root()).to.be.equal(res.hash);
+		expect(await msto.rootSum()).to.be.equal(res.sum);
 	});
 
 	it('Verifications', async () => {

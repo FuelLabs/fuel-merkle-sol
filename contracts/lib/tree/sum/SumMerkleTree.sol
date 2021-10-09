@@ -11,7 +11,7 @@ import "./TreeHasher.sol";
 
 /// @title Sum Merkle Tree.
 /// @notice spec can be found at https://github.com/FuelLabs/fuel-specs/blob/master/specs/protocol/cryptographic_primitives.md#binary-merkle-sum-tree.
-contract MerkleSumTree {
+library MerkleSumTree {
     using SafeMath for uint256;
 
     /// @notice Verify if element (key, data) exists in Merkle tree, decompacts proof, goes through side nodes and calculates hashes up to the root, compares roots.
@@ -27,7 +27,7 @@ contract MerkleSumTree {
         SumMerkleProof memory proof,
         uint256 key,
         uint256 numLeaves
-    ) external pure returns (bool) {
+    ) public pure returns (bool) {
         // Check proof is correct length for the key it is proving
         if (numLeaves <= 1) {
             if (proof.sideNodes.length != 0) {
@@ -138,7 +138,7 @@ contract MerkleSumTree {
     /// @param data, list of leaves' data in ascending order of leaves.
     /// @param values, list of leaves' values in ascending order of leaves.
     function computeRoot(bytes[] memory data, uint256[] memory values)
-        external
+        public
         pure
         returns (bytes32, uint256)
     {

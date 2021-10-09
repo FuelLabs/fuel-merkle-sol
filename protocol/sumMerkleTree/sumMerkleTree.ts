@@ -173,7 +173,7 @@ export async function checkVerify(
 		sumToProve = badSum;
 	}
 
-	const result = await msto.verify(
+	await msto.verify(
 		root.hash,
 		root.sum,
 		dataToProve,
@@ -182,6 +182,8 @@ export async function checkVerify(
 		padBytes(keys[nodeToProve]),
 		keys.length
 	);
+
+	const result = await msto.verified();
 
 	return result;
 }

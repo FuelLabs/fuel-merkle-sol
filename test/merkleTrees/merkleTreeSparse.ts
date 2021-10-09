@@ -1,19 +1,30 @@
 import chai from 'chai';
 import { solidity } from 'ethereum-waffle';
 import { ethers } from 'hardhat';
-import { uintToBytes32 } from '../protocol/common';
-import SparseMerkleTree from '../protocol/sparseMerkleTree/sparseMerkleTree';
-import SparseCompactMerkleBranch from '../protocol/sparseMerkleTree/types/sparseCompactMerkleBranch';
-import hash from '../protocol/cryptography';
-import DeepSparseMerkleSubTree from '../protocol/sparseMerkleTree/deepSparseMerkleSubTree';
-import SparseCompactMerkleSolidityProof from '../protocol/sparseMerkleTree/types/sparseCompactMerkleSolidityProof';
-import SparseMerkleSolidityNode from '../protocol/sparseMerkleTree/types/sparseMerkleSolidityNode';
-import { ZERO } from '../protocol/sparseMerkleTree/utils';
+import { Contract } from 'ethers';
+
+import { uintToBytes32 } from '../../protocol/common';
+import SparseMerkleTree from '../../protocol/sparseMerkleTree/sparseMerkleTree';
+import SparseCompactMerkleBranch from '../../protocol/sparseMerkleTree/types/sparseCompactMerkleBranch';
+import hash from '../../protocol/cryptography';
+import DeepSparseMerkleSubTree from '../../protocol/sparseMerkleTree/deepSparseMerkleSubTree';
+import SparseCompactMerkleSolidityProof from '../../protocol/sparseMerkleTree/types/sparseCompactMerkleSolidityProof';
+import SparseMerkleSolidityNode from '../../protocol/sparseMerkleTree/types/sparseMerkleSolidityNode';
+import { ZERO } from '../../protocol/sparseMerkleTree/utils';
+import { HarnessObject, setupFuel } from '../../protocol/harness';
 
 chai.use(solidity);
 const { expect } = chai;
 
 describe('Sparse Merkle Tree', async () => {
+	let env: HarnessObject;
+
+	before(async () => {
+		env = await setupFuel({});
+	});
+
+	let dsmsto: Contract;
+
 	it('Proof verification', async () => {
 		// Create a SMT
 		const smt = new SparseMerkleTree();
@@ -24,9 +35,10 @@ describe('Sparse Merkle Tree', async () => {
 			const key = hash(uintToBytes32(i));
 			smt.update(key, data);
 		}
-
-		const merkleTreeFactory = await ethers.getContractFactory('DeepSparseMerkleSubTree');
-		const dsmsto = await merkleTreeFactory.deploy();
+		const sparseMerkleTreeFactory = await ethers.getContractFactory('MockSparseMerkleTree', {
+			libraries: { SparseMerkleTree: env.sparseMerkleTreeLib.address },
+		});
+		dsmsto = await sparseMerkleTreeFactory.deploy();
 		await dsmsto.deployed();
 
 		const indexToProve = 51;
@@ -53,10 +65,13 @@ describe('Sparse Merkle Tree', async () => {
 		const badData = uintToBytes32(999);
 
 		// Valid membership proof
-		expect(await dsmsto.verifyCompact(solidityProof, keyToProve, data, smt.root)).to.be.true;
+		// eslint-disable-next-line no-unused-expressions
+		await dsmsto.verifyCompact(solidityProof, keyToProve, data, smt.root);
+		expect(await dsmsto.verified()).to.be.true;
 		// Invalid membership proof
-		expect(await dsmsto.verifyCompact(solidityProof, keyToProve, badData, smt.root)).to.be
-			.false;
+		// eslint-disable-next-line no-unused-expressions
+		await dsmsto.verifyCompact(solidityProof, keyToProve, badData, smt.root);
+		expect(await dsmsto.verified()).to.be.false;
 
 		const nonMembershipIndex = 200;
 		const nonMembershipKey = hash(uintToBytes32(nonMembershipIndex));
@@ -81,10 +96,14 @@ describe('Sparse Merkle Tree', async () => {
 		);
 
 		// Valid Non-membership proof
-		expect(await dsmsto.verifyCompact(solidityProof, nonMembershipKey, ZERO, smt.root)).to.be
-			.true;
+		// eslint-disable-next-line no-unused-expressions
+		await dsmsto.verifyCompact(solidityProof, nonMembershipKey, ZERO, smt.root);
+		expect(await dsmsto.verified()).to.be.true;
+
 		// Invalid Non-membership proof
-		expect(await dsmsto.verifyCompact(solidityProof, keyToProve, ZERO, smt.root)).to.be.false;
+		// eslint-disable-next-line no-unused-expressions
+		await dsmsto.verifyCompact(solidityProof, keyToProve, ZERO, smt.root);
+		expect(await dsmsto.verified()).to.be.false;
 	});
 
 	it('add branches and update', async () => {
@@ -101,10 +120,6 @@ describe('Sparse Merkle Tree', async () => {
 
 		// Create DSMST (ts) and add some branches from the full SMT using compact proofs:
 		const dsmst = new DeepSparseMerkleSubTree(smt.root);
-
-		const merkleTreeFactory = await ethers.getContractFactory('DeepSparseMerkleSubTree');
-		const dsmsto = await merkleTreeFactory.deploy();
-		await dsmsto.deployed();
 
 		const branches: SparseCompactMerkleBranch[] = [];
 
@@ -147,8 +162,8 @@ describe('Sparse Merkle Tree', async () => {
 		// UPDATE
 		const keyToUpdate = keys[3];
 		// Add branches and update on the DSMST (solidity)
-		let solRoot = await dsmsto.addBranchesAndUpdate(branches, smt.root, keyToUpdate, newData);
-
+		await dsmsto.addBranchesAndUpdate(branches, smt.root, keyToUpdate, newData);
+		let solRoot = await dsmsto.root();
 		// Update a leaf on the full SMT
 		smt.update(keyToUpdate, newData);
 
@@ -170,7 +185,8 @@ describe('Sparse Merkle Tree', async () => {
 		dsmst.delete(keyToDelete);
 
 		// Add branches and delete on the DSMST (solidity)
-		solRoot = await dsmsto.addBranchesAndDelete(branches, smt.root, keyToDelete);
+		await dsmsto.addBranchesAndDelete(branches, smt.root, keyToDelete);
+		solRoot = await dsmsto.root();
 
 		// Check roots are equal
 		expect(dsmst.root).to.equal(smt.root);

@@ -9,6 +9,9 @@ import { DSGuard } from '../typechain/DSGuard.d';
 import { DSToken } from '../typechain/DSToken.d';
 import { PerpetualBurnAuction } from '../typechain/PerpetualBurnAuction.d';
 import { LeaderSelection } from '../typechain/LeaderSelection.d';
+import { BinaryMerkleTree } from '../typechain/BinaryMerkleTree.d';
+import { MerkleSumTree } from '../typechain/MerkleSumTree.d';
+import { SparseMerkleTree } from '../typechain/SparseMerkleTree.d';
 import { TransactionSerializationLib } from '../typechain/TransactionSerializationLib.d';
 
 import {
@@ -27,6 +30,9 @@ export interface HarnessOptions {
 
 // This is the Harness Object.
 export interface HarnessObject {
+	binaryMerkleTreeLib: BinaryMerkleTree;
+	merkleSumTreeLib: MerkleSumTree;
+	sparseMerkleTreeLib: SparseMerkleTree;
 	fuel: Fuel;
 	token: Token;
 	fuelToken: DSToken;
@@ -46,7 +52,25 @@ export interface HarnessObject {
 
 // The setup method for Fuel.
 export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
-	// Deploy libraries ---
+	// Deploy libraries
+
+	// Deploy binary merkle tree library
+	const binaryMerkleTreeLibFactory = await ethers.getContractFactory('BinaryMerkleTree');
+	const binaryMerkleTreeLib: BinaryMerkleTree =
+		(await binaryMerkleTreeLibFactory.deploy()) as BinaryMerkleTree;
+	await binaryMerkleTreeLib.deployed();
+
+	// Deploy merkle sum tree library
+	const merkleSumTreeLibFactory = await ethers.getContractFactory('MerkleSumTree');
+	const merkleSumTreeLib: MerkleSumTree =
+		(await merkleSumTreeLibFactory.deploy()) as MerkleSumTree;
+	await merkleSumTreeLib.deployed();
+
+	// Deploy sparse merkle tree library
+	const sparseMerkleTreeLibFactory = await ethers.getContractFactory('SparseMerkleTree');
+	const sparseMerkleTreeLib: SparseMerkleTree =
+		(await sparseMerkleTreeLibFactory.deploy()) as SparseMerkleTree;
+	await sparseMerkleTreeLib.deployed();
 
 	// Deploy block library
 	const blockLibFactory = await ethers.getContractFactory('BlockLib');
@@ -154,6 +178,9 @@ export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
 
 	// Return the Fuel harness object.
 	return {
+		sparseMerkleTreeLib,
+		binaryMerkleTreeLib,
+		merkleSumTreeLib,
 		fuel,
 		token,
 		fuelToken,
