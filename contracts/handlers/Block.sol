@@ -42,7 +42,7 @@ library BlockHandler {
     ) internal {
         // Bound maximum number of bytes for compressed transactions.
         require(
-            blockHeader.transactionLength <= uint256(MAX_COMPRESSED_TX_BYTES),
+            blockHeader.transactionsDataLength <= uint256(MAX_COMPRESSED_TX_BYTES),
             "transactions-size-overflow"
         );
 

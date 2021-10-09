@@ -1,5 +1,6 @@
-//SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.7.4;
+pragma experimental ABIEncoderV2;
 
 import "../types/BlockHeader.sol";
 import "./Cryptography.sol";
@@ -25,14 +26,15 @@ library BlockLib {
                 header.digestLength,
                 header.transactionRoot,
                 header.transactionHash,
-                header.transactionLength
+                header.numTransactions,
+                header.transactionsDataLength
             );
     }
 
     /// @notice Produce the block header ID.
     /// @param header The block header structure.
     /// @return The block header ID.
-    function computeBlockId(BlockHeader memory header) internal pure returns (bytes32) {
+    function computeBlockId(BlockHeader memory header) external pure returns (bytes32) {
         return CryptographyLib.hash(serialize(header));
     }
 }

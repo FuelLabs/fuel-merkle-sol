@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./handlers/Block.sol";
 import "./handlers/BlockHeader.sol";
 import "./handlers/Deposit.sol";
-import "./handlers/Fraud.sol";
 import "./handlers/Withdrawal.sol";
 
 import "./lib/Cryptography.sol";
@@ -29,6 +28,9 @@ contract Fuel {
     /// @dev The Fuel block finalization delay in Ethereum block.
     uint32 public immutable FINALIZATION_DELAY;
 
+    /// @dev The maximum time each participant has to complete their actions (chess clock) in a block challenge
+    uint256 public immutable MAX_CLOCK_TIME;
+
     /////////////
     // Storage //
     /////////////
@@ -42,19 +44,21 @@ contract Fuel {
     /// @dev Maps Ethereum block number => withdrawal ID => is withdrawn bool.
     mapping(uint32 => mapping(bytes32 => bool)) public s_Withdrawals;
 
-    /// @dev Maps fraud prover address => fraud commitment hash => Ethereum block number.
-    mapping(address => mapping(bytes32 => uint32)) public s_FraudCommitments;
-
     /// @dev The Fuel block height of the finalized tip.
     uint32 public s_BlockTip;
 
     /// @notice Contract constructor.
     /// @param finalizationDelay The delay in blocks for Fuel block finalization.
     /// @param bond The bond in wei to put up for each block.
-    constructor(uint32 finalizationDelay, uint256 bond) {
+    constructor(
+        uint32 finalizationDelay,
+        uint256 bond,
+        uint256 maxClockTime
+    ) {
         // Set immutable constants.
         BOND_SIZE = bond;
         FINALIZATION_DELAY = finalizationDelay;
+        MAX_CLOCK_TIME = maxClockTime;
 
         // Set the genesis block to be valid.
         s_BlockCommitments[bytes32(0)].status = BlockCommitmentStatus.Committed;
@@ -79,7 +83,8 @@ contract Fuel {
     /// @param height Rollup block height.
     /// @param previousBlockHash This is the previous Merkle root.
     /// @param transactionRoot The transaction Merkle tree root.
-    /// @param transactions The raw transaction data for this block.
+    /// @param numTransactions : The number of transactions in the block
+    /// @param transactionsData The raw transaction data for this block.
     /// @param digestRoot The Merkle root of the registered digests.
     /// @param digests The digests being registered.
     /// @dev BlockHandler::commitBlock
@@ -89,7 +94,8 @@ contract Fuel {
         uint32 height,
         bytes32 previousBlockHash,
         bytes32 transactionRoot,
-        bytes calldata transactions,
+        uint32 numTransactions,
+        bytes calldata transactionsData,
         bytes32 digestRoot,
         bytes32[] calldata digests
     ) external payable {
@@ -109,7 +115,7 @@ contract Fuel {
         // Compute the simple hash of the submitted transactions. If this
         // doesn't match up with the submitted transactions root, it's
         // fraudulent.
-        bytes32 transactionHash = CryptographyLib.hash(transactions);
+        bytes32 transactionHash = CryptographyLib.hash(transactionsData);
 
         // Compute the simple hash of the submitted digests.
         bytes32 digestHash = CryptographyLib.hash(abi.encodePacked(digests));
@@ -126,7 +132,8 @@ contract Fuel {
                 SafeCast.toUint16(digests.length),
                 transactionRoot,
                 transactionHash,
-                SafeCast.toUint32(transactions.length)
+                numTransactions,
+                SafeCast.toUint32(transactionsData.length)
             );
 
         // Process the new block.
@@ -146,14 +153,6 @@ contract Fuel {
     /// @return The number of children.
     function getBlockNumChildren(bytes32 blockId) external view returns (uint256) {
         return s_BlockCommitments[blockId].children.length;
-    }
-
-    /// @notice Register a fraud hash.
-    /// @param fraudHash The hash of the calldata used for a fraud commitment.
-    /// @dev Uses the message sender (caller()) in the commitment.
-    /// @dev FraudHandler::commitFraudHash
-    function commitFraudHash(bytes32 fraudHash) external {
-        FraudHandler.commitFraudHash(s_FraudCommitments, fraudHash);
     }
 
     /// @notice Withdraw the block proposer's bond for a finalized block.

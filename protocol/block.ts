@@ -12,7 +12,8 @@ export interface BlockHeader {
 	digestLength: number;
 	transactionRoot: string;
 	transactionHash: string;
-	transactionLength: number;
+	numTransactions: number;
+	transactionsDataLength: number;
 }
 
 // Serialize a blockHeader.
@@ -29,6 +30,7 @@ export function serialize(blockHeader: BlockHeader): string {
 			'bytes32',
 			'bytes32',
 			'uint32',
+			'uint32',
 		],
 		[
 			blockHeader.producer,
@@ -40,7 +42,8 @@ export function serialize(blockHeader: BlockHeader): string {
 			blockHeader.digestLength,
 			blockHeader.transactionRoot,
 			blockHeader.transactionHash,
-			blockHeader.transactionLength,
+			blockHeader.numTransactions,
+			blockHeader.transactionsDataLength,
 		]
 	);
 }

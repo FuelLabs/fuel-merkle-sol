@@ -23,5 +23,7 @@ struct BlockHeader {
     // Simple hash of list of transactions.
     bytes32 transactionHash;
     // Number of transactions in this block.
-    uint32 transactionLength;
+    uint32 numTransactions;
+    // Length of (concatenated) compressed transactions in the block
+    uint32 transactionsDataLength;
 }

@@ -9,6 +9,8 @@ import { DSGuard } from '../typechain/DSGuard.d';
 import { DSToken } from '../typechain/DSToken.d';
 import { PerpetualBurnAuction } from '../typechain/PerpetualBurnAuction.d';
 import { LeaderSelection } from '../typechain/LeaderSelection.d';
+import { TransactionSerializationLib } from '../typechain/TransactionSerializationLib.d';
+
 import {
 	computeTransactionsHash,
 	computeDigestHash,
@@ -31,6 +33,7 @@ export interface HarnessObject {
 	guard: DSGuard;
 	burnAuction: PerpetualBurnAuction;
 	leaderSelection: LeaderSelection;
+	transactionSerializationLib: TransactionSerializationLib;
 	signers: Array<Signer>;
 	addresses: Array<string>;
 	signer: string;
@@ -43,18 +46,40 @@ export interface HarnessObject {
 
 // The setup method for Fuel.
 export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
+	// Deploy libraries ---
+
+	// Deploy block library
+	const blockLibFactory = await ethers.getContractFactory('BlockLib');
+	const blockLib = await blockLibFactory.deploy();
+	await blockLib.deployed();
+
+	// Deploy transaction serializer library
+	const transactionSerializationLibFactory = await ethers.getContractFactory(
+		'TransactionSerializationLib'
+	);
+	const transactionSerializationLib: TransactionSerializationLib =
+		(await transactionSerializationLibFactory.deploy()) as TransactionSerializationLib;
+	await transactionSerializationLib.deployed();
+
+	// ---
+
 	// Constructor Arguments.
 	const finalizationDelay = opts.finalizationDelay || 100;
 	const bond = ethers.utils.parseEther('1.0');
+	const maxClockTime = 1_000_000;
 
 	// Initial token amount
 	const initialTokenAmount = ethers.utils.parseEther('1000');
 
 	// Factory.
-	const fuelFactory = await ethers.getContractFactory('Fuel');
+	const fuelFactory = await ethers.getContractFactory('Fuel', {
+		libraries: {
+			BlockLib: blockLib.address,
+		},
+	});
 
 	// Deployment.
-	const fuel: Fuel = (await fuelFactory.deploy(finalizationDelay, bond)) as Fuel;
+	const fuel: Fuel = (await fuelFactory.deploy(finalizationDelay, bond, maxClockTime)) as Fuel;
 
 	// Ensure it's finished deployment.
 	await fuel.deployed();
@@ -135,6 +160,7 @@ export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
 		guard,
 		burnAuction,
 		leaderSelection,
+		transactionSerializationLib,
 		signers: await ethers.getSigners(),
 		addresses: (await ethers.getSigners()).map((v) => v.address),
 		signer,
@@ -164,7 +190,8 @@ export async function produceBlock(env: HarnessObject): Promise<HarnessBlock> {
 	const height = 0;
 	const previousBlockHash = EMPTY_BLOCK_ID;
 	const transactionRoot = ethers.utils.sha256('0xdeadbeaf');
-	const transactions = ethers.utils.hexZeroPad('0x', 500);
+	const transactionsData = ethers.utils.hexZeroPad('0x', 500);
+	const numTransactions = 10;
 	const digestRoot = ethers.utils.sha256('0xdeadbeaf');
 	const digests = [
 		ethers.utils.hexZeroPad('0xdead', 32),
@@ -179,7 +206,8 @@ export async function produceBlock(env: HarnessObject): Promise<HarnessBlock> {
 		height,
 		previousBlockHash,
 		transactionRoot,
-		transactions,
+		numTransactions,
+		transactionsData,
 		digestRoot,
 		digests,
 		{
@@ -199,8 +227,9 @@ export async function produceBlock(env: HarnessObject): Promise<HarnessBlock> {
 		digestHash: computeDigestHash(digests),
 		digestLength: digests.length,
 		transactionRoot,
-		transactionHash: computeTransactionsHash(transactions),
-		transactionLength: computeTransactionsLength(transactions),
+		transactionHash: computeTransactionsHash(transactionsData),
+		numTransactions,
+		transactionsDataLength: computeTransactionsLength(transactionsData),
 	};
 
 	// Compute the block id.
