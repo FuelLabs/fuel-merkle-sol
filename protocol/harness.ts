@@ -13,6 +13,7 @@ import { BinaryMerkleTree } from '../typechain/BinaryMerkleTree.d';
 import { MerkleSumTree } from '../typechain/MerkleSumTree.d';
 import { SparseMerkleTree } from '../typechain/SparseMerkleTree.d';
 import { TransactionSerializationLib } from '../typechain/TransactionSerializationLib.d';
+import { ChallengeManager } from '../typechain/ChallengeManager.d';
 
 import {
 	computeTransactionsHash,
@@ -39,6 +40,7 @@ export interface HarnessObject {
 	guard: DSGuard;
 	burnAuction: PerpetualBurnAuction;
 	leaderSelection: LeaderSelection;
+	challengeManager: ChallengeManager;
 	transactionSerializationLib: TransactionSerializationLib;
 	signers: Array<Signer>;
 	addresses: Array<string>;
@@ -84,6 +86,25 @@ export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
 	const transactionSerializationLib: TransactionSerializationLib =
 		(await transactionSerializationLibFactory.deploy()) as TransactionSerializationLib;
 	await transactionSerializationLib.deployed();
+
+	// Deploy chess clock library
+	const chessClockLibFactory = await ethers.getContractFactory('ChessClockLib');
+	const chessClockLib = await chessClockLibFactory.deploy();
+	await chessClockLib.deployed();
+
+	// Deploy transaction IVG library
+	const transactionIVGLibFactory = await ethers.getContractFactory('TransactionIVGLib', {
+		libraries: {
+			TransactionSerializationLib: transactionSerializationLib.address,
+		},
+	});
+	const transactionIVGLib = await transactionIVGLibFactory.deploy();
+	await transactionIVGLib.deployed();
+
+	// Deploy Challenge  library
+	const challengeLibFactory = await ethers.getContractFactory('ChallengeLib');
+	const challengeLib = await challengeLibFactory.deploy();
+	await challengeLib.deployed();
 
 	// ---
 
@@ -176,6 +197,21 @@ export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
 	await token.mint(signer, initialTokenAmount);
 	await fuelToken.functions['mint(uint256)'](initialTokenAmount);
 
+	// Deploy challenge manager
+	const challengeManagerFactory = await ethers.getContractFactory('ChallengeManager', {
+		libraries: {
+			ChallengeLib: challengeLib.address,
+			BlockLib: blockLib.address,
+			ChessClockLib: chessClockLib.address,
+			TransactionIVGLib: transactionIVGLib.address,
+		},
+	});
+
+	const challengeManager: ChallengeManager = (await challengeManagerFactory.deploy(
+		fuel.address
+	)) as ChallengeManager;
+	await challengeManager.deployed();
+
 	// Return the Fuel harness object.
 	return {
 		sparseMerkleTreeLib,
@@ -187,6 +223,7 @@ export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
 		guard,
 		burnAuction,
 		leaderSelection,
+		challengeManager,
 		transactionSerializationLib,
 		signers: await ethers.getSigners(),
 		addresses: (await ethers.getSigners()).map((v) => v.address),
