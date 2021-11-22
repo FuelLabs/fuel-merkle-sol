@@ -80,24 +80,11 @@ contract Fuel {
     /// @notice Commit a new block.
     /// @param minimumNumber Minimum Ethereum block number that this commitment is valid for.
     /// @param expectedHash Ethereum block hash that this commitment is valid for.
-    /// @param height Rollup block height.
-    /// @param previousBlockHash This is the previous Merkle root.
-    /// @param transactionRoot The transaction Merkle tree root.
-    /// @param numTransactions : The number of transactions in the block
-    /// @param transactionsData The raw transaction data for this block.
-    /// @param digestRoot The Merkle root of the registered digests.
-    /// @param digests The digests being registered.
-    /// @dev BlockHandler::commitBlock
+    /// @param blockHeader : The header of the block to commit
     function commitBlock(
         uint32 minimumNumber,
         bytes32 expectedHash,
-        uint32 height,
-        bytes32 previousBlockHash,
-        bytes32 transactionRoot,
-        uint32 numTransactions,
-        bytes calldata transactionsData,
-        bytes32 digestRoot,
-        bytes32[] calldata digests
+        BlockHeader memory blockHeader
     ) external payable {
         // Only accept calls directly from an EOA.
         // TODO remove this check https://github.com/FuelLabs/fuel-sol/issues/5
@@ -109,32 +96,7 @@ contract Fuel {
         require(block.number > minimumNumber, "minimum-block-number");
         require(blockhash(minimumNumber) == expectedHash, "expected-block-hash");
 
-        // Sent value must be exactly bond size.
-        require(msg.value == BOND_SIZE, "bond-size");
-
-        // Compute the simple hash of the submitted transactions. If this
-        // doesn't match up with the submitted transactions root, it's
-        // fraudulent.
-        bytes32 transactionHash = CryptographyLib.hash(transactionsData);
-
-        // Compute the simple hash of the submitted digests.
-        bytes32 digestHash = CryptographyLib.hash(abi.encodePacked(digests));
-
-        // Create a Fuel block header.
-        BlockHeader memory blockHeader =
-            BlockHeader(
-                msg.sender,
-                previousBlockHash,
-                height,
-                SafeCast.toUint32(block.number),
-                digestRoot,
-                digestHash,
-                SafeCast.toUint16(digests.length),
-                transactionRoot,
-                transactionHash,
-                numTransactions,
-                SafeCast.toUint32(transactionsData.length)
-            );
+        blockHeader.blockNumber = SafeCast.toUint32(block.number);
 
         // Process the new block.
         BlockHandler.commitBlock(s_BlockCommitments, blockHeader);

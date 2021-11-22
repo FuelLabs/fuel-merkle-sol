@@ -9,7 +9,7 @@ import {
 	calcRoot,
 	checkVerify,
 	checkAppend,
-	hashLeaf,
+	leafDigest,
 } from '../../protocol/binaryMerkleTree/binaryMerkleTree';
 import { uintToBytes32, ZERO } from '../../protocol/common';
 import BinaryMerkleBranch from '../../protocol/binaryMerkleTree/types/branch';
@@ -133,17 +133,17 @@ describe('binary Merkle tree', async () => {
 		// Tree is empty
 		await bmto.addBranchesAndUpdate([], ZERO, ZERO, newData, 0);
 		newSolRoot = await bmto.root();
-		expect(newSolRoot).to.equal(hashLeaf(newData));
+		expect(newSolRoot).to.equal(leafDigest(newData));
 
 		// Tree has only one leaf
 		await bmto.addBranchesAndUpdate(
 			[new BinaryMerkleBranch([], ZERO, uintToBytes32(42))],
-			hashLeaf(uintToBytes32(42)),
+			leafDigest(uintToBytes32(42)),
 			ZERO,
 			uintToBytes32(43),
 			1
 		);
 		newSolRoot = await bmto.root();
-		expect(newSolRoot).to.equal(hashLeaf(uintToBytes32(43)));
+		expect(newSolRoot).to.equal(leafDigest(uintToBytes32(43)));
 	});
 });

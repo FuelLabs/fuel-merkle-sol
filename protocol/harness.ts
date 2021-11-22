@@ -1,7 +1,7 @@
 /// @dev The Fuel testing harness.
 /// A set of useful helper methods for testing Fuel.
 import { ethers } from 'hardhat';
-import { BigNumberish, Signer } from 'ethers';
+import { BigNumberish, Signer, BigNumber as BN } from 'ethers';
 import { TransactionReceipt } from '@ethersproject/abstract-provider';
 import { Fuel } from '../typechain/Fuel.d';
 import { Token } from '../typechain/Token.d';
@@ -255,6 +255,7 @@ export async function produceBlock(env: HarnessObject): Promise<HarnessBlock> {
 	const previousBlockHash = EMPTY_BLOCK_ID;
 	const transactionRoot = ethers.utils.sha256('0xdeadbeaf');
 	const transactionsData = ethers.utils.hexZeroPad('0x', 500);
+	const transactionSum = BN.from(100);
 	const numTransactions = 10;
 	const digestRoot = ethers.utils.sha256('0xdeadbeaf');
 	const digests = [
@@ -263,23 +264,7 @@ export async function produceBlock(env: HarnessObject): Promise<HarnessBlock> {
 		ethers.utils.hexZeroPad('0xdeed', 32),
 	];
 
-	// Commit block to chain.
-	const tx = await env.fuel.commitBlock(
-		minimum,
-		minimumHash,
-		height,
-		previousBlockHash,
-		transactionRoot,
-		numTransactions,
-		transactionsData,
-		digestRoot,
-		digests,
-		{
-			value: env.constructor.bond,
-		}
-	);
-	const receipt = await tx.wait();
-	const blockNumber = receipt.blockNumber;
+	const blockNumber = 0;
 
 	// Produce a BlockHeader for the block.
 	const blockHeader: BlockHeader = {
@@ -291,10 +276,19 @@ export async function produceBlock(env: HarnessObject): Promise<HarnessBlock> {
 		digestHash: computeDigestHash(digests),
 		digestLength: digests.length,
 		transactionRoot,
+		transactionSum,
 		transactionHash: computeTransactionsHash(transactionsData),
 		numTransactions,
 		transactionsDataLength: computeTransactionsLength(transactionsData),
 	};
+
+	// Commit block to chain.
+	const tx = await env.fuel.commitBlock(minimum, minimumHash, blockHeader, {
+		value: env.constructor.bond,
+	});
+	const receipt = await tx.wait();
+
+	blockHeader.blockNumber = receipt.blockNumber;
 
 	// Compute the block id.
 	const blockHash = computeBlockId(blockHeader);

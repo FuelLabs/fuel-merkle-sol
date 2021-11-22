@@ -37,7 +37,7 @@ library ChallengeLib {
         // Instantiate a new Transaction IVG. First requested Node is the root.
         TxGame memory txgame =
             TxGame(
-                RequestedNode(false, blockHeader.transactionRoot),
+                RequestedNode(false, blockHeader.transactionRoot, blockHeader.transactionSum),
                 revealedNode,
                 false,
                 "",

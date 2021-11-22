@@ -11,7 +11,7 @@ bytes1 constant nodePrefix = 0x01;
 /// @param value fee of the leaf.
 /// @param data, raw data of the leaf.
 // solhint-disable-next-line func-visibility
-function hashLeaf(uint256 value, bytes memory data) pure returns (bytes32) {
+function leafDigest(uint256 value, bytes memory data) pure returns (bytes32) {
     return CryptographyLib.hash(abi.encodePacked(leafPrefix, value, data));
 }
 
@@ -20,7 +20,7 @@ function hashLeaf(uint256 value, bytes memory data) pure returns (bytes32) {
 /// @param left, left child hash.
 /// @param right, right child hash.
 // solhint-disable-next-line func-visibility
-function hashNode(
+function nodeDigest(
     uint256 leftValue,
     bytes32 left,
     uint256 rightValue,

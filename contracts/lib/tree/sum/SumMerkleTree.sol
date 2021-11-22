@@ -48,7 +48,7 @@ library MerkleSumTree {
         }
 
         // A sibling at height 1 is created by getting the LeafSum of the original data.
-        bytes32 digest = hashLeaf(_sum, data);
+        bytes32 digest = leafDigest(_sum, data);
         uint256 sum = _sum;
 
         // Handle case where proof is empty: i.e, only one leaf exists, so verify hash(data) is root
@@ -93,14 +93,14 @@ library MerkleSumTree {
                 return false;
             }
             if (key - subTreeStartIndex < (1 << (height - 1))) {
-                digest = hashNode(
+                digest = nodeDigest(
                     sum,
                     digest,
                     proof.nodeSums[height - 1],
                     proof.sideNodes[height - 1]
                 );
             } else {
-                digest = hashNode(
+                digest = nodeDigest(
                     proof.nodeSums[height - 1],
                     proof.sideNodes[height - 1],
                     sum,
@@ -119,14 +119,24 @@ library MerkleSumTree {
             if (proof.sideNodes.length <= height - 1) {
                 return false;
             }
-            digest = hashNode(sum, digest, proof.nodeSums[height - 1], proof.sideNodes[height - 1]);
+            digest = nodeDigest(
+                sum,
+                digest,
+                proof.nodeSums[height - 1],
+                proof.sideNodes[height - 1]
+            );
             sum += proof.nodeSums[height - 1];
             height += 1;
         }
 
         // All remaining elements in the proof set will belong to a left sibling.
         while (height - 1 < proof.sideNodes.length) {
-            digest = hashNode(proof.nodeSums[height - 1], proof.sideNodes[height - 1], sum, digest);
+            digest = nodeDigest(
+                proof.nodeSums[height - 1],
+                proof.sideNodes[height - 1],
+                sum,
+                digest
+            );
             sum += proof.nodeSums[height - 1];
             height += 1;
         }
@@ -144,7 +154,7 @@ library MerkleSumTree {
     {
         bytes32[] memory nodes = new bytes32[](data.length);
         for (uint256 i = 0; i < data.length; ++i) {
-            nodes[i] = hashLeaf(values[i], data[i]);
+            nodes[i] = leafDigest(values[i], data[i]);
         }
         uint256 odd = nodes.length & 1;
         uint256 size = (nodes.length + 1) >> 1;
@@ -157,7 +167,7 @@ library MerkleSumTree {
             uint256 i = 0;
             for (; i < size - odd; ++i) {
                 uint256 j = i << 1;
-                nodes[i] = hashNode(pSums[j], pNodes[j], pSums[j + 1], pNodes[j + 1]);
+                nodes[i] = nodeDigest(pSums[j], pNodes[j], pSums[j + 1], pNodes[j + 1]);
                 sums[i] = pSums[j].add(pSums[j + 1]);
             }
             if (odd == 1) {

@@ -1,4 +1,4 @@
-import { hashLeaf, hashNode, parseLeaf } from './treeHasher';
+import { leafDigest, nodeDigest, parseLeaf } from './treeHasher';
 import hash from '../cryptography';
 import { getBitAtFromMSB, ZERO } from './utils';
 import SparseMerkleProof from './types/sparseMerkleProof';
@@ -29,7 +29,7 @@ export function verifyProof(
 				// Leaf does exist : non-membership proof failed
 				return [false, []];
 			}
-			[currentHash, currentData] = hashLeaf(actualPath, valueHash);
+			[currentHash, currentData] = leafDigest(actualPath, valueHash);
 			updates.push([currentHash, currentData]);
 		}
 	} else {
@@ -37,7 +37,7 @@ export function verifyProof(
 		valueHash = hash(value);
 		updates.push([valueHash, value]);
 
-		[currentHash, currentData] = hashLeaf(key, value);
+		[currentHash, currentData] = leafDigest(key, value);
 		updates.push([currentHash, currentData]);
 	}
 
@@ -46,9 +46,9 @@ export function verifyProof(
 		const node = proof.SideNodes[i];
 
 		if (getBitAtFromMSB(key, proof.SideNodes.length - 1 - i) === 1) {
-			[currentHash, currentData] = hashNode(node, currentHash);
+			[currentHash, currentData] = nodeDigest(node, currentHash);
 		} else {
-			[currentHash, currentData] = hashNode(currentHash, node);
+			[currentHash, currentData] = nodeDigest(currentHash, node);
 		}
 
 		updates.push([currentHash, currentData]);

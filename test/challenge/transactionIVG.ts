@@ -3,9 +3,9 @@ import { solidity } from 'ethereum-waffle';
 import { BigNumber as BN, ethers } from 'ethers';
 import { HarnessObject, setupFuel } from '../../protocol/harness';
 import hash from '../../protocol/cryptography';
-import { calcRoot, constructTree } from '../../protocol/binaryMerkleTree/binaryMerkleTree';
+import { calcRoot, constructTree } from '../../protocol/sumMerkleTree/sumMerkleTree';
 import RevealedNode from '../../protocol/challenge/types/revealedNode';
-import Node from '../../protocol/binaryMerkleTree/types/node';
+import Node from '../../protocol/sumMerkleTree/types/node';
 import { uintToBytes32 } from '../../protocol/common';
 import { BlockHeader } from '../../protocol/block';
 
@@ -22,10 +22,12 @@ describe('Transaction IVG', async () => {
 	// Construct a set of leaves ("transactions"), and calculate the root and hash
 	// Each transaction is 32 bytes long, and there are 8 transactions
 	const txs: string[] = [];
+	const sums: BN[] = [];
 	let tx;
 	for (let i = 0; i < 8; i += 1) {
 		tx = hash(BN.from(i).toHexString()); // some random data (replace with actual transactions later)
 		txs.push(tx);
+		sums.push(BN.from(1));
 	}
 
 	// Get nodes, merkle tree root, and transaction hash
@@ -35,8 +37,8 @@ describe('Transaction IVG', async () => {
 	}
 
 	let txsDataLength = (txsConcat.length - 2) / 2; // bytes is (chars - 2)/2
-	const nodes = constructTree(txs);
-	const txRoot = calcRoot(txs);
+	const nodes = constructTree(sums, txs);
+	const rootNode = calcRoot(sums, txs);
 	const txHash = hash(txsConcat);
 	let currentNode: Node;
 
@@ -49,7 +51,8 @@ describe('Transaction IVG', async () => {
 			digestRoot: uintToBytes32(0),
 			digestHash: uintToBytes32(0),
 			digestLength: 0,
-			transactionRoot: txRoot,
+			transactionRoot: rootNode.hash,
+			transactionSum: rootNode.sum,
 			transactionHash: txHash,
 			numTransactions: txs.length,
 			transactionsDataLength: txsDataLength,
@@ -68,10 +71,13 @@ describe('Transaction IVG', async () => {
 			false,
 			nodes[currentNode.left].hash,
 			nodes[currentNode.right].hash,
+			nodes[currentNode.left].sum,
+			nodes[currentNode.right].sum,
 			0,
 			txsDataLength / 2,
 			txsDataLength,
-			'0x'
+			'0x',
+			BN.from(0)
 		);
 		txsDataLength /= 2;
 		// console.log(revealedNode);
@@ -96,10 +102,13 @@ describe('Transaction IVG', async () => {
 			false,
 			nodes[currentNode.left].hash,
 			nodes[currentNode.right].hash,
+			nodes[currentNode.left].sum,
+			nodes[currentNode.right].sum,
 			0,
 			txsDataLength / 2,
 			txsDataLength,
-			'0x'
+			'0x',
+			BN.from(0)
 		);
 		// console.log(revealedNode);
 		txsDataLength /= 2;
@@ -124,10 +133,13 @@ describe('Transaction IVG', async () => {
 			false,
 			nodes[currentNode.left].hash,
 			nodes[currentNode.right].hash,
+			nodes[currentNode.left].sum,
+			nodes[currentNode.right].sum,
 			0,
 			txsDataLength / 2,
 			txsDataLength,
-			'0x'
+			'0x',
+			BN.from(0)
 		);
 		// console.log(revealedNode);
 		txsDataLength /= 2;
@@ -146,10 +158,13 @@ describe('Transaction IVG', async () => {
 			true,
 			uintToBytes32(0),
 			uintToBytes32(0),
+			BN.from(0),
+			BN.from(0),
 			0 + 32, // Offset to right by one transaction for right child
 			txsDataLength / 2 + 32, // ""
 			txsDataLength + 32, // ""
-			txs[1]
+			txs[1],
+			sums[1]
 		);
 		// console.log(revealedNode);
 		await env.challengeManager.transactionIVGRevealData(0, revealedNode);

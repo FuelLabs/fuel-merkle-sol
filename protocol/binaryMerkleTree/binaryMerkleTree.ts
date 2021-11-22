@@ -5,12 +5,12 @@ import { padBytes } from '../common';
 import Node from './types/node';
 import hash from '../cryptography';
 
-export function hashLeaf(data: string): string {
+export function leafDigest(data: string): string {
 	// Slice off the '0x' on each argument to simulate abi.encodePacked
 	return hash('0x00'.concat(data.slice(2)));
 }
 
-export function hashNode(left: string, right: string): string {
+export function nodeDigest(left: string, right: string): string {
 	// Slice off the '0x' on each argument to simulate abi.encodePacked
 	// hash(prefix +  left + right)
 	return hash('0x01'.concat(left.slice(2)).concat(right.slice(2)));
@@ -20,7 +20,7 @@ export function hashNode(left: string, right: string): string {
 export function constructTree(data: string[]): Node[] {
 	const nodes = [];
 	for (let i = 0; i < data.length; i += 1) {
-		const hashed = hashLeaf(data[i]);
+		const hashed = leafDigest(data[i]);
 		const leaf = new Node(-1, -1, -1, hashed, data[i]);
 		leaf.index = i;
 		nodes.push(leaf);
@@ -36,7 +36,7 @@ export function constructTree(data: string[]): Node[] {
 		let i = 0;
 		for (; i < size - odd; i += 1) {
 			const j = i << 1;
-			const hashed = hashNode(pNodes[j].hash, pNodes[j + 1].hash);
+			const hashed = nodeDigest(pNodes[j].hash, pNodes[j + 1].hash);
 			nodes[i] = new Node(pNodes[j].index, pNodes[j + 1].index, -1, hashed, '');
 			const nextIndex = nodesList.length;
 			nodes[i].index = nextIndex;
@@ -65,7 +65,7 @@ export function constructTree(data: string[]): Node[] {
 export function calcRoot(data: string[]): string {
 	const nodes = [];
 	for (let i = 0; i < data.length; i += 1) {
-		const hashed = hashLeaf(data[i]);
+		const hashed = leafDigest(data[i]);
 		nodes.push(new Node(-1, -1, -1, hashed, data[i]));
 	}
 	let pNodes = nodes;
@@ -76,7 +76,7 @@ export function calcRoot(data: string[]): string {
 		let i = 0;
 		for (; i < size - odd; i += 1) {
 			const j = i << 1;
-			const hashed = hashNode(pNodes[j].hash, pNodes[j + 1].hash);
+			const hashed = nodeDigest(pNodes[j].hash, pNodes[j + 1].hash);
 			nodes[i] = new Node(pNodes[j].index, pNodes[j + 1].index, -1, hashed, '');
 		}
 		if (odd === 1) {

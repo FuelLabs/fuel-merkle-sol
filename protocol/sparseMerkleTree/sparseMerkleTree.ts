@@ -12,7 +12,7 @@ import {
 	MAX_HEIGHT,
 	countCommonPrefix,
 } from './utils';
-import { isLeaf, hashLeaf, hashNode, parseLeaf, parseNode } from './treeHasher';
+import { isLeaf, leafDigest, nodeDigest, parseLeaf, parseNode } from './treeHasher';
 
 class SparseMerkleTree {
 	ms: MapStore;
@@ -153,9 +153,9 @@ class SparseMerkleTree {
 			}
 
 			if (getBitAtFromMSB(key, sideNodes.length - 1 - i) === 1) {
-				[currentHash, currentData] = hashNode(sideNode, currentData);
+				[currentHash, currentData] = nodeDigest(sideNode, currentData);
 			} else {
-				[currentHash, currentData] = hashNode(currentData, sideNode);
+				[currentHash, currentData] = nodeDigest(currentData, sideNode);
 			}
 			this.set(currentHash, currentData);
 			currentData = currentHash;
@@ -182,7 +182,7 @@ class SparseMerkleTree {
 
 		this.set(hash(value), value);
 
-		[currentHash, currentData] = hashLeaf(key, value);
+		[currentHash, currentData] = leafDigest(key, value);
 		this.set(currentHash, currentData);
 
 		currentData = currentHash;
@@ -205,9 +205,9 @@ class SparseMerkleTree {
 
 		if (commonPrefixCount !== MAX_HEIGHT) {
 			if (getBitAtFromMSB(key, commonPrefixCount) === 1) {
-				[currentHash, currentData] = hashNode(oldLeafHash, currentData);
+				[currentHash, currentData] = nodeDigest(oldLeafHash, currentData);
 			} else {
-				[currentHash, currentData] = hashNode(currentData, oldLeafHash);
+				[currentHash, currentData] = nodeDigest(currentData, oldLeafHash);
 			}
 			this.set(currentHash, currentData);
 			currentData = currentHash;
@@ -234,9 +234,9 @@ class SparseMerkleTree {
 			}
 
 			if (getBitAtFromMSB(key, MAX_HEIGHT - 1 - i) === 1) {
-				[currentHash, currentData] = hashNode(sideNode, currentData);
+				[currentHash, currentData] = nodeDigest(sideNode, currentData);
 			} else {
-				[currentHash, currentData] = hashNode(currentData, sideNode);
+				[currentHash, currentData] = nodeDigest(currentData, sideNode);
 			}
 
 			this.set(currentHash, currentData);

@@ -2,7 +2,7 @@
 pragma solidity ^0.7.4;
 pragma experimental ABIEncoderV2;
 import "../Cryptography.sol";
-import "../tree/binary/TreeHasher.sol";
+import "../tree/sum/TreeHasher.sol";
 import "./ChallengeLib.sol";
 import "./ChessClockLib.sol";
 import "../../types/Transaction.sol";
@@ -24,16 +24,20 @@ struct RevealedNode {
     bool isLeaf;
     bytes32 leftDigest;
     bytes32 rightDigest;
+    uint256 leftSum;
+    uint256 rightSum;
     uint256 dataStart;
     uint256 midpoint; // Data is implicitly contiguous if we define L and R as data[dataStart : midpoint] and data[midpoint : dataEnd]
     uint256 dataEnd;
     bytes leafData; // The uncompressed leaf data. Is "" unless isLeaf is true
+    uint256 leafValue;
 }
 
 /// @notice The node requested by the challenger
 struct RequestedNode {
     bool side;
     bytes32 digest;
+    uint256 sum;
 }
 
 /// @notice This contract implements the transaction IVG, used to force a dishonest block proposer to reveal a transaction.
@@ -80,17 +84,20 @@ library TransactionIVGLib {
         if (!node.isLeaf) {
             // Check sums and digests are correct for the requested node
             require(
-                nodeDigest(node.leftDigest, node.rightDigest) == game.requestedNode.digest,
+                nodeDigest(node.leftSum, node.leftDigest, node.rightSum, node.rightDigest) ==
+                    game.requestedNode.digest,
                 "Incorrect node digest"
             );
+            require(node.leftSum + node.rightSum == game.requestedNode.sum, "Incorrect node sum");
         }
         // If node revealed is a leaf
         else {
             // Check leaf value and data are correct for the requested node
             require(
-                leafDigest(node.leafData) == game.requestedNode.digest,
+                leafDigest(node.leafValue, node.leafData) == game.requestedNode.digest,
                 "Incorrect leaf digest"
             );
+            require(node.leafValue == game.requestedNode.sum, "Incorrect leaf value");
             game.leafFound = true;
 
             // If we're at a leaf, we save the hash of the data, which will be re-provided
@@ -117,9 +124,17 @@ library TransactionIVGLib {
         require(!game.leafFound, "Leaf already found");
 
         if (rightSide) {
-            game.requestedNode = RequestedNode(true, game.revealedNode.rightDigest);
+            game.requestedNode = RequestedNode(
+                true,
+                game.revealedNode.rightDigest,
+                game.revealedNode.rightSum
+            );
         } else {
-            game.requestedNode = RequestedNode(false, game.revealedNode.leftDigest);
+            game.requestedNode = RequestedNode(
+                false,
+                game.revealedNode.leftDigest,
+                game.revealedNode.leftSum
+            );
         }
     }
 

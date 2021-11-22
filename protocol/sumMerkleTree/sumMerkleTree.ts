@@ -8,14 +8,14 @@ import Node from './types/node';
 import Proof from './types/proof';
 
 // hash leaf
-export function hashLeaf(value: BN, data: string): string {
+export function leafDigest(value: BN, data: string): string {
 	// Slice off the '0x' on each argument to simulate abi.encodePacked
 	// hash(prefix + value + data)
 	return hash('0x00'.concat(padUint(value).slice(2)).concat(data.slice(2)));
 }
 
 // hash node
-export function hashNode(leftValue: BN, left: string, rightValue: BN, right: string): string {
+export function nodeDigest(leftValue: BN, left: string, rightValue: BN, right: string): string {
 	// Slice off the '0x' on each argument to simulate abi.encodePacked
 	// hash (prefix + leftSum + leftHash + rightSum + rightHash)
 	return hash(
@@ -31,7 +31,7 @@ export function hashNode(leftValue: BN, left: string, rightValue: BN, right: str
 export function constructTree(sums: BN[], data: string[]): Node[] {
 	const nodes = [];
 	for (let i = 0; i < data.length; i += 1) {
-		const hashed = hashLeaf(sums[i], data[i]);
+		const hashed = leafDigest(sums[i], data[i]);
 		const leaf = new Node(-1, -1, -1, hashed, sums[i], data[i]);
 		leaf.index = i;
 		nodes.push(leaf);
@@ -45,7 +45,7 @@ export function constructTree(sums: BN[], data: string[]): Node[] {
 		let i = 0;
 		for (; i < size - odd; i += 1) {
 			const j = i << 1;
-			const hashed = hashNode(
+			const hashed = nodeDigest(
 				pNodes[j].sum,
 				pNodes[j].hash,
 				pNodes[j + 1].sum,
@@ -81,7 +81,7 @@ export function constructTree(sums: BN[], data: string[]): Node[] {
 export function calcRoot(sums: BN[], data: string[]): Node {
 	const nodes = [];
 	for (let i = 0; i < data.length; i += 1) {
-		const hashed = hashLeaf(sums[i], data[i]);
+		const hashed = leafDigest(sums[i], data[i]);
 		nodes.push(new Node(-1, -1, -1, hashed, sums[i], data[i]));
 	}
 	let pNodes = nodes;
@@ -92,7 +92,7 @@ export function calcRoot(sums: BN[], data: string[]): Node {
 		let i = 0;
 		for (; i < size - odd; i += 1) {
 			const j = i << 1;
-			const hashed = hashNode(
+			const hashed = nodeDigest(
 				pNodes[j].sum,
 				pNodes[j].hash,
 				pNodes[j + 1].sum,

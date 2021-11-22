@@ -1,4 +1,4 @@
-import { utils, constants } from 'ethers';
+import { utils, constants, BigNumber as BN } from 'ethers';
 import hash from './cryptography';
 
 // The BlockHeader structure.
@@ -11,6 +11,7 @@ export interface BlockHeader {
 	digestHash: string;
 	digestLength: number;
 	transactionRoot: string;
+	transactionSum: BN;
 	transactionHash: string;
 	numTransactions: number;
 	transactionsDataLength: number;
@@ -28,6 +29,7 @@ export function serialize(blockHeader: BlockHeader): string {
 			'bytes32',
 			'uint16',
 			'bytes32',
+			'uint256',
 			'bytes32',
 			'uint32',
 			'uint32',
@@ -41,6 +43,7 @@ export function serialize(blockHeader: BlockHeader): string {
 			blockHeader.digestHash,
 			blockHeader.digestLength,
 			blockHeader.transactionRoot,
+			blockHeader.transactionSum,
 			blockHeader.transactionHash,
 			blockHeader.numTransactions,
 			blockHeader.transactionsDataLength,
