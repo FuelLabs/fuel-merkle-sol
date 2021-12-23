@@ -13,40 +13,40 @@ library DepositHandler {
     // Events //
     ////////////
 
-    event DepositMade(address indexed account, address indexed token, uint256 amount);
+    event DepositMade(
+        uint32 blockNumber,
+        address indexed account,
+        address indexed token,
+        uint256 amount,
+        uint256 depositNonce
+    );
 
     /////////////
     // Methods //
     /////////////
 
     /// @notice Handle token deposit.
-    /// @param s_Deposit the internal storage being changed by the logic.
-    /// @param account the owner of the funds in Fuel.
-    /// @param sender the sender of the funds in Fuel.
+    /// @param account the owner (receiver / beneficiary) of the funds in Fuel.
+    /// @param sender the sender of the funds from Ethereum.
     /// @param amount the amount to deposit to the owner.
     /// @param token the ERC20 token address of this deposit.
     /// @dev Deposits of ETH are not supported, instead use e.g. WETH.
     function deposit(
-        mapping(address => mapping(address => mapping(uint32 => uint256))) storage s_Deposit,
         address account,
         address sender,
         uint256 amount,
-        IERC20 token
+        address token,
+        uint256 s_depositNonce
     ) internal {
         // Safely down-cast the current uint256 Ethereum block number to a uint32.
         uint32 blockNumber = SafeCast.toUint32(block.number);
 
-        // Ensure the funds are transferred over.
-        // TODO: ensure re-entrancy modelling is done and has no negative effects.
-        require(token.transferFrom(sender, address(this), amount), "deposit-transfer");
-
-        // Get the balance amount from state.
-        uint256 balanceAmount = s_Deposit[account][address(token)][blockNumber];
-
-        // Increase amount.
-        s_Deposit[account][address(token)][blockNumber] = balanceAmount + amount;
+        require(IERC20(token).transferFrom(sender, address(this), amount), "deposit-transfer");
 
         // Deposit made.
-        emit DepositMade(account, address(token), amount);
+        emit DepositMade(blockNumber, account, address(token), amount, s_depositNonce);
+
+        // Increment deposit nonce
+        s_depositNonce += 1;
     }
 }

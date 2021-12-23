@@ -1,5 +1,5 @@
 import chai from 'chai';
-import { uintToBytes32 } from '../common';
+import { uintToBytes32 } from '../utils';
 import { calcRoot } from './binaryMerkleTree';
 
 const { expect } = chai;

@@ -4,7 +4,7 @@ import '@nomiclabs/hardhat-etherscan';
 import 'hardhat-typechain';
 import 'hardhat-deploy';
 import 'solidity-coverage';
-// import 'hardhat-gas-reporter';
+import 'hardhat-gas-reporter';
 import { config as dotEnvConfig } from 'dotenv';
 
 dotEnvConfig();
@@ -28,6 +28,11 @@ const config: HardhatUserConfig = {
 		timeout: 180_000,
 	},
 	networks: {
+		hardhat: {
+			accounts: {
+				count: 128,
+			},
+		},
 		ropsten: {
 			url: `https://ropsten.infura.io/v3/${INFURA_API_KEY}`,
 			accounts: [ROPSTEN_PRIVATE_KEY],

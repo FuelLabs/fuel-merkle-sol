@@ -2,17 +2,14 @@
 pragma solidity ^0.7.4;
 pragma experimental ABIEncoderV2;
 import "../../../lib/Cryptography.sol";
-
-/// @dev The prefixes of leaves and nodes, used to identify "nodes" as such.
-bytes1 constant leafPrefix = 0x00;
-bytes1 constant nodePrefix = 0x01;
+import "../Constants.sol";
 
 /// @notice Hash a leaf node.
 /// @param value fee of the leaf.
 /// @param data, raw data of the leaf.
 // solhint-disable-next-line func-visibility
 function leafDigest(uint256 value, bytes memory data) pure returns (bytes32) {
-    return CryptographyLib.hash(abi.encodePacked(leafPrefix, value, data));
+    return CryptographyLib.hash(abi.encodePacked(Constants.LEAF_PREFIX, value, data));
 }
 
 /// @notice Hash a node, which is not a leaf.
@@ -26,5 +23,8 @@ function nodeDigest(
     uint256 rightValue,
     bytes32 right
 ) pure returns (bytes32) {
-    return CryptographyLib.hash(abi.encodePacked(nodePrefix, leftValue, left, rightValue, right));
+    return
+        CryptographyLib.hash(
+            abi.encodePacked(Constants.NODE_PREFIX, leftValue, left, rightValue, right)
+        );
 }

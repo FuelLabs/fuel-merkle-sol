@@ -1,8 +1,7 @@
 /// @dev The Fuel testing harness.
 /// A set of useful helper methods for testing Fuel.
 import { ethers } from 'hardhat';
-import { BigNumberish, Signer, BigNumber as BN } from 'ethers';
-import { TransactionReceipt } from '@ethersproject/abstract-provider';
+import { BigNumberish, Signer } from 'ethers';
 import { Fuel } from '../typechain/Fuel.d';
 import { Token } from '../typechain/Token.d';
 import { DSGuard } from '../typechain/DSGuard.d';
@@ -14,19 +13,13 @@ import { MerkleSumTree } from '../typechain/MerkleSumTree.d';
 import { SparseMerkleTree } from '../typechain/SparseMerkleTree.d';
 import { TransactionSerializationLib } from '../typechain/TransactionSerializationLib.d';
 import { ChallengeManager } from '../typechain/ChallengeManager.d';
-
-import {
-	computeTransactionsHash,
-	computeDigestHash,
-	computeBlockId,
-	computeTransactionsLength,
-	EMPTY_BLOCK_ID,
-	BlockHeader,
-} from './block';
+import { ZERO } from './constants';
 
 // Harness options.
 export interface HarnessOptions {
+	bond?: BigNumberish;
 	finalizationDelay?: number;
+	maxClockTime?: number;
 }
 
 // This is the Harness Object.
@@ -47,8 +40,9 @@ export interface HarnessObject {
 	signer: string;
 	initialTokenAmount: BigNumberish;
 	constructor: {
-		finalizationDelay: number;
 		bond: BigNumberish;
+		finalizationDelay: number;
+		maxClockTime: number;
 	};
 }
 
@@ -108,26 +102,8 @@ export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
 
 	// ---
 
-	// Constructor Arguments.
-	const finalizationDelay = opts.finalizationDelay || 100;
-	const bond = ethers.utils.parseEther('1.0');
-	const maxClockTime = 1_000_000;
-
 	// Initial token amount
-	const initialTokenAmount = ethers.utils.parseEther('1000');
-
-	// Factory.
-	const fuelFactory = await ethers.getContractFactory('Fuel', {
-		libraries: {
-			BlockLib: blockLib.address,
-		},
-	});
-
-	// Deployment.
-	const fuel: Fuel = (await fuelFactory.deploy(finalizationDelay, bond, maxClockTime)) as Fuel;
-
-	// Ensure it's finished deployment.
-	await fuel.deployed();
+	const initialTokenAmount = ethers.utils.parseEther('1000000');
 
 	// Deploy a token for deposit testing.
 	const tokenFactory = await ethers.getContractFactory('Token');
@@ -155,6 +131,7 @@ export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
 	const roundLength = 3600; // 1 hour
 	const selectionWindowLength = 600; // 10 minutes
 	const ticketRatio = ethers.utils.parseEther('10'); // 10 tokens per entry
+	const validatorRatio = 3; // 1/3 of validators must approve block
 	const genesisSeed = ethers.utils.formatBytes32String('seed');
 
 	const leaderSelection: LeaderSelection = (await leaderSelectionFactory.deploy(
@@ -162,6 +139,7 @@ export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
 		roundLength,
 		selectionWindowLength,
 		ticketRatio,
+		validatorRatio,
 		genesisSeed
 	)) as LeaderSelection;
 
@@ -192,10 +170,48 @@ export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
 
 	// Set signer.
 	const signer = (await ethers.getSigners())[0].address;
+	const signers = await ethers.getSigners();
 
-	// Mint token to the first signer.
+	// Mint some Fuel token to all the signers
+	for (let i = 0; i < signers.length; i += 1) {
+		await fuelToken.functions['mint(address,uint256)'](
+			await signers[i].getAddress(),
+			ethers.utils.parseEther('1000')
+		);
+	}
+
+	// Mint some dummy token for deposit testing
 	await token.mint(signer, initialTokenAmount);
-	await fuelToken.functions['mint(uint256)'](initialTokenAmount);
+
+	// Deploy Fuel main contract
+
+	const fuelFactory = await ethers.getContractFactory('Fuel', {
+		libraries: {
+			BlockLib: blockLib.address,
+			BinaryMerkleTree: binaryMerkleTreeLib.address,
+		},
+	});
+	// Constructor Arguments.
+	const bond = opts.bond || ethers.utils.parseEther('1.0');
+	const finalizationDelay = opts.finalizationDelay || 100;
+	const maxClockTime = opts.maxClockTime || 1_000_000;
+	const leaderSelectionAddress = leaderSelection.address;
+
+	// TO DO : validator set initialization on genesis
+	const genesisValSet = ZERO;
+	const genesisRequiredStake = 0;
+
+	const fuel: Fuel = (await fuelFactory.deploy(
+		bond,
+		finalizationDelay,
+		maxClockTime,
+		leaderSelectionAddress,
+		genesisValSet,
+		genesisRequiredStake
+	)) as Fuel;
+
+	// Ensure it's finished deployment.
+	await fuel.deployed();
 
 	// Deploy challenge manager
 	const challengeManagerFactory = await ethers.getContractFactory('ChallengeManager', {
@@ -225,79 +241,14 @@ export async function setupFuel(opts: HarnessOptions): Promise<HarnessObject> {
 		leaderSelection,
 		challengeManager,
 		transactionSerializationLib,
-		signers: await ethers.getSigners(),
+		signers,
 		addresses: (await ethers.getSigners()).map((v) => v.address),
 		signer,
 		initialTokenAmount,
 		constructor: {
-			finalizationDelay,
 			bond,
+			finalizationDelay,
+			maxClockTime,
 		},
-	};
-}
-
-// The block object containing pertinent block info.
-export interface HarnessBlock {
-	blockId: string;
-	digests: Array<string>;
-	blockHeader: BlockHeader;
-	receipt: TransactionReceipt;
-}
-
-// This will produce a block given the environment.
-export async function produceBlock(env: HarnessObject): Promise<HarnessBlock> {
-	// Block properties.
-	const producer = env.signer;
-	const minimum = await ethers.provider.getBlockNumber();
-	const minimumBlock = await ethers.provider.getBlock(minimum);
-	const minimumHash = minimumBlock.hash;
-	const height = 0;
-	const previousBlockHash = EMPTY_BLOCK_ID;
-	const transactionRoot = ethers.utils.sha256('0xdeadbeaf');
-	const transactionsData = ethers.utils.hexZeroPad('0x', 500);
-	const transactionSum = BN.from(100);
-	const numTransactions = 10;
-	const digestRoot = ethers.utils.sha256('0xdeadbeaf');
-	const digests = [
-		ethers.utils.hexZeroPad('0xdead', 32),
-		ethers.utils.hexZeroPad('0xbeaf', 32),
-		ethers.utils.hexZeroPad('0xdeed', 32),
-	];
-
-	const blockNumber = 0;
-
-	// Produce a BlockHeader for the block.
-	const blockHeader: BlockHeader = {
-		producer,
-		previousBlockHash,
-		height,
-		blockNumber,
-		digestRoot,
-		digestHash: computeDigestHash(digests),
-		digestLength: digests.length,
-		transactionRoot,
-		transactionSum,
-		transactionHash: computeTransactionsHash(transactionsData),
-		numTransactions,
-		transactionsDataLength: computeTransactionsLength(transactionsData),
-	};
-
-	// Commit block to chain.
-	const tx = await env.fuel.commitBlock(minimum, minimumHash, blockHeader, {
-		value: env.constructor.bond,
-	});
-	const receipt = await tx.wait();
-
-	blockHeader.blockNumber = receipt.blockNumber;
-
-	// Compute the block id.
-	const blockHash = computeBlockId(blockHeader);
-
-	// Return the interface object.
-	return {
-		blockHeader,
-		receipt,
-		blockId: blockHash,
-		digests,
 	};
 }

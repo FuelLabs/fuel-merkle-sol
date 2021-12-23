@@ -28,7 +28,6 @@ export function parseNode(data: string): [string, string] {
 	return ['0x'.concat(data.slice(len, len + 64)), '0x'.concat(data.slice(len + 64))];
 }
 
-// How to do in solidity ?
 export function isLeaf(data: string): boolean {
 	return data.slice(0, 4) === leafPrefix;
 }

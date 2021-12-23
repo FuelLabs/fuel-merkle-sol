@@ -15,28 +15,29 @@ library BlockLib {
     /// @return The serialized block header.
     function serialize(BlockHeader memory header) internal pure returns (bytes memory) {
         // Encode packed.
-
-        // abi-encode in two steps to avoid stack-too-deep
-
+        // Abi-encode in two steps to avoid stack too deep
         bytes memory data =
             abi.encodePacked(
                 header.producer,
-                header.previousBlockHash,
+                header.previousBlockRoot,
                 header.height,
                 header.blockNumber,
-                header.digestRoot,
-                header.digestHash,
-                header.digestLength
+                header.digestRoot
             );
 
         return
             abi.encodePacked(
                 data,
+                header.digestHash,
+                header.digestLength,
                 header.transactionRoot,
                 header.transactionSum,
                 header.transactionHash,
                 header.numTransactions,
-                header.transactionsDataLength
+                header.transactionsDataLength,
+                header.validatorSetHash,
+                header.requiredStake,
+                header.withdrawalsRoot
             );
     }
 

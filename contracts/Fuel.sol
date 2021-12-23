@@ -2,25 +2,24 @@
 pragma solidity ^0.7.4;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
-import "./handlers/Block.sol";
-import "./handlers/BlockHeader.sol";
 import "./handlers/Deposit.sol";
 import "./handlers/Withdrawal.sol";
-
 import "./lib/Cryptography.sol";
-
-import "./types/BlockCommitment.sol";
-
-import "./vendor/openzeppelin/SafeCast.sol";
+import "./lib/Block.sol";
+import "./LeaderSelection.sol";
+import "./lib/tree/binary/BinaryMerkleTree.sol";
 
 /// @notice The Fuel v2 optimistic rollup system.
-/// @dev This contract holds storage and immutable fields, with libraries providing the logic.
 contract Fuel {
-    ////////////////
-    // Immutables //
-    ////////////////
+    ///////////////
+    // Constants //
+    ///////////////
+
+    // Maximum raw transaction data size in bytes.
+    uint32 public constant MAX_COMPRESSED_TX_BYTES = 32000;
+
+    // Maximum number of digests registered in a block.
+    uint32 public constant MAX_BLOCK_DIGESTS = 0xFFFF;
 
     /// @dev The Fuel block bond size in wei.
     uint256 public immutable BOND_SIZE;
@@ -31,104 +30,210 @@ contract Fuel {
     /// @dev The maximum time each participant has to complete their actions (chess clock) in a block challenge
     uint256 public immutable MAX_CLOCK_TIME;
 
+    /// @dev The address of the leader selection module
+    address public immutable LEADER_SELECTION;
+
     /////////////
     // Storage //
     /////////////
 
-    /// @dev Maps Fuel block height => Fuel block ID.
-    mapping(bytes32 => BlockCommitment) public s_BlockCommitments;
+    /// @dev The ID of the most recently committed block header
+    bytes32 public s_currentBlockID;
 
-    /// @dev Maps depositor address => token address => Ethereum block number => token amount.
-    mapping(address => mapping(address => mapping(uint32 => uint256))) public s_Deposits;
+    uint256 internal s_depositNonce;
 
-    /// @dev Maps Ethereum block number => withdrawal ID => is withdrawn bool.
-    mapping(uint32 => mapping(bytes32 => bool)) public s_Withdrawals;
+    /// @dev Maps users to claimable withdrawals (user_address => token_address => amount)
+    mapping(address => mapping(address => uint256)) public s_withdrawals;
 
-    /// @dev The Fuel block height of the finalized tip.
-    uint32 public s_BlockTip;
+    ////////////
+    // Events //
+    ////////////
+
+    event BlockCommitted(bytes32 indexed blockRoot, uint32 indexed height);
 
     /// @notice Contract constructor.
-    /// @param finalizationDelay The delay in blocks for Fuel block finalization.
-    /// @param bond The bond in wei to put up for each block.
     constructor(
-        uint32 finalizationDelay,
         uint256 bond,
-        uint256 maxClockTime
+        uint32 finalizationDelay,
+        uint256 maxClockTime,
+        address leaderSelection,
+        bytes32 genesisValSet,
+        uint256 genesisRequiredStake
     ) {
-        // Set immutable constants.
+        // Initialize constants
+        LEADER_SELECTION = leaderSelection;
         BOND_SIZE = bond;
         FINALIZATION_DELAY = finalizationDelay;
         MAX_CLOCK_TIME = maxClockTime;
 
-        // Set the genesis block to be valid.
-        s_BlockCommitments[bytes32(0)].status = BlockCommitmentStatus.Committed;
+        // Create the genesis block header
+        BlockHeader memory genesisBlockHeader =
+            BlockHeader(
+                address(0),
+                bytes32(0),
+                0,
+                0,
+                bytes32(0),
+                bytes32(0),
+                0,
+                bytes32(0),
+                0,
+                bytes32(0),
+                0,
+                0,
+                genesisValSet,
+                genesisRequiredStake,
+                Constants.EMPTY
+            );
+
+        bytes32 genesisBlockId = BlockLib.computeBlockId(genesisBlockHeader);
+        s_currentBlockID = genesisBlockId;
+
+        emit BlockCommitted(genesisBlockId, 0);
     }
 
     /// @notice Deposit a token.
     /// @param account Address of token owner.
     /// @param token Token address.
     /// @param amount The amount to deposit.
-    /// @dev DepositHandler::deposit
     function deposit(
         address account,
         address token,
         uint256 amount
     ) external {
-        DepositHandler.deposit(s_Deposits, msg.sender, account, amount, IERC20(token));
+        DepositHandler.deposit(msg.sender, account, amount, token, s_depositNonce);
+    }
+
+    /// @notice Withdraw a token.
+    /// @param account Address to withdraw token to
+    /// @param token Token address.
+    /// @param amount The amount to withdraw.
+    function withdraw(
+        address account,
+        address token,
+        uint256 amount
+    ) external {
+        WithdrawalHandler.withdraw(msg.sender, account, amount, token, s_withdrawals);
+    }
+
+    struct Withdrawal {
+        address owner;
+        address token;
+        uint256 amount;
+        uint256 nonce;
     }
 
     /// @notice Commit a new block.
-    /// @param minimumNumber Minimum Ethereum block number that this commitment is valid for.
-    /// @param expectedHash Ethereum block hash that this commitment is valid for.
-    /// @param blockHeader : The header of the block to commit
+    /// @dev Under an honest majority assumption, the block header itself is assumed valid IFF sufficient validator weight has signed.
+    /// @dev The block header commits to the validator set for the next block
+    /// @param minimumBlockNumber: The minimum ethereum block number for which this commitment is valid
+    /// @param expectedBlockHash: The expected block hash of the minimum block number
+    /// @param newBlockHeader: The new block header to commit
+    /// @param previousBlockHeader: The most recently committed block header
+    /// @param validators: The addresses of current validator set
+    /// @param stakes : The stakes of the current validator set
+    /// @param signatures: The signatures over the proposed block header
+    /// @param withdrawals: The withdrawals proposed to be processed with this block commitment
     function commitBlock(
-        uint32 minimumNumber,
-        bytes32 expectedHash,
-        BlockHeader memory blockHeader
-    ) external payable {
-        // Only accept calls directly from an EOA.
-        // TODO remove this check https://github.com/FuelLabs/fuel-sol/issues/5
-        require(tx.origin == msg.sender, "origin-not-caller");
-
+        uint32 minimumBlockNumber,
+        bytes32 expectedBlockHash,
+        BlockHeader memory newBlockHeader,
+        BlockHeader memory previousBlockHeader,
+        address[] memory validators,
+        uint256[] memory stakes,
+        bytes[] memory signatures,
+        Withdrawal[] memory withdrawals
+    ) public {
         // To avoid Ethereum re-org attacks, commitment transactions include a
-        // minimum Ethereum block number and expected block hash. Check will
-        // fail if transaction is > 256 block old.
-        require(block.number > minimumNumber, "minimum-block-number");
-        require(blockhash(minimumNumber) == expectedHash, "expected-block-hash");
+        // minimum Ethereum block number and expected block hash.
+        // Note: `blockhash` function  will return 0 if transaction is > 256 block old.
+        require(block.number > minimumBlockNumber, "minimum-block-number");
+        require(blockhash(minimumBlockNumber) == expectedBlockHash, "expected-block-hash");
 
-        blockHeader.blockNumber = SafeCast.toUint32(block.number);
-
-        // Process the new block.
-        BlockHandler.commitBlock(s_BlockCommitments, blockHeader);
-    }
-
-    /// @notice Get a child for a particular block.
-    /// @param blockId The block ID.
-    /// @param index The child index.
-    /// @return The child block hash.
-    function getBlockChildAt(bytes32 blockId, uint32 index) external view returns (bytes32) {
-        return s_BlockCommitments[blockId].children[index];
-    }
-
-    /// @notice Get the number of children for a particular block.
-    /// @param blockId The block ID.
-    /// @return The number of children.
-    function getBlockNumChildren(bytes32 blockId) external view returns (uint256) {
-        return s_BlockCommitments[blockId].children.length;
-    }
-
-    /// @notice Withdraw the block proposer's bond for a finalized block.
-    /// @param blockHeader Rollup block header of block to withdraw bond for.
-    /// @dev WithdrawalHandler::bondWithdraw
-    function bondWithdraw(BlockHeader calldata blockHeader) external {
-        // Ensure that the block header was previously submitted and is finalizable.
+        // Check provided previousBlockHeader is correct
         require(
-            BlockHeaderHandler.isBlockHeaderCommitted(s_BlockCommitments, blockHeader),
-            "not-committed"
+            BlockLib.computeBlockId(previousBlockHeader) == s_currentBlockID,
+            "incorrect-previous-block"
         );
-        BlockHeaderHandler.requireBlockHeaderFinalizable(FINALIZATION_DELAY, blockHeader);
 
-        // Handle the withdrawal of the bond.
-        WithdrawalHandler.bondWithdraw(s_Withdrawals, BOND_SIZE, blockHeader);
+        // Check new block height is exactly old height + 1
+        require(newBlockHeader.height == previousBlockHeader.height + 1, "incorrect-block-height");
+
+        // Check validators/stakes provided match validator set hash from previous block header
+        require(
+            checkValidators(validators, stakes, previousBlockHeader.validatorSetHash),
+            "incorrect-validator-set"
+        );
+
+        bytes32 newBlockId = BlockLib.computeBlockId(newBlockHeader);
+
+        // Recover validator addresses from the array of signatures over the new block ID
+        uint256 totalStake = 0;
+        for (uint256 i = 0; i < validators.length; i += 1) {
+            // Stop signature verification as soon as the required stake is reached.
+            if (totalStake >= previousBlockHeader.requiredStake) {
+                break;
+            }
+
+            // Can include '0x' for missing signatures to skip ecrecover and minimize gas costs
+            if (signatures[i].length == 0) {
+                continue;
+            }
+
+            if (CryptographyLib.addressFromSignature(signatures[i], newBlockId) == validators[i]) {
+                totalStake += stakes[i];
+            }
+        }
+
+        // Check block has sufficient stake
+        require(totalStake >= previousBlockHeader.requiredStake, "block-not-validated");
+
+        // Process withdrawals
+
+        // Calculate the withdrawal ID for each withdrawal to process
+        bytes[] memory withdrawalIds = new bytes[](withdrawals.length);
+        for (uint256 i = 0; i < withdrawals.length; i += 1) {
+            withdrawalIds[i] = abi.encodePacked(computeWithdrawalId(withdrawals[i])); // BinaryMerkleTree requires bytes, not bytes32
+        }
+
+        // Check the root of withdrawal IDs is correct
+        require(
+            BinaryMerkleTree.computeRoot(withdrawalIds) == newBlockHeader.withdrawalsRoot,
+            "invalid-withdrawal-set"
+        );
+
+        // Set the balances for each withdrawal
+        for (uint256 i = 0; i < withdrawals.length; i += 1) {
+            s_withdrawals[withdrawals[i].owner][withdrawals[i].token] += withdrawals[i].amount;
+        }
+
+        // Set the new block ID
+        s_currentBlockID = newBlockId;
+
+        emit BlockCommitted(newBlockId, previousBlockHeader.height + 1);
+    }
+
+    function checkValidators(
+        address[] memory validators,
+        uint256[] memory stakes,
+        bytes32 valSetHash
+    ) internal pure returns (bool) {
+        // TO DO : Remove this once valSet initialization on genesis is implemented
+        if (valSetHash == bytes32(0)) {
+            return true;
+        }
+        return CryptographyLib.hash(abi.encodePacked(validators, stakes)) == valSetHash;
+    }
+
+    function computeWithdrawalId(Withdrawal memory withdrawal) internal pure returns (bytes32) {
+        return
+            CryptographyLib.hash(
+                abi.encodePacked(
+                    withdrawal.owner,
+                    withdrawal.token,
+                    withdrawal.amount,
+                    withdrawal.nonce
+                )
+            );
     }
 }

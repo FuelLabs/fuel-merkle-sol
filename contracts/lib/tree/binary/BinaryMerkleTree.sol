@@ -149,6 +149,9 @@ library BinaryMerkleTree {
     /// @param data: list of leaves' data in ascending for leaves order.
     /// @return : The root of the tree
     function computeRoot(bytes[] memory data) public pure returns (bytes32) {
+        if (data.length == 0) {
+            return Constants.EMPTY;
+        }
         bytes32[] memory nodes = new bytes32[](data.length);
         for (uint256 i = 0; i < data.length; ++i) {
             nodes[i] = leafDigest(data[i]);
@@ -194,6 +197,7 @@ library BinaryMerkleTree {
         // (because all side nodes will be on its left)
         // Therefore, the number of steps in the proof should equal number of bits set in the key
         // E.g. If appending the 7th leaf, key = 0b110 => proofLength = 2.
+
         uint256 proofLength = 0;
         while (numLeaves > 0) {
             proofLength += numLeaves & 1;
@@ -204,8 +208,15 @@ library BinaryMerkleTree {
             return (Constants.NULL, false);
         }
 
-        for (uint256 i = 0; i < proofLength; ++i) {
-            digest = nodeDigest(proof[i], digest);
+        // If proof length is correctly 0, tree is empty, and we are appending the first leaf
+        if (proofLength == 0) {
+            digest = leafDigest(data);
+        }
+        // Otherwise tree non-empty so we calculate nodes up to root
+        else {
+            for (uint256 i = 0; i < proofLength; ++i) {
+                digest = nodeDigest(proof[i], digest);
+            }
         }
 
         return (digest, true);
@@ -465,6 +476,54 @@ library BinaryMerkleTree {
         bytes32 newRootPtr = updateWithSideNodes(key, value, sideNodes, numLeaves);
 
         return get(newRootPtr).digest;
+    }
+
+    /// @notice Derive the proof for a new appended leaf from the proof for the last appended leaf
+    /// @param oldProof: The proof to the last appeneded leaf
+    /// @param lastLeaf: The last leaf hash
+    /// @param key: The key of the new leaf
+    /// @return : The proof for the appending of the new leaf
+    /// @dev This function assumes that oldProof has been verified in position (key - 1)
+    function deriveAppendProofFromLastProof(
+        bytes32[] memory oldProof,
+        bytes32 lastLeaf,
+        uint256 key
+    ) public pure returns (bytes32[] memory) {
+        // First prepend last leaf to its proof.
+        bytes32[] memory newProofBasis = new bytes32[](oldProof.length + 1);
+        newProofBasis[0] = leafDigest(abi.encodePacked(lastLeaf));
+        for (uint256 i = 0; i < oldProof.length; i += 1) {
+            newProofBasis[i + 1] = oldProof[i];
+        }
+
+        // If the new leaf is "even", this will already be the new proof
+        if (key & 1 == 1) {
+            return newProofBasis;
+        }
+
+        // Otherwise, get the expected length of the new proof (it's the last leaf by definition, so numLeaves = key + 1)
+        // Assuming old proof was valid, this will always be shorter than the old proof.
+        uint256 expectedProofLength = pathLengthFromKey(key, key + 1);
+
+        bytes32[] memory newProof = new bytes32[](expectedProofLength);
+
+        // "Hash up" through old proof until we have the correct first sidenode
+        bytes32 firstSideNode = newProofBasis[0];
+        uint256 hashedUpIndex = 0;
+        while (hashedUpIndex < (newProofBasis.length - expectedProofLength)) {
+            firstSideNode = nodeDigest(newProofBasis[hashedUpIndex + 1], firstSideNode);
+            hashedUpIndex += 1;
+        }
+
+        // Set the calculated first side node as the first element in the proof
+        newProof[0] = firstSideNode;
+
+        // Then append the remaining (unchanged) sidenodes, if any
+        for (uint256 j = 1; j < expectedProofLength; j += 1) {
+            newProof[j] = newProofBasis[hashedUpIndex + j];
+        }
+
+        return newProof;
     }
 
     struct AddBranchVariables {

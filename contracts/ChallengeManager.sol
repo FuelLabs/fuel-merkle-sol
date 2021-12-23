@@ -60,11 +60,11 @@ contract ChallengeManager {
         bytes32 blockHeaderHash = BlockLib.computeBlockId(blockHeader);
 
         // blockHeaderHash must be not already be finalized
-        require(
-            Fuel(FUEL_ADDRESS).s_BlockCommitments(blockHeaderHash) !=
-                BlockCommitmentStatus.Committed,
-            "Block already finalized"
-        );
+        //require(
+        //    Fuel(FUEL_ADDRESS).s_BlockCommitments(blockHeaderHash) !=
+        //        BlockCommitmentStatus.Committed,
+        //    "Block already finalized"
+        //);
 
         // Start a new challenge. Challenger is the sender
         s_liveChallenges[s_nChallenges] = ChallengeLib.initiateChallenge(

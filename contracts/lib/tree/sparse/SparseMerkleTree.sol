@@ -397,7 +397,14 @@ library SparseMerkleTree {
         if (rootPtr == Constants.NULL) {
             // Set the new root
             Node memory rootNode =
-                Node(root, leafPrefix, Constants.NULL, Constants.NULL, Constants.ZERO, "");
+                Node(
+                    root,
+                    Constants.LEAF_PREFIX,
+                    Constants.NULL,
+                    Constants.NULL,
+                    Constants.ZERO,
+                    ""
+                );
             rootPtr = set(rootNode);
             variables.parent = rootNode;
         }
@@ -412,7 +419,7 @@ library SparseMerkleTree {
             uint256 j = i - 1;
 
             // Parent has a child, so is a node
-            variables.parent.prefix = nodePrefix;
+            variables.parent.prefix = Constants.NODE_PREFIX;
 
             // Descend into left or right subtree depending on key
             // If leaf is in the right subtree:
@@ -422,7 +429,7 @@ library SparseMerkleTree {
                 if (variables.parent.leftChildPtr == Constants.NULL) {
                     variables.sideNode = Node(
                         proof.SideNodes[j],
-                        nodePrefix,
+                        Constants.NODE_PREFIX,
                         Constants.NULL,
                         Constants.NULL,
                         Constants.ZERO,
@@ -439,7 +446,7 @@ library SparseMerkleTree {
                 if (variables.parent.rightChildPtr == Constants.NULL) {
                     variables.node = Node(
                         Constants.NULL,
-                        leafPrefix,
+                        Constants.LEAF_PREFIX,
                         Constants.NULL,
                         Constants.NULL,
                         Constants.ZERO,
@@ -458,7 +465,7 @@ library SparseMerkleTree {
                 if (variables.parent.rightChildPtr == Constants.NULL) {
                     variables.sideNode = Node(
                         proof.SideNodes[j],
-                        nodePrefix,
+                        Constants.NODE_PREFIX,
                         Constants.NULL,
                         Constants.NULL,
                         Constants.ZERO,
@@ -473,7 +480,7 @@ library SparseMerkleTree {
                 if (variables.parent.leftChildPtr == Constants.NULL) {
                     variables.node = Node(
                         Constants.NULL,
-                        leafPrefix,
+                        Constants.LEAF_PREFIX,
                         Constants.NULL,
                         Constants.NULL,
                         Constants.ZERO,
@@ -507,7 +514,7 @@ library SparseMerkleTree {
         // If sibling was a leaf, set its prefix to indicate that
         if (isLeaf(proof.Sibling)) {
             variables.node = get(sideNodePtrs[0]);
-            variables.node.prefix = leafPrefix;
+            variables.node.prefix = Constants.LEAF_PREFIX;
         }
 
         // Go back up the tree, setting the digests of nodes on the branch

@@ -3,7 +3,7 @@
 import { ethers } from 'hardhat';
 import { BigNumber as BN, Contract } from 'ethers';
 import hash from '../cryptography';
-import { padUint, padBytes } from '../common';
+import { padUint, padBytes } from '../utils';
 import Node from './types/node';
 import Proof from './types/proof';
 

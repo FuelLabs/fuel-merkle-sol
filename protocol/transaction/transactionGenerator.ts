@@ -5,7 +5,8 @@ import Witness from './types/witness';
 import hash from '../cryptography';
 import TXOPointer from './types/txoPointer';
 import DigestPointer from './types/digestPointer';
-import * as Constants from '../common';
+import * as Constants from '../constants';
+import { uintToBytes32 } from '../utils';
 
 function generateBytes32(): string {
 	return hash('0x');
@@ -59,7 +60,7 @@ export function generateOutput(oKind: number): Output {
 		// to Pointer
 		new DigestPointer(0, 0),
 		// color
-		Constants.uintToBytes32(0),
+		uintToBytes32(0),
 		// color Pointer
 		new DigestPointer(0, 0),
 		// amount
@@ -127,7 +128,7 @@ export function generateTransaction(): Transaction {
 		0,
 		3,
 		generateBytes32(),
-		[Constants.uintToBytes32(1), Constants.uintToBytes32(2), Constants.uintToBytes32(3)],
+		[uintToBytes32(1), uintToBytes32(2), uintToBytes32(3)],
 		[new TXOPointer(0, 0, 0), new TXOPointer(0, 0, 0), new TXOPointer(0, 0, 0)]
 	);
 

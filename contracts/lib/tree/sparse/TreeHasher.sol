@@ -7,10 +7,6 @@ import "./Node.sol";
 
 /// @notice Contains functions for hashing leaves and nodes, and parsing their data
 
-/// @dev The prefixes of leaves and nodes, used to identify "nodes" as such.
-bytes1 constant leafPrefix = 0x00;
-bytes1 constant nodePrefix = 0x01;
-
 /// @notice hash some data
 /// @param data: The data to be hashed
 // solhint-disable-next-line func-visibility
@@ -20,12 +16,12 @@ function hash(bytes memory data) pure returns (bytes32) {
 
 // solhint-disable-next-line func-visibility
 function nodeDigest(bytes32 left, bytes32 right) pure returns (bytes32 digest) {
-    digest = hash(abi.encodePacked(nodePrefix, left, right));
+    digest = hash(abi.encodePacked(Constants.NODE_PREFIX, left, right));
 }
 
 // solhint-disable-next-line func-visibility
 function leafDigest(bytes32 key, bytes memory value) pure returns (bytes32 digest) {
-    digest = hash(abi.encodePacked(leafPrefix, key, hash(value)));
+    digest = hash(abi.encodePacked(Constants.LEAF_PREFIX, key, hash(value)));
 }
 
 /// @notice Hash a leaf node.
@@ -35,7 +31,7 @@ function leafDigest(bytes32 key, bytes memory value) pure returns (bytes32 diges
 // solhint-disable-next-line func-visibility
 function hashLeaf(bytes32 key, bytes memory data) pure returns (Node memory) {
     bytes32 digest = leafDigest(key, data);
-    return Node(digest, leafPrefix, Constants.NULL, Constants.NULL, key, data);
+    return Node(digest, Constants.LEAF_PREFIX, Constants.NULL, Constants.NULL, key, data);
 }
 
 /// @notice Hash a node, which is not a leaf.
@@ -51,7 +47,7 @@ function hashNode(
     bytes32 right
 ) pure returns (Node memory) {
     bytes32 digest = nodeDigest(left, right);
-    return Node(digest, nodePrefix, leftPtr, rightPtr, Constants.NULL, "");
+    return Node(digest, Constants.NODE_PREFIX, leftPtr, rightPtr, Constants.NULL, "");
 }
 
 /// @notice Parse a node's data into its left and right children
@@ -72,5 +68,5 @@ function parseLeaf(Node memory leaf) pure returns (bytes32, bytes memory) {
 /// @param node: The node to be parsed
 // solhint-disable-next-line func-visibility
 function isLeaf(Node memory node) pure returns (bool) {
-    return (node.prefix == leafPrefix);
+    return (node.prefix == Constants.LEAF_PREFIX);
 }

@@ -1,6 +1,6 @@
 import chai from 'chai';
 import { BigNumber as BN } from 'ethers';
-import { uintToBytes32 } from '../common';
+import { uintToBytes32 } from '../utils';
 import { calcRoot } from './sumMerkleTree';
 
 const { expect } = chai;

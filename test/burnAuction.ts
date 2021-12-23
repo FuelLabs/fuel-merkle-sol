@@ -94,12 +94,13 @@ describe('burnAuction', async () => {
 
 		const winner = await auc.highestBidder();
 		const lotSize = await auc.LOT_SIZE();
+		const beforeBalance = await env.fuelToken.balanceOf(winner);
 
 		// End auction
 		await auc.endAuction();
 
 		// Check winner was paid
-		expect(await env.fuelToken.balanceOf(winner)).to.be.equal(lotSize);
+		expect(await env.fuelToken.balanceOf(winner)).to.be.equal(beforeBalance.add(lotSize));
 
 		// Check state is reset
 		expect(await auc.highestBidder()).to.be.equal(ethers.constants.AddressZero);

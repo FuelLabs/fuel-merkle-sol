@@ -16,6 +16,5 @@ describe('constructor', async () => {
 	it('should construct nicely', async () => {
 		expect(await env.fuel.BOND_SIZE()).to.equal(env.constructor.bond);
 		expect(await env.fuel.FINALIZATION_DELAY()).to.equal(env.constructor.finalizationDelay);
-		expect(await env.fuel.s_BlockTip()).to.equal(0);
 	});
 });

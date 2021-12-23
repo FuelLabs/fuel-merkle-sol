@@ -10,7 +10,8 @@ import {
 	generateWitness,
 } from '../../protocol/transaction/transactionGenerator';
 import { HarnessObject, setupFuel } from '../../protocol/harness';
-import * as Constants from '../../protocol/common';
+import * as Constants from '../../protocol/constants';
+import { uintToBytes32 } from '../../protocol/utils';
 
 chai.use(solidity);
 const { expect } = chai;
@@ -174,7 +175,7 @@ describe('Transaction Serialization', async () => {
 
 		it('Should revert : Change output must have zero color', async () => {
 			const o = generateOutput(3);
-			o.color = Constants.uintToBytes32(1);
+			o.color = uintToBytes32(1);
 			t.kind = 1;
 			t.outputs.push(o);
 			t.outputsCount += 1;
@@ -264,7 +265,7 @@ describe('Transaction Serialization', async () => {
 			const o = generateOutput(5);
 			t.outputs.push(o);
 			t.outputsCount += 1;
-			t.staticContracts[0] = Constants.uintToBytes32(4);
+			t.staticContracts[0] = uintToBytes32(4);
 			await expect(srlzr.serialize(t, false)).to.be.revertedWith(
 				'staticContracts not ordered'
 			);

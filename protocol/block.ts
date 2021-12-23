@@ -2,19 +2,24 @@ import { utils, constants, BigNumber as BN } from 'ethers';
 import hash from './cryptography';
 
 // The BlockHeader structure.
-export interface BlockHeader {
-	producer: string;
-	previousBlockHash: string;
-	height: number;
-	blockNumber: number;
-	digestRoot: string;
-	digestHash: string;
-	digestLength: number;
-	transactionRoot: string;
-	transactionSum: BN;
-	transactionHash: string;
-	numTransactions: number;
-	transactionsDataLength: number;
+class BlockHeader {
+	constructor(
+		public producer: string,
+		public previousBlockRoot: string,
+		public height: number,
+		public blockNumber: number,
+		public digestRoot: string,
+		public digestHash: string,
+		public digestLength: number,
+		public transactionRoot: string,
+		public transactionSum: BN,
+		public transactionHash: string,
+		public numTransactions: number,
+		public transactionsDataLength: number,
+		public validatorSetHash: string,
+		public requiredStake: number,
+		public withdrawalsRoot: string
+	) {}
 }
 
 // Serialize a blockHeader.
@@ -33,10 +38,13 @@ export function serialize(blockHeader: BlockHeader): string {
 			'bytes32',
 			'uint32',
 			'uint32',
+			'bytes32',
+			'uint256',
+			'bytes32',
 		],
 		[
 			blockHeader.producer,
-			blockHeader.previousBlockHash,
+			blockHeader.previousBlockRoot,
 			blockHeader.height,
 			blockHeader.blockNumber,
 			blockHeader.digestRoot,
@@ -47,6 +55,9 @@ export function serialize(blockHeader: BlockHeader): string {
 			blockHeader.transactionHash,
 			blockHeader.numTransactions,
 			blockHeader.transactionsDataLength,
+			blockHeader.validatorSetHash,
+			blockHeader.requiredStake,
+			blockHeader.withdrawalsRoot,
 		]
 	);
 }
@@ -73,3 +84,5 @@ export function computeDigestHash(digests: Array<string>): string {
 export function computeBlockId(blockHeader: BlockHeader): string {
 	return hash(serialize(blockHeader));
 }
+
+export default BlockHeader;

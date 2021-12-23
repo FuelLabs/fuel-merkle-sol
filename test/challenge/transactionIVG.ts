@@ -5,9 +5,9 @@ import { HarnessObject, setupFuel } from '../../protocol/harness';
 import hash from '../../protocol/cryptography';
 import { calcRoot, constructTree } from '../../protocol/sumMerkleTree/sumMerkleTree';
 import RevealedNode from '../../protocol/challenge/types/revealedNode';
-import Node from '../../protocol/sumMerkleTree/types/node';
-import { uintToBytes32 } from '../../protocol/common';
-import { BlockHeader } from '../../protocol/block';
+import Node from '../../protocol/binaryMerkleTree/types/node';
+import { uintToBytes32 } from '../../protocol/utils';
+import BlockHeader from '../../protocol/block';
 
 chai.use(solidity);
 const { expect } = chai;
@@ -45,7 +45,7 @@ describe('Transaction IVG', async () => {
 	it('Initiate challenge', async () => {
 		const blockHeader: BlockHeader = {
 			producer: env.signer,
-			previousBlockHash: uintToBytes32(0),
+			previousBlockRoot: uintToBytes32(0),
 			height: 0,
 			blockNumber: 0,
 			digestRoot: uintToBytes32(0),
@@ -56,6 +56,9 @@ describe('Transaction IVG', async () => {
 			transactionHash: txHash,
 			numTransactions: txs.length,
 			transactionsDataLength: txsDataLength,
+			validatorSetHash: uintToBytes32(0),
+			requiredStake: 0,
+			withdrawalsRoot: uintToBytes32(0),
 		};
 
 		const bond = ethers.utils.parseEther('1');

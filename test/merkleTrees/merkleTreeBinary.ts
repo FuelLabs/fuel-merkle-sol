@@ -11,7 +11,8 @@ import {
 	checkAppend,
 	leafDigest,
 } from '../../protocol/binaryMerkleTree/binaryMerkleTree';
-import { uintToBytes32, ZERO } from '../../protocol/common';
+import { ZERO } from '../../protocol/constants';
+import { uintToBytes32 } from '../../protocol/utils';
 import BinaryMerkleBranch from '../../protocol/binaryMerkleTree/types/branch';
 
 chai.use(solidity);

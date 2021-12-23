@@ -1,7 +1,7 @@
 import chai from 'chai';
 import SparseMerkleTree from './sparseMerkleTree';
 import DeepSparseMerkleSubTree from './deepSparseMerkleSubTree';
-import { uintToBytes32 } from '../common';
+import { uintToBytes32 } from '../utils';
 import hash from '../cryptography';
 
 const { expect } = chai;

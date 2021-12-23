@@ -1,7 +1,8 @@
 /// A set of useful helper methods for testing binary Merkle trees.
 import { ethers } from 'hardhat';
 import { BigNumber as BN, Contract } from 'ethers';
-import { padBytes } from '../common';
+import { EMPTY } from '../constants';
+import { padBytes } from '../utils';
 import Node from './types/node';
 import hash from '../cryptography';
 
@@ -63,6 +64,9 @@ export function constructTree(data: string[]): Node[] {
 
 // compute root
 export function calcRoot(data: string[]): string {
+	if (data.length === 0) {
+		return EMPTY;
+	}
 	const nodes = [];
 	for (let i = 0; i < data.length; i += 1) {
 		const hashed = leafDigest(data[i]);

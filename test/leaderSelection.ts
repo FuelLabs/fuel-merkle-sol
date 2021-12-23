@@ -19,7 +19,7 @@ describe('leaderSelection', async () => {
 
 	it('Before submission phase', async () => {
 		const amount = ethers.utils.parseEther('300');
-		// Deposit should faile : not approved
+		// Deposit should fail : not approved
 		const ls = env.leaderSelection;
 		await expect(ls.deposit(amount)).to.be.revertedWith('ds-token-insufficient-approval');
 

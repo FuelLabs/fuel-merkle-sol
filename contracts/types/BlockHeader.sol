@@ -6,8 +6,8 @@ pragma experimental ABIEncoderV2;
 struct BlockHeader {
     // Address of block proposer committing this rollup block.
     address producer;
-    // Previous rollup block's header hash.
-    bytes32 previousBlockHash;
+    // The root of the MMR of block header hashes, as of the most recent block
+    bytes32 previousBlockRoot;
     // Rollup block height.
     uint32 height;
     // Ethereum block number when this rollup block is committed.
@@ -28,4 +28,10 @@ struct BlockHeader {
     uint32 numTransactions;
     // Length of (concatenated) compressed transactions in the block
     uint32 transactionsDataLength;
+    // The hash of the abi-encoded validator set for the next block {address, stake}
+    bytes32 validatorSetHash;
+    // The stake required to validate this block
+    uint256 requiredStake;
+    // The root of the binary Merkle tree of withdrawal IDs in the block
+    bytes32 withdrawalsRoot;
 }

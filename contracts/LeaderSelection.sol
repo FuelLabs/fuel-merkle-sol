@@ -27,6 +27,10 @@ contract LeaderSelection {
     /// @dev The ratio of "tickets" to deposited tokens
     uint256 public immutable TICKET_RATIO;
 
+    /// @dev The ratio of total validators to attesting validators required to submit a block
+    // e.g. VALIDATOR_RATIO = 3, at least 1/3rd of validators must attest the block
+    uint256 public VALIDATOR_RATIO;
+
     /////////////
     // Storage //
     /////////////
@@ -82,12 +86,14 @@ contract LeaderSelection {
         uint256 roundLength,
         uint256 submissionWindowLength,
         uint256 ticketRatio,
+        uint256 validatorRatio,
         bytes32 genesisSeed
     ) {
         TOKEN_ADDRESS = tokenAddress;
         ROUND_LENGTH = roundLength;
         SUBMISSION_WINDOW_LENGTH = submissionWindowLength;
         TICKET_RATIO = ticketRatio;
+        VALIDATOR_RATIO = validatorRatio;
         s_targetHash = genesisSeed;
         s_closestSubmission = type(uint256).max;
         // solhint-disable-next-line not-rely-on-time

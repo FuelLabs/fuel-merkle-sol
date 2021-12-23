@@ -3,7 +3,7 @@ import { solidity } from 'ethereum-waffle';
 import { ethers } from 'hardhat';
 import { Contract } from 'ethers';
 
-import { uintToBytes32 } from '../../protocol/common';
+import { uintToBytes32 } from '../../protocol/utils';
 import SparseMerkleTree from '../../protocol/sparseMerkleTree/sparseMerkleTree';
 import SparseCompactMerkleBranch from '../../protocol/sparseMerkleTree/types/sparseCompactMerkleBranch';
 import hash from '../../protocol/cryptography';

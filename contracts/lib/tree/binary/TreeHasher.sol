@@ -5,10 +5,6 @@ import "../../../lib/Cryptography.sol";
 import "../Constants.sol";
 import "./Node.sol";
 
-/// @dev The prefixes of leaves and nodes, used to identify "nodes" as such.
-bytes1 constant leafPrefix = 0x00;
-bytes1 constant nodePrefix = 0x01;
-
 /// @notice hash some data
 /// @param data: The data to be hashed
 // solhint-disable-next-line func-visibility
@@ -22,7 +18,7 @@ function hash(bytes memory data) pure returns (bytes32) {
 /// @return digest : The node digest
 // solhint-disable-next-line func-visibility
 function nodeDigest(bytes32 left, bytes32 right) pure returns (bytes32 digest) {
-    digest = hash(abi.encodePacked(nodePrefix, left, right));
+    digest = hash(abi.encodePacked(Constants.NODE_PREFIX, left, right));
 }
 
 /// @notice Calculate the digest of a leaf
@@ -30,7 +26,7 @@ function nodeDigest(bytes32 left, bytes32 right) pure returns (bytes32 digest) {
 /// @return digest : The leaf digest
 // solhint-disable-next-line func-visibility
 function leafDigest(bytes memory data) pure returns (bytes32 digest) {
-    digest = hash(abi.encodePacked(leafPrefix, data));
+    digest = hash(abi.encodePacked(Constants.LEAF_PREFIX, data));
 }
 
 /// @notice Hash a leaf node.
