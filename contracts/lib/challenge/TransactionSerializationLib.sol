@@ -98,9 +98,15 @@ library TransactionSerializationLib {
             if (compressed) {
                 data = abi.encodePacked(data, serializeTXOPointer(input.pointer));
             }
-            // Otherwise, serialize full ID with owner, color, and amount
+            // Otherwise, serialize full ID with owner, asset_id, and amount
             else {
-                data = abi.encodePacked(data, input.utxoID, input.owner, input.amount, input.color);
+                data = abi.encodePacked(
+                    data,
+                    input.utxoID,
+                    input.owner,
+                    input.amount,
+                    input.asset_id
+                );
             }
 
             // Serialize the remaining properties (which are common to compressed and uncompressed transactions)
@@ -168,16 +174,16 @@ library TransactionSerializationLib {
             (output.kind == OutputKind.Change) ||
             (output.kind == OutputKind.Variable)
         ) {
-            // For compressed transactions, "to" and "color" are pointers
+            // For compressed transactions, "to" and "asset_id" are pointers
             if (compressed) {
                 data = abi.encodePacked(
                     data,
                     serializeDigestPointer(output.toPointer),
                     output.amount,
-                    serializeDigestPointer(output.colorPointer)
+                    serializeDigestPointer(output.assetIDPointer)
                 );
             } else {
-                data = abi.encodePacked(data, output.to, output.amount, output.color);
+                data = abi.encodePacked(data, output.to, output.amount, output.asset_id);
             }
         }
 
@@ -288,7 +294,7 @@ library TransactionSerializationLib {
             }
 
             bool contractCreatedOutput = false;
-            bool zeroColorOutputChange = false;
+            bool zeroAssetIDOutputChange = false;
             for (uint256 i = 0; i < _tx.outputsCount; i += 1) {
                 // Invalid if any output is of type Contract or Variable
                 require(
@@ -301,11 +307,11 @@ library TransactionSerializationLib {
                 );
 
                 // Invalid if more than one output is of type OutputType.Change
-                // or, if any output is of type OutputKind.Change with non-zero color
+                // or, if any output is of type OutputKind.Change with non-zero asset_id
                 if (_tx.outputs[i].kind == OutputKind.Change) {
-                    require(_tx.outputs[i].color == 0, "Non zero-color change outputs");
-                    require(zeroColorOutputChange == false, "Multiple change outputs");
-                    zeroColorOutputChange = true;
+                    require(_tx.outputs[i].asset_id == 0, "Non zero-asset_id change outputs");
+                    require(zeroAssetIDOutputChange == false, "Multiple change outputs");
+                    zeroAssetIDOutputChange = true;
                 }
 
                 // Invalid if more than one output is of type OutputType.ContractCreated

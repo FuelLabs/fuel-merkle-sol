@@ -173,14 +173,14 @@ describe('Transaction Serialization', async () => {
 			);
 		});
 
-		it('Should revert : Change output must have zero color', async () => {
+		it('Should revert : Change output must have zero asset_id', async () => {
 			const o = generateOutput(3);
-			o.color = uintToBytes32(1);
+			o.asset_id = uintToBytes32(1);
 			t.kind = 1;
 			t.outputs.push(o);
 			t.outputsCount += 1;
 			await expect(srlzr.serialize(t, false)).to.be.revertedWith(
-				'Non zero-color change outputs'
+				'Non zero-asset_id change outputs'
 			);
 		});
 

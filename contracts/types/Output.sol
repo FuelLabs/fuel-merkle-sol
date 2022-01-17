@@ -30,10 +30,10 @@ struct Output {
     bytes32 to;
     // Pointer to receiving address (compressed)
     DigestPointer toPointer;
-    // Full color identifier address.
-    bytes32 color;
-    // Color index pointer (compressed)
-    DigestPointer colorPointer;
+    // Full asset_id identifier address.
+    bytes32 asset_id;
+    // asset_id index pointer (compressed)
+    DigestPointer assetIDPointer;
     // Amount of coins to send.
     uint64 amount;
     // Contract only

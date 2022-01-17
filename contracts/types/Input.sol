@@ -25,8 +25,8 @@ struct Input {
     bytes32 owner;
     // Input amount.
     uint64 amount;
-    // The token color.
-    bytes32 color;
+    // The token asset_id.
+    bytes32 asset_id;
     // Index of witness that authorizes spending the coin.
     uint8 witnessIndex;
     // UTXO being spent must have been created at least this many blocks ago.

@@ -27,7 +27,7 @@ export function generateInput(iKind: number): Input {
 		generateBytes32(),
 		// amount
 		0,
-		// color
+		// asset_id
 		generateBytes32(),
 		// witnessIndex
 		0,
@@ -59,9 +59,9 @@ export function generateOutput(oKind: number): Output {
 		generateBytes32(),
 		// to Pointer
 		new DigestPointer(0, 0),
-		// color
+		// asset_id
 		uintToBytes32(0),
-		// color Pointer
+		// asset_id Pointer
 		new DigestPointer(0, 0),
 		// amount
 		0,

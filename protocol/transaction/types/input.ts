@@ -12,7 +12,7 @@ class Input {
 		public utxoID: string,
 		public owner: string,
 		public amount: number,
-		public color: string,
+		public asset_id: string,
 		public witnessIndex: number,
 		public maturity: number,
 		public predicateLength: number,
