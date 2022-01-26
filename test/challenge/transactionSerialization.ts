@@ -99,6 +99,17 @@ describe('Transaction Serialization', async () => {
 			t.witnessesCount = 2;
 			await expect(srlzr.serialize(t, false)).to.be.revertedWith('witnesses length mismatch');
 		});
+
+		it('Should revert : no coin input', async () => {
+			const inputs = [];
+			for (let i = 0; i < 3; i += 1) {
+				inputs.push(generateInput(1));
+			}
+			t.inputs = inputs;
+			await expect(srlzr.serialize(t, false)).to.be.revertedWith(
+				'Transaction must have coin input'
+			);
+		});
 	});
 
 	describe('Script transaction checks', () => {

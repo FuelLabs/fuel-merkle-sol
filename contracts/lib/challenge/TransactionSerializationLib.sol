@@ -377,21 +377,28 @@ library TransactionSerializationLib {
             }
         }
 
-        // Serialize inputs.
-        for (uint256 i = 0; i < _tx.inputs.length; i += 1) {
+        // Serialize inputs, checking for mandatory coin input
+        bool coinInput = false;
+
+        for (uint256 i = 0; i < _tx.inputsCount; i += 1) {
             data = abi.encodePacked(
                 data,
                 serializeInput(_tx.inputs[i], compressed, _tx.witnessesCount)
             );
+
+            if (_tx.inputs[i].kind == InputKind.Coin) {
+                coinInput = true;
+            }
         }
+        require(coinInput, "Transaction must have coin input");
 
         // Serialize outputs.
-        for (uint256 i = 0; i < _tx.outputs.length; i += 1) {
+        for (uint256 i = 0; i < _tx.outputsCount; i += 1) {
             data = abi.encodePacked(data, serializeOutput(_tx.outputs[i], compressed));
         }
 
         // Serialize witnesses.
-        for (uint256 i = 0; i < _tx.witnesses.length; i += 1) {
+        for (uint256 i = 0; i < _tx.witnessesCount; i += 1) {
             data = abi.encodePacked(data, serializeWitness(_tx.witnesses[i]));
         }
     }
