@@ -12,34 +12,23 @@ import "../Utils.sol";
 /// @dev This allows updating with only a minimal subset of leaves, assuming
 /// @dev valid proofs are provided for those leaves
 library SparseMerkleTree {
-    /// @notice Set the value of a node
-    /// @param node: The node to be set
-    /// @return ptr : The pointer to the node that was set
-    /// @dev The parameter type is 'Node memory': the node is already in memory, so the param is actually a pointer to this node
-    /// @dev We need to be able to "find" this pointer later, so we save it in memory and return a new pointer TO this pointer.
+    /// @notice Get the pointer to a node in memory
+    /// @param node: The node to get the pointer to
+    /// @return ptr : The pointer to the node
     // solhint-disable-next-line func-visibility
-    function set(Node memory node) internal pure returns (bytes32 ptr) {
+    function getPtrToNode(Node memory node) internal pure returns (bytes32 ptr) {
         assembly {
-            // Store pointer to the node at the next available slot
-            ptr := mload(0x40)
-            mstore(ptr, node)
-
-            // Increment free memory pointer by 32 bytes
-            mstore(0x40, add(ptr, 0x20))
+            ptr := node
         }
     }
 
-    /// @notice Get a given node, from its pointer
-    /// @param ptr: The pointer to where the data is stored in memory
-    /// @return node : The node found at that key
+    /// @notice Get a node at a given pointer
+    /// @param ptr: The pointer to the node
+    /// @return node : The node
     // solhint-disable-next-line func-visibility
-    function get(bytes32 ptr) internal pure returns (Node memory node) {
+    function getNodeAtPtr(bytes32 ptr) internal pure returns (Node memory node) {
         assembly {
-            // Reads a "Node" struct from memory, starting from the pointer given.
-            // The size of the object to be read (number of contiguous bytes in memory)
-            // and the properties which that data encodes are implicit in the
-            // assignment to a variable of type 'Node'.
-            node := mload(ptr)
+            node := ptr
         }
     }
 
@@ -65,7 +54,7 @@ library SparseMerkleTree {
         bytes32[] memory sideNodes = new bytes32[](256);
         bytes32[] memory emptySideNodes;
 
-        Node memory currentNode = get(rootPtr);
+        Node memory currentNode = getNodeAtPtr(rootPtr);
 
         // If the root is a placeholder, there are no sidenodes to return.
         // The currentNode is the root, and the sibling is null
@@ -107,7 +96,7 @@ library SparseMerkleTree {
                 break;
             }
 
-            currentNode = get(variables.nodePtr);
+            currentNode = getNodeAtPtr(variables.nodePtr);
 
             // If the node is a leaf, we've reached the end. (Leaf already in tree)
             if (isLeaf(currentNode)) {
@@ -119,7 +108,7 @@ library SparseMerkleTree {
             reverseSideNodes(shrinkBytes32Array(sideNodes, variables.sideNodeCount)),
             variables.nodePtr,
             currentNode,
-            get(variables.sideNodePtr)
+            getNodeAtPtr(variables.sideNodePtr)
         );
     }
 
@@ -143,7 +132,7 @@ library SparseMerkleTree {
         bytes32 actualPath;
 
         currentNode = hashLeaf(key, value);
-        currentPtr = set(currentNode);
+        currentPtr = getPtrToNode(currentNode);
 
         // If the leaf node that sibling nodes lead to has a different actual path
         // than the leaf node being updated, we need to create an intermediate node
@@ -165,18 +154,18 @@ library SparseMerkleTree {
                 currentNode = hashNode(
                     oldLeafPtr,
                     currentPtr,
-                    get(oldLeafPtr).digest,
-                    get(currentPtr).digest
+                    getNodeAtPtr(oldLeafPtr).digest,
+                    getNodeAtPtr(currentPtr).digest
                 );
             } else {
                 currentNode = hashNode(
                     currentPtr,
                     oldLeafPtr,
-                    get(currentPtr).digest,
-                    get(oldLeafPtr).digest
+                    getNodeAtPtr(currentPtr).digest,
+                    getNodeAtPtr(oldLeafPtr).digest
                 );
             }
-            currentPtr = set(currentNode);
+            currentPtr = getPtrToNode(currentNode);
         }
 
         for (uint256 i = 0; i < Constants.MAX_HEIGHT; i++) {
@@ -207,19 +196,19 @@ library SparseMerkleTree {
                 currentNode = hashNode(
                     sideNodePtr,
                     currentPtr,
-                    get(sideNodePtr).digest,
-                    get(currentPtr).digest
+                    getNodeAtPtr(sideNodePtr).digest,
+                    getNodeAtPtr(currentPtr).digest
                 );
             } else {
                 currentNode = hashNode(
                     currentPtr,
                     sideNodePtr,
-                    get(currentPtr).digest,
-                    get(sideNodePtr).digest
+                    getNodeAtPtr(currentPtr).digest,
+                    getNodeAtPtr(sideNodePtr).digest
                 );
             }
 
-            currentPtr = set(currentNode);
+            currentPtr = getPtrToNode(currentNode);
         }
 
         return currentPtr;
@@ -264,12 +253,12 @@ library SparseMerkleTree {
                 variables.currentNode.leftChildPtr == Constants.NULL &&
                 variables.currentNode.rightChildPtr == Constants.NULL
             ) {
-                variables.sideNode = get(variables.sideNodePtr);
+                variables.sideNode = getNodeAtPtr(variables.sideNodePtr);
 
                 if (isLeaf(variables.sideNode)) {
                     // Sibling is a leaf:  needs to be percolated up the tree
                     variables.currentPtr = variables.sideNodePtr;
-                    variables.currentNode = get(variables.sideNodePtr);
+                    variables.currentNode = getNodeAtPtr(variables.sideNodePtr);
                     continue;
                 } else {
                     // Sibling is a node: needs to be left in its place.
@@ -279,7 +268,7 @@ library SparseMerkleTree {
 
             if (
                 !variables.nonPlaceholderReached &&
-                get(variables.sideNodePtr).digest == Constants.NULL
+                getNodeAtPtr(variables.sideNodePtr).digest == Constants.NULL
             ) {
                 // We found another placeholder sibling node, keep going up the
                 // tree until we find the first sibling that is not a placeholder.
@@ -294,19 +283,19 @@ library SparseMerkleTree {
                 variables.currentNode = hashNode(
                     variables.sideNodePtr,
                     variables.currentPtr,
-                    get(variables.sideNodePtr).digest,
-                    get(variables.currentPtr).digest
+                    getNodeAtPtr(variables.sideNodePtr).digest,
+                    getNodeAtPtr(variables.currentPtr).digest
                 );
             } else {
                 variables.currentNode = hashNode(
                     variables.currentPtr,
                     variables.sideNodePtr,
-                    get(variables.currentPtr).digest,
-                    get(variables.sideNodePtr).digest
+                    getNodeAtPtr(variables.currentPtr).digest,
+                    getNodeAtPtr(variables.sideNodePtr).digest
                 );
             }
 
-            variables.currentPtr = set(variables.currentNode);
+            variables.currentPtr = getPtrToNode(variables.currentNode);
         }
 
         return variables.currentPtr;
@@ -335,7 +324,7 @@ library SparseMerkleTree {
             newRootPtr = updateWithSideNodes(key, value, sideNodes, oldLeafPtr, oldLeafNode);
         }
 
-        return get(newRootPtr).digest;
+        return getNodeAtPtr(newRootPtr).digest;
     }
 
     /// @notice A struct to hold variables of the delete function in memory
@@ -405,12 +394,12 @@ library SparseMerkleTree {
                     Constants.ZERO,
                     ""
                 );
-            rootPtr = set(rootNode);
+            rootPtr = getPtrToNode(rootNode);
             variables.parent = rootNode;
         }
         // On subsequent branches, we need to retrieve root
         else {
-            variables.parent = get(rootPtr);
+            variables.parent = getNodeAtPtr(rootPtr);
         }
 
         // Step backwards through proof (from root down to leaf), getting pointers to the nodes/sideNodes
@@ -435,7 +424,7 @@ library SparseMerkleTree {
                         Constants.ZERO,
                         ""
                     );
-                    variables.sideNodePtr = set(variables.sideNode);
+                    variables.sideNodePtr = getPtrToNode(variables.sideNode);
                     variables.parent.leftChildPtr = variables.sideNodePtr;
                 } else {
                     variables.sideNodePtr = variables.parent.leftChildPtr;
@@ -452,11 +441,11 @@ library SparseMerkleTree {
                         Constants.ZERO,
                         ""
                     );
-                    variables.nodePtr = set(variables.node);
+                    variables.nodePtr = getPtrToNode(variables.node);
                     variables.parent.rightChildPtr = variables.nodePtr;
                 } else {
                     variables.nodePtr = variables.parent.rightChildPtr;
-                    variables.node = get(variables.nodePtr);
+                    variables.node = getNodeAtPtr(variables.nodePtr);
                 }
 
                 // Mirror image of preceding code block, for when leaf is in the left subtree
@@ -471,7 +460,7 @@ library SparseMerkleTree {
                         Constants.ZERO,
                         ""
                     );
-                    variables.sideNodePtr = set(variables.sideNode);
+                    variables.sideNodePtr = getPtrToNode(variables.sideNode);
                     variables.parent.rightChildPtr = variables.sideNodePtr;
                 } else {
                     variables.sideNodePtr = variables.parent.rightChildPtr;
@@ -486,11 +475,11 @@ library SparseMerkleTree {
                         Constants.ZERO,
                         ""
                     );
-                    variables.nodePtr = set(variables.node);
+                    variables.nodePtr = getPtrToNode(variables.node);
                     variables.parent.leftChildPtr = variables.nodePtr;
                 } else {
                     variables.nodePtr = variables.parent.leftChildPtr;
-                    variables.node = get(variables.nodePtr);
+                    variables.node = getNodeAtPtr(variables.nodePtr);
                 }
             }
 
@@ -502,7 +491,7 @@ library SparseMerkleTree {
         }
 
         // Set leaf digest
-        Node memory leaf = get(nodePtrs[0]);
+        Node memory leaf = getNodeAtPtr(nodePtrs[0]);
         leaf.digest = leafDigest(key, value);
         leaf.key = key;
         leaf.leafData = value;
@@ -513,16 +502,16 @@ library SparseMerkleTree {
 
         // If sibling was a leaf, set its prefix to indicate that
         if (isLeaf(proof.Sibling)) {
-            variables.node = get(sideNodePtrs[0]);
+            variables.node = getNodeAtPtr(sideNodePtrs[0]);
             variables.node.prefix = Constants.LEAF_PREFIX;
         }
 
         // Go back up the tree, setting the digests of nodes on the branch
         for (uint256 i = 1; i < nodePtrs.length; i += 1) {
-            variables.node = get(nodePtrs[i]);
+            variables.node = getNodeAtPtr(nodePtrs[i]);
             variables.node.digest = nodeDigest(
-                get(variables.node.leftChildPtr).digest,
-                get(variables.node.rightChildPtr).digest
+                getNodeAtPtr(variables.node.leftChildPtr).digest,
+                getNodeAtPtr(variables.node.rightChildPtr).digest
             );
         }
 

@@ -12,32 +12,23 @@ import "./BinaryMerkleProof.sol";
 /// @title Binary Merkle Tree.
 /// @notice spec can be found at https://github.com/FuelLabs/fuel-specs/blob/master/specs/protocol/cryptographic_primitives.md#binary-merkle-tree.
 library BinaryMerkleTree {
-    /// @notice Set the value of a node
-    /// @param node: The node to be set
-    /// @return ptr : The pointer to the node that was set
-    /// @dev The parameter type is 'Node memory': the node is already in memory, so the param is actually a pointer to this node
-    /// @dev We need to be able to "find" this pointer later, so we save it in memory and return a new pointer TO this pointer.
-    function set(Node memory node) internal pure returns (bytes32 ptr) {
+    /// @notice Get the pointer to a node in memory
+    /// @param node: The node to get the pointer to
+    /// @return ptr : The pointer to the node
+    // solhint-disable-next-line func-visibility
+    function getPtrToNode(Node memory node) internal pure returns (bytes32 ptr) {
         assembly {
-            // Store pointer to the node at the next available slot
-            ptr := mload(0x40)
-            mstore(ptr, node)
-
-            // Increment free memory pointer by 32 bytes
-            mstore(0x40, add(ptr, 0x20))
+            ptr := node
         }
     }
 
-    /// @notice Get a given node, from its pointer
-    /// @param ptr: The pointer to where the data is stored in memory
-    /// @return node : The node found at that key
-    function get(bytes32 ptr) internal pure returns (Node memory node) {
+    /// @notice Get a node at a given pointer
+    /// @param ptr: The pointer to the node
+    /// @return node : The node
+    // solhint-disable-next-line func-visibility
+    function getNodeAtPtr(bytes32 ptr) internal pure returns (Node memory node) {
         assembly {
-            // Reads a "Node" struct from memory, starting from the pointer given.
-            // The size of the object to be read (number of contiguous bytes in memory)
-            // and the properties which that data encodes are implicit in the
-            // assignment to a variable of type 'Node'.
-            node := mload(ptr)
+            node := ptr
         }
     }
 
@@ -242,7 +233,7 @@ library BinaryMerkleTree {
         // Handle case where tree has only one leaf (so it is the root)
         if (numLeaves == 1) {
             Node memory rootNode = Node(root, Constants.NULL, Constants.NULL);
-            rootPtr = set(rootNode);
+            rootPtr = getPtrToNode(rootNode);
             return rootPtr;
         }
         uint256 startingBit = getStartingBit(numLeaves);
@@ -257,12 +248,12 @@ library BinaryMerkleTree {
         if (rootPtr == Constants.NULL) {
             // Set the new root
             Node memory rootNode = Node(root, Constants.NULL, Constants.NULL);
-            rootPtr = set(rootNode);
+            rootPtr = getPtrToNode(rootNode);
             variables.parent = rootNode;
         }
         // On subsequent branches, we need to retrieve root
         else {
-            variables.parent = get(rootPtr);
+            variables.parent = getNodeAtPtr(rootPtr);
         }
 
         // Step backwards through proof (from root down to leaf), getting pointers to the nodes/sideNodes
@@ -277,7 +268,7 @@ library BinaryMerkleTree {
                 // Check to see if sidenode already exists. If not, create it. and associate with parent
                 if (variables.parent.leftChildPtr == Constants.NULL) {
                     variables.sideNode = Node(proof[j], Constants.NULL, Constants.NULL);
-                    variables.sideNodePtr = set(variables.sideNode);
+                    variables.sideNodePtr = getPtrToNode(variables.sideNode);
                     variables.parent.leftChildPtr = variables.sideNodePtr;
                 } else {
                     variables.sideNodePtr = variables.parent.leftChildPtr;
@@ -287,11 +278,11 @@ library BinaryMerkleTree {
                 // Its digest is initially null. We calculate and set it when we climb back up the tree
                 if (variables.parent.rightChildPtr == Constants.NULL) {
                     variables.node = Node(Constants.NULL, Constants.NULL, Constants.NULL);
-                    variables.nodePtr = set(variables.node);
+                    variables.nodePtr = getPtrToNode(variables.node);
                     variables.parent.rightChildPtr = variables.nodePtr;
                 } else {
                     variables.nodePtr = variables.parent.rightChildPtr;
-                    variables.node = get(variables.nodePtr);
+                    variables.node = getNodeAtPtr(variables.nodePtr);
                 }
 
                 // Mirror image of preceding code block, for when leaf is in the left subtree
@@ -299,7 +290,7 @@ library BinaryMerkleTree {
             } else {
                 if (variables.parent.rightChildPtr == Constants.NULL) {
                     variables.sideNode = Node(proof[j], Constants.NULL, Constants.NULL);
-                    variables.sideNodePtr = set(variables.sideNode);
+                    variables.sideNodePtr = getPtrToNode(variables.sideNode);
                     variables.parent.rightChildPtr = variables.sideNodePtr;
                 } else {
                     variables.sideNodePtr = variables.parent.rightChildPtr;
@@ -307,11 +298,11 @@ library BinaryMerkleTree {
 
                 if (variables.parent.leftChildPtr == Constants.NULL) {
                     variables.node = Node(Constants.NULL, Constants.NULL, Constants.NULL);
-                    variables.nodePtr = set(variables.node);
+                    variables.nodePtr = getPtrToNode(variables.node);
                     variables.parent.leftChildPtr = variables.nodePtr;
                 } else {
                     variables.nodePtr = variables.parent.leftChildPtr;
-                    variables.node = get(variables.nodePtr);
+                    variables.node = getNodeAtPtr(variables.nodePtr);
                 }
             }
 
@@ -323,7 +314,7 @@ library BinaryMerkleTree {
         }
 
         // Set leaf digest
-        Node memory leaf = get(nodePtrs[0]);
+        Node memory leaf = getNodeAtPtr(nodePtrs[0]);
         leaf.digest = leafDigest(value);
 
         if (proof.length == 0) {
@@ -332,10 +323,10 @@ library BinaryMerkleTree {
 
         // Go back up the tree, setting the digests of nodes on the branch
         for (uint256 i = 1; i < nodePtrs.length; i += 1) {
-            variables.node = get(nodePtrs[i]);
+            variables.node = getNodeAtPtr(nodePtrs[i]);
             variables.node.digest = nodeDigest(
-                get(variables.node.leftChildPtr).digest,
-                get(variables.node.rightChildPtr).digest
+                getNodeAtPtr(variables.node.leftChildPtr).digest,
+                getNodeAtPtr(variables.node.rightChildPtr).digest
             );
         }
 
@@ -355,7 +346,7 @@ library BinaryMerkleTree {
         // Allocate a large enough array for the sidenodes (we'll shrink it later)
         bytes32[] memory sideNodes = new bytes32[](256);
 
-        Node memory currentNode = get(rootPtr);
+        Node memory currentNode = getNodeAtPtr(rootPtr);
 
         // If the root is a placeholder, the tree is empty, so there are no sidenodes to return.
         // The leaf pointer is the root pointer
@@ -398,7 +389,7 @@ library BinaryMerkleTree {
             sideNodes[variables.sideNodeCount] = variables.sideNodePtr;
             variables.sideNodeCount += 1;
 
-            currentNode = get(variables.nodePtr);
+            currentNode = getNodeAtPtr(variables.nodePtr);
         }
 
         return reverseSideNodes(shrinkBytes32Array(sideNodes, variables.sideNodeCount));
@@ -417,7 +408,7 @@ library BinaryMerkleTree {
         uint256 numLeaves
     ) public pure returns (bytes32 currentPtr) {
         Node memory currentNode = hashLeaf(value);
-        currentPtr = set(currentNode);
+        currentPtr = getPtrToNode(currentNode);
 
         // If numleaves <= 1, then the root is just the leaf hash (or ZERO)
         if (numLeaves > 1) {
@@ -429,7 +420,7 @@ library BinaryMerkleTree {
                     currentNode = hashNode(
                         sideNodes[i],
                         currentPtr,
-                        get(sideNodes[i]).digest,
+                        getNodeAtPtr(sideNodes[i]).digest,
                         currentNode.digest
                     );
                 } else {
@@ -437,11 +428,11 @@ library BinaryMerkleTree {
                         currentPtr,
                         sideNodes[i],
                         currentNode.digest,
-                        get(sideNodes[i]).digest
+                        getNodeAtPtr(sideNodes[i]).digest
                     );
                 }
 
-                currentPtr = set(currentNode);
+                currentPtr = getPtrToNode(currentNode);
             }
         }
     }
@@ -475,7 +466,7 @@ library BinaryMerkleTree {
         bytes32[] memory sideNodes = sideNodesForRoot(key, rootPtr, numLeaves);
         bytes32 newRootPtr = updateWithSideNodes(key, value, sideNodes, numLeaves);
 
-        return get(newRootPtr).digest;
+        return getNodeAtPtr(newRootPtr).digest;
     }
 
     /// @notice Derive the proof for a new appended leaf from the proof for the last appended leaf
