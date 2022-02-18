@@ -17,7 +17,8 @@ library DepositHandler {
         uint32 blockNumber,
         address indexed account,
         address indexed token,
-        uint256 amount,
+        uint8 precisionFactor,
+        uint256 indexed amount,
         uint256 depositNonce
     );
 
@@ -36,6 +37,7 @@ library DepositHandler {
         address sender,
         uint256 amount,
         address token,
+        uint8 precisionFactor,
         uint256 s_depositNonce
     ) internal {
         // Safely down-cast the current uint256 Ethereum block number to a uint32.
@@ -44,7 +46,14 @@ library DepositHandler {
         require(IERC20(token).transferFrom(sender, address(this), amount), "deposit-transfer");
 
         // Deposit made.
-        emit DepositMade(blockNumber, account, address(token), amount, s_depositNonce);
+        emit DepositMade(
+            blockNumber,
+            account,
+            address(token),
+            precisionFactor,
+            amount,
+            s_depositNonce
+        );
 
         // Increment deposit nonce
         s_depositNonce += 1;

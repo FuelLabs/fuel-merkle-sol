@@ -95,13 +95,34 @@ contract Fuel {
     /// @notice Deposit a token.
     /// @param account Address of token owner.
     /// @param token Token address.
+    /// @param precisionFactor The precision for the L2 token compared to L1.
     /// @param amount The amount to deposit.
+    /// @dev Note: precision factor: e.g if factor = 3, then 10_000 tokens on layer 1 become 10 tokens on layer 2.
     function deposit(
         address account,
         address token,
+        uint8 precisionFactor,
         uint256 amount
     ) external {
-        DepositHandler.deposit(msg.sender, account, amount, token, s_depositNonce);
+        uint256 precision = 10**precisionFactor;
+        require((amount / precision) * precision == amount, "resulting-precision-too-low");
+        DepositHandler.deposit(msg.sender, account, amount, token, precisionFactor, s_depositNonce);
+    }
+
+    /// @notice As `deposit`, but without precision checks
+    /// @param account Address of token owner.
+    /// @param token Token address.
+    /// @param precisionFactor The precision for the L2 token compared to L1.
+    /// @param amount The amount to deposit.
+    /// @dev WARNING: This function does not check that precision factor <= ERC20.decimals.
+    function unsafeDeposit(
+        address account,
+        address token,
+        uint8 precisionFactor,
+        uint256 amount
+    ) external {
+        /// WARNING: If precisionFactor > L1 decimals, tokens may be lost!
+        DepositHandler.deposit(msg.sender, account, amount, token, precisionFactor, s_depositNonce);
     }
 
     /// @notice Withdraw a token.
@@ -120,6 +141,7 @@ contract Fuel {
         address owner;
         address token;
         uint256 amount;
+        uint8 precision;
         uint256 nonce;
     }
 
@@ -202,15 +224,23 @@ contract Fuel {
             "invalid-withdrawal-set"
         );
 
-        // Set the balances for each withdrawal
+        // Set claimable balances for each withdrawal
+        uint256 withdrawnAmount;
         for (uint256 i = 0; i < withdrawals.length; i += 1) {
-            s_withdrawals[withdrawals[i].owner][withdrawals[i].token] += withdrawals[i].amount;
+            Withdrawal memory w = withdrawals[i];
+            // L2 precision is defined relative to L1 precision.
+            // E.g. If a token has 18 decimals of precision on L1, and 10 on L2, then 'precision' here is 8.
+            // E.g. For same token precision on L1 and L2, `precision` is 0.
+            // Note: Since `precision` is an unsigned integer, precision on L2 must be less than (fewer decimals) or equal to precision on L1.
+            withdrawnAmount = w.amount * (10**w.precision);
+
+            s_withdrawals[w.owner][w.token] += withdrawnAmount;
         }
 
         // Set the new block ID
         s_currentBlockID = newBlockId;
 
-        emit BlockCommitted(newBlockId, previousBlockHeader.height + 1);
+        emit BlockCommitted(newBlockId, newBlockHeader.height);
     }
 
     function checkValidators(
@@ -231,6 +261,7 @@ contract Fuel {
                 abi.encodePacked(
                     withdrawal.owner,
                     withdrawal.token,
+                    withdrawal.precision,
                     withdrawal.amount,
                     withdrawal.nonce
                 )

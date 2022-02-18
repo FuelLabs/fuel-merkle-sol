@@ -18,7 +18,8 @@ function randomWithdrawal(): Withdrawal {
 	return new Withdrawal(
 		randomAddress(),
 		randomAddress(),
-		randomInt(1_000_000),
+		randomInt(18),
+		BN.from(randomInt(1_000_000)), // Amount need to be BN for when it is multiplied by 10**precision
 		randomInt(1_000_000)
 	);
 }
@@ -34,8 +35,14 @@ function createWithdrawals(numWithdrawals: number): Withdrawal[] {
 function computeWithdrawalId(withdrawal: Withdrawal): string {
 	return hash(
 		ethers.utils.solidityPack(
-			['address', 'address', 'uint256', 'uint256'],
-			[withdrawal.owner, withdrawal.token, withdrawal.amount, withdrawal.nonce]
+			['address', 'address', 'uint8', 'uint256', 'uint256'],
+			[
+				withdrawal.owner,
+				withdrawal.token,
+				withdrawal.precision,
+				withdrawal.amount,
+				withdrawal.nonce,
+			]
 		)
 	);
 }
@@ -74,7 +81,7 @@ describe('blockCommitment', async () => {
 	let root: string;
 
 	// Maximum number of validators is configured in hardhat.config.ts
-	const nValidators = 128;
+	const nValidators = 8;
 
 	before(async () => {
 		env = await setupFuel({});
@@ -183,7 +190,10 @@ describe('blockCommitment', async () => {
 			// Check withdrawals processed
 			for (let i = 0; i < withdrawals.length; i += 1) {
 				const w = withdrawals[i];
-				expect(await fuel.s_withdrawals(w.owner, w.token)).to.equal(w.amount);
+				expect(await fuel.s_withdrawals(w.owner, w.token)).to.equal(
+					// amount * (10 ** precisionFactor) in BigNumber ...
+					w.amount.mul(BN.from(10).pow(w.precision))
+				);
 			}
 		}
 	});

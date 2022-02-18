@@ -1,7 +1,7 @@
 /// @dev The Fuel testing harness.
 /// A set of useful helper methods for testing Fuel.
 import { ethers } from 'hardhat';
-import { BigNumberish, Signer } from 'ethers';
+import { BigNumber as BN, Signer } from 'ethers';
 import { Fuel } from '../typechain/Fuel.d';
 import { Token } from '../typechain/Token.d';
 import { DSGuard } from '../typechain/DSGuard.d';
@@ -17,7 +17,7 @@ import { ZERO } from './constants';
 
 // Harness options.
 export interface HarnessOptions {
-	bond?: BigNumberish;
+	bond?: BN;
 	finalizationDelay?: number;
 	maxClockTime?: number;
 }
@@ -38,9 +38,9 @@ export interface HarnessObject {
 	signers: Array<Signer>;
 	addresses: Array<string>;
 	signer: string;
-	initialTokenAmount: BigNumberish;
+	initialTokenAmount: BN;
 	constructor: {
-		bond: BigNumberish;
+		bond: BN;
 		finalizationDelay: number;
 		maxClockTime: number;
 	};
