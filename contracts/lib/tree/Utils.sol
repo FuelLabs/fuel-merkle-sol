@@ -33,6 +33,10 @@ function pathLengthFromKey(uint256 key, uint256 numLeaves) pure returns (uint256
     if (key <= numLeavesLeftSubTree - 1) {
         return pathLength;
     }
+    // Otherwise, if left sub tree has only one leaf, path has one additional step
+    else if (numLeavesLeftSubTree == 1) {
+        return 1;
+    }
     // Otherwise, add 1 to height and recurse into right subtree
     else {
         return 1 + pathLengthFromKey(key - numLeavesLeftSubTree, numLeaves - numLeavesLeftSubTree);
