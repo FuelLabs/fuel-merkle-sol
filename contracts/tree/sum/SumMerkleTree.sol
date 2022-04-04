@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.7.4;
+pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
 import "../Cryptography.sol";
 import "./SumMerkleProof.sol";
 import "../Constants.sol";
@@ -12,8 +11,6 @@ import "./TreeHasher.sol";
 /// @title Sum Merkle Tree.
 /// @notice spec can be found at https://github.com/FuelLabs/fuel-specs/blob/master/specs/protocol/cryptographic_primitives.md#binary-merkle-sum-tree.
 library MerkleSumTree {
-    using SafeMath for uint256;
-
     /// @notice Verify if element (key, data) exists in Merkle tree, decompacts proof, goes through side nodes and calculates hashes up to the root, compares roots.
     /// @param root: The root of the tree in which verify the given leaf
     /// @param key: The key of the leaf to verify.
@@ -168,7 +165,7 @@ library MerkleSumTree {
             for (; i < size - odd; ++i) {
                 uint256 j = i << 1;
                 nodes[i] = nodeDigest(pSums[j], pNodes[j], pSums[j + 1], pNodes[j + 1]);
-                sums[i] = pSums[j].add(pSums[j + 1]);
+                sums[i] = pSums[j] + pSums[j + 1];
             }
             if (odd == 1) {
                 nodes[i] = pNodes[i << 1];

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.7.4;
+pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 import "./TreeHasher.sol";
@@ -96,8 +96,10 @@ function compactProof(SparseMerkleProof memory proof)
     }
 
     /// Shrink the array of sidenodes to its final size
-    bytes32[] memory finalCompactedSideNodes =
-        shrinkBytes32Array(compactedSideNodes, sideNodesCount);
+    bytes32[] memory finalCompactedSideNodes = shrinkBytes32Array(
+        compactedSideNodes,
+        sideNodesCount
+    );
 
     return
         SparseCompactMerkleProof(

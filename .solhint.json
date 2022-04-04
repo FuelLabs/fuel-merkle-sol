@@ -2,7 +2,7 @@
 	"extends": ["solhint:recommended"],
 	"plugins": [],
 	"rules": {
-		"compiler-version": ["error", "^0.7.4"],
+		"compiler-version": ["error", "^0.8.0"],
 		"var-name-mixedcase": null,
 		"no-inline-assembly": null,
 		"avoid-tx-origin": null,

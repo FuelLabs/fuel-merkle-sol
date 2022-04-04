@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.7.4;
+pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 import "./Proofs.sol";
@@ -47,8 +47,14 @@ library SparseMerkleTree {
             Node memory
         )
     {
-        Node memory nullNode =
-            Node(Constants.NULL, bytes1(0), Constants.NULL, Constants.NULL, Constants.NULL, "");
+        Node memory nullNode = Node(
+            Constants.NULL,
+            bytes1(0),
+            Constants.NULL,
+            Constants.NULL,
+            Constants.NULL,
+            ""
+        );
 
         // Allocate a large enough array for the sidenodes (we'll shrink it later)
         bytes32[] memory sideNodes = new bytes32[](256);
@@ -385,15 +391,14 @@ library SparseMerkleTree {
         // When adding the first branch, rootPtr will not be set yet, set it here.
         if (rootPtr == Constants.NULL) {
             // Set the new root
-            Node memory rootNode =
-                Node(
-                    root,
-                    Constants.LEAF_PREFIX,
-                    Constants.NULL,
-                    Constants.NULL,
-                    Constants.ZERO,
-                    ""
-                );
+            Node memory rootNode = Node(
+                root,
+                Constants.LEAF_PREFIX,
+                Constants.NULL,
+                Constants.NULL,
+                Constants.ZERO,
+                ""
+            );
             rootPtr = getPtrToNode(rootNode);
             variables.parent = rootNode;
         }
