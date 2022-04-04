@@ -3,11 +3,13 @@ import { solidity } from 'ethereum-waffle';
 import { ethers } from 'hardhat';
 import { Contract } from 'ethers';
 import SparseMerkleTree from '@fuel-ts/sparsemerkle';
+import DeepSparseMerkleSubTree from '@fuel-ts/sparsemerkle/dist/deepSparseMerkleSubTree';
+import SparseCompactMerkleSolidityProof from '@fuel-ts/sparsemerkle/dist/types/sparseCompactMerkleSolidityProof';
+import SparseMerkleSolidityNode from '@fuel-ts/sparsemerkle/dist/types/sparseMerkleSolidityNode';
+import SparseCompactMerkleBranch from '@fuel-ts/sparsemerkle/dist/types/sparseCompactMerkleBranch';
 import { uintToBytes32 } from './utils/utils';
 import hash from './utils/cryptography';
 import { ZERO } from './utils/constants';
-import SparseCompactMerkleSolidityProof from './types/sparseCompactMerkleSolidityProof';
-import SparseMerkleSolidityNode from './types/sparseMerkleSolidityNode';
 
 chai.use(solidity);
 const { expect } = chai;
@@ -104,8 +106,6 @@ describe('Sparse Merkle Tree', async () => {
 		expect(await dsmsto.verified()).to.be.false;
 	});
 
-	/*
-
 	it('add branches and update', async () => {
 		// Create a SMT
 		const smt = new SparseMerkleTree();
@@ -192,5 +192,4 @@ describe('Sparse Merkle Tree', async () => {
 		expect(dsmst.root).to.equal(smt.root);
 		expect(solRoot).to.equal(dsmst.root);
 	});
-	*/
 });

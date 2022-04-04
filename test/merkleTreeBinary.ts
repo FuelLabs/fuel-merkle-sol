@@ -3,8 +3,8 @@ import { ethers } from 'hardhat';
 import { solidity } from 'ethereum-waffle';
 import { BigNumber as BN, Contract } from 'ethers';
 import { calcRoot, constructTree, getProof, hashLeaf } from '@fuel-ts/merkle';
+import BinaryMerkleBranch from '@fuel-ts/merkle/dist/types/branch';
 import { checkVerify, checkAppend } from './test_helpers/binaryMerkleTree';
-import BinaryMerkleBranch from './types/binaryMerkleBranch';
 import { ZERO } from './utils/constants';
 import { uintToBytes32 } from './utils/utils';
 
