@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.4;
 
 /// @notice This library abstracts the hashing function used for the merkle tree implementation
