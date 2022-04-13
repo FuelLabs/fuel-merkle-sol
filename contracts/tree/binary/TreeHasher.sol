@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.4;
 import "../Cryptography.sol";
 import "../Constants.sol";
 import "./Node.sol";
