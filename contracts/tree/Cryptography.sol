@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 /// @notice This library abstracts the hashing function used for the merkle tree implementation
 library CryptographyLib {
