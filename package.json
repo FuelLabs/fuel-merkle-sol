@@ -3,7 +3,6 @@
 	"version": "0.0.0",
 	"description": "The Solidity implemention of the Merkle trees used in Fuel v2.",
 	"main": "test/index.js",
-	"private": true,
 	"license": "Apache-2.0",
 	"scripts": {
 		"build": "npm run clean && npm run compile",
