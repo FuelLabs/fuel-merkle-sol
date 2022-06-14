@@ -1,5 +1,7 @@
 # Fuel Solidity Merkle Trees
 
+[![NPM Package](https://img.shields.io/npm/v/fuel-merkle-sol)](https://www.npmjs.org/package/fuel-merkle-sol)
+
 <!-- Disable markdownlint for long lines. -->
 <!-- markdownlint-disable-file MD013 -->
 
