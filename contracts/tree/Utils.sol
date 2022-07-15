@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.4;
-import "./Constants.sol";
+pragma solidity 0.8.9;
+
+import {Constants} from "./Constants.sol";
 
 /// @notice Calculate the starting bit of the path to a leaf
 /// @param numLeaves : The total number of leaves in the tree
@@ -34,6 +35,10 @@ function pathLengthFromKey(uint256 key, uint256 numLeaves) pure returns (uint256
     }
     // Otherwise, if left sub tree has only one leaf, path has one additional step
     else if (numLeavesLeftSubTree == 1) {
+        return 1;
+    }
+    // Otherwise, if right sub tree has only one leaf, path has one additional step
+    else if (numLeaves - numLeavesLeftSubTree <= 1) {
         return 1;
     }
     // Otherwise, add 1 to height and recurse into right subtree
