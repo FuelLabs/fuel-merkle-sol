@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.4;
-import "../Cryptography.sol";
-import "../Constants.sol";
-import "./Node.sol";
+pragma solidity 0.8.9;
+
+import {CryptographyLib} from "../../Cryptography.sol";
+import {Constants} from "../Constants.sol";
+import {Node} from "./Node.sol";
 
 /// @notice Contains functions for hashing leaves and nodes, and parsing their data
 

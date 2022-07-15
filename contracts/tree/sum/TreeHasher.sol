@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.4;
-import "../Cryptography.sol";
-import "../Constants.sol";
+pragma solidity 0.8.9;
+
+import {CryptographyLib} from "../../Cryptography.sol";
+import {Constants} from "../Constants.sol";
 
 /// @notice Hash a leaf node.
 /// @param value fee of the leaf.

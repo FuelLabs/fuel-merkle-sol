@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.4;
+pragma solidity 0.8.9;
 
-import "../tree/sum/SumMerkleTree.sol";
+import {MerkleSumTree, SumMerkleProof} from "../tree/sum/SumMerkleTree.sol";
 
 contract MockMerkleSumTree {
     bool public verified;

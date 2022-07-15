@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.4;
+pragma solidity 0.8.9;
 
-import "./Node.sol";
-import "../Constants.sol";
-import "../Utils.sol";
-import "./TreeHasher.sol";
-import "./Branch.sol";
-import "./BinaryMerkleProof.sol";
+import {Node} from "./Node.sol";
+import {nodeDigest, leafDigest, hashNode} from "./TreeHasher.sol";
+import {hashLeaf, parseNode, isLeaf} from "./TreeHasher.sol";
+import {MerkleBranch} from "./Branch.sol";
+import {BinaryMerkleProof} from "./BinaryMerkleProof.sol";
+import {Constants} from "../Constants.sol";
+import {pathLengthFromKey, getStartingBit} from "../Utils.sol";
+import {getBitAtFromMSB, reverseSideNodes} from "../Utils.sol";
+import {shrinkBytes32Array} from "../Utils.sol";
 
 /// @title Binary Merkle Tree.
 /// @notice spec can be found at https://github.com/FuelLabs/fuel-specs/blob/master/specs/protocol/cryptographic_primitives.md#binary-merkle-tree.
