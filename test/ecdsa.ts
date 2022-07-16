@@ -8,6 +8,7 @@ chai.use(solidity);
 const { expect } = chai;
 
 const SECP256K1N = BN.from('0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141');
+const SIGNING_KEY = '0x0123456789012345678901234567890123456789012345678901234567890123';
 
 describe('ECDSA', async () => {
 	let mockCrypto: Contract;
@@ -15,7 +16,7 @@ describe('ECDSA', async () => {
 	before(async () => {
 		const mockCryptoFactory = await ethers.getContractFactory('MockCryptography');
 		mockCrypto = await mockCryptoFactory.deploy();
-		signer = (await ethers.getSigners())[0];
+		signer = new ethers.Wallet(SIGNING_KEY);
 	});
 
 	it('rejects component signatures with high s-value', async () => {
