@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity 0.8.9;
+pragma solidity ^0.8.4;
 
 import {SparseMerkleProof, SparseCompactMerkleProof} from "./Proofs.sol";
 import {verifyProof, decompactProof} from "./Proofs.sol";
