@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.4;
 
-import {CryptographyLib} from "../../Cryptography.sol";
+import {CryptographyLib} from "../Cryptography.sol";
 import {SumMerkleProof} from "./SumMerkleProof.sol";
 import {Constants} from "../Constants.sol";
 import {pathLengthFromKey} from "../Utils.sol";
