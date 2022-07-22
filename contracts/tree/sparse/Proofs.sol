@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.4;
 
-import "./TreeHasher.sol";
-import "../Utils.sol";
-import "../Constants.sol";
-import "./Node.sol";
+import {parseLeaf, leafDigest, nodeDigest} from "./TreeHasher.sol";
+import {Node} from "./Node.sol";
+import {isDefaultValue, getBitAtFromMSB, shrinkBytes32Array} from "../Utils.sol";
+import {Constants} from "../Constants.sol";
 
 /// @notice A full (non-compact) sparse Merkle proof
 struct SparseMerkleProof {

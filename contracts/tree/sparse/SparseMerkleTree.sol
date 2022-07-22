@@ -1,10 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.4;
 
-import "./Proofs.sol";
-import "./Branch.sol";
-import "../Constants.sol";
-import "../Utils.sol";
+import {SparseMerkleProof, SparseCompactMerkleProof} from "./Proofs.sol";
+import {verifyProof, decompactProof} from "./Proofs.sol";
+import {Node} from "./Node.sol";
+import {MerkleBranch} from "./Branch.sol";
+import {isLeaf, parseNode, hashLeaf, hashNode} from "./TreeHasher.sol";
+import {parseLeaf, leafDigest, nodeDigest} from "./TreeHasher.sol";
+import {Constants} from "../Constants.sol";
+import {reverseSideNodes, countCommonPrefix} from "../Utils.sol";
+import {getBitAtFromMSB, shrinkBytes32Array, isDefaultValue} from "../Utils.sol";
 
 /// @notice A storage backed deep sparse Merkle subtree
 /// @dev A DSMST is a SMT which can be minimally populated with branches

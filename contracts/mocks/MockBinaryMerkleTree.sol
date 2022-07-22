@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.4;
 
-import "../tree/binary/BinaryMerkleTree.sol";
+import {BinaryMerkleTree, MerkleBranch} from "../tree/binary/BinaryMerkleTree.sol";
 
 contract MockBinaryMerkleTree {
     bool public verified;

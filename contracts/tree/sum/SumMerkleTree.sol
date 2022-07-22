@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.4;
 
-import "../Cryptography.sol";
-import "./SumMerkleProof.sol";
-import "../Constants.sol";
-import "../Utils.sol";
-import "./TreeHasher.sol";
+import {CryptographyLib} from "../Cryptography.sol";
+import {SumMerkleProof} from "./SumMerkleProof.sol";
+import {Constants} from "../Constants.sol";
+import {pathLengthFromKey} from "../Utils.sol";
+import {leafDigest, nodeDigest} from "./TreeHasher.sol";
 
 /// @title Sum Merkle Tree.
 /// @notice spec can be found at https://github.com/FuelLabs/fuel-specs/blob/master/specs/protocol/cryptographic_primitives.md#binary-merkle-sum-tree.

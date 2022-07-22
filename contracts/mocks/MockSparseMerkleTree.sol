@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.4;
 
-import "../tree/sparse/SparseMerkleTree.sol";
+import {SparseMerkleTree, SparseCompactMerkleProof, MerkleBranch} from "../tree/sparse/SparseMerkleTree.sol";
 
 contract MockSparseMerkleTree {
     bool public verified;
