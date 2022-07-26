@@ -1,5 +1,5 @@
 {
-  "name": "@fuel-contracts/merkle",
+  "name": "@fuel-contracts/merkle-sol",
   "version": "0.1.1",
   "description": "The Solidity implemention of the Merkle trees used in Fuel v2.",
   "main": "test/index.js",
