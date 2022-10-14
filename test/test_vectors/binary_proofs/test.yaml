@@ -1,0 +1,22 @@
+---
+name: test
+root:
+  value: 7f1f0767f59640bad3198fee578b26bf93bba2b0ccaf6d1da047e9a97e1305b1
+  encoding: hex
+proof_set:
+  - value: 77e0d02751efcbf73578e7743ab984d8e9decd3d6302adb060c847e46e778dad
+    encoding: hex
+  - value: b1a1e040eabdfe934f70829d3b5d5559cac0f1a1e64d54a3b056ad08a9214d0a
+    encoding: hex
+  - value: c11c294d7b672d5e2892951950cb066626715130812696331e64aac011387abf
+    encoding: hex
+  - value: a472051277336274b69c82e68bdf4438312c6a53ad03f581bfa2bdca8896a12b
+    encoding: hex
+  - value: 64abaec217c53496c7a2b2bb0956d9e0292c8ac3247071619f638b2b2fc08033
+    encoding: hex
+proof_data:
+  value: GjWb9vEr9YF179MiddltfnVpgjNrSPmKN/y+Xq9nzc8=
+  encoding: base64
+proof_index: 4
+num_leaves: 10
+expected_verification: true

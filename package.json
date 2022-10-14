@@ -47,6 +47,7 @@
     "hardhat-deploy": "^0.7.5",
     "hardhat-gas-reporter": "^1.0.4",
     "hardhat-typechain": "^0.3.5",
+    "js-yaml": "^4.1.0",
     "markdownlint": "^0.23.1",
     "markdownlint-cli": "^0.27.1",
     "prettier": "^2.3.0",
@@ -60,6 +61,7 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
-    "ganache-cli": "^6.12.2"
+    "ganache-cli": "^6.12.2",
+    "mocha": "^10.0.0"
   }
 }

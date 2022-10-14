@@ -4,9 +4,13 @@ import { solidity } from 'ethereum-waffle';
 import { BigNumber as BN, Contract } from 'ethers';
 import { calcRoot, constructTree, getProof, hashLeaf } from '@fuel-ts/merkle';
 import BinaryMerkleBranch from '@fuel-ts/merkle/dist/types/branch';
-import { checkVerify, checkAppend } from './test_helpers/binaryMerkleTree';
+import { checkAppend, checkVerify } from './test_helpers/binaryMerkleTree';
 import { ZERO } from './utils/constants';
-import { uintToBytes32 } from './utils/utils';
+import { padBytes, uintToBytes32 } from './utils/utils';
+import {EncodedValue, EncodedValueInput} from "./utils/encodedValue";
+
+const yaml = require('js-yaml');
+const fs = require('fs');
 
 chai.use(solidity);
 const { expect } = chai;
@@ -46,10 +50,11 @@ describe('binary Merkle tree', async () => {
 
 	it('Verifications', async () => {
 		const testCases = [
-			{ numLeaves: 100, proveLeaf: 100 },
-			{ numLeaves: 100, proveLeaf: 99 },
-			{ numLeaves: 99, proveLeaf: 42 },
-			{ numLeaves: 1, proveLeaf: 1 },
+			// { numLeaves: 100, proveLeaf: 100 },
+			// { numLeaves: 100, proveLeaf: 99 },
+			// { numLeaves: 99, proveLeaf: 42 },
+			// { numLeaves: 1, proveLeaf: 1 },
+			{ numLeaves: 5, proveLeaf: 1 },
 		];
 
 		for (let i = 0; i < testCases.length; i += 1) {
@@ -59,10 +64,44 @@ describe('binary Merkle tree', async () => {
 			).to.equal(true);
 
 			// Tamper with data
-			expect(
-				await checkVerify(bmto, testCases[i].numLeaves, testCases[i].proveLeaf, true)
-			).to.equal(false);
+			// expect(
+			// 	await checkVerify(bmto, testCases[i].numLeaves, testCases[i].proveLeaf, true)
+			// ).to.equal(false);
 		}
+	});
+
+	it.only('Verification data test', async () => {
+		const data = yaml.load(
+			fs.readFileSync('./test/test_vectors/binary_proofs/test.yaml', 'utf8')
+		);
+		console.log(data);
+		const root: EncodedValue = new EncodedValue(data.root);
+		const dataToProve: EncodedValue = new EncodedValue(data.proof_data);
+		const proofSet: EncodedValue[] = data.proof_set.map(
+			(item: EncodedValueInput) => new EncodedValue(item)
+		);
+		const index: number = +data.proof_index;
+		const x = `0x${index.toString(16)}`;
+		const key = padBytes(x);
+		const count: number = +data.num_leaves;
+
+		proofSet.shift();
+
+		console.log(root);
+		console.log(dataToProve);
+		console.log(proofSet);
+		console.log('key:', key);
+
+		await bmto.verify(
+			root.toString(),
+			dataToProve.toBuffer(),
+			proofSet.map((item) => item.toBuffer()),
+			key,
+			count
+		);
+		const verification: boolean = await bmto.verified();
+		const expectedVerification: boolean = data.expected_verification;
+		expect(verification).to.equal(expectedVerification);
 	});
 
 	it('Append', async () => {

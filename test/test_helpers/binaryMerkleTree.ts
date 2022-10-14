@@ -17,11 +17,14 @@ export async function checkVerify(
 		data.push(BN.from(i).toHexString());
 		keys.push(BN.from(i).toHexString());
 	}
+	console.log(data);
 	const leafToProve = leafNumber - 1;
 	const nodes = constructTree(data);
 	const root = nodes[nodes.length - 1];
 	let dataToProve = data[leafToProve];
 	const proof = getProof(nodes, leafToProve);
+	console.log(dataToProve);
+	console.log(proof);
 
 	if (tamper) {
 		// Introduce bad data:
