@@ -50,11 +50,10 @@ describe('binary Merkle tree', async () => {
 
 	it('Verifications', async () => {
 		const testCases = [
-			// { numLeaves: 100, proveLeaf: 100 },
-			// { numLeaves: 100, proveLeaf: 99 },
-			// { numLeaves: 99, proveLeaf: 42 },
-			// { numLeaves: 1, proveLeaf: 1 },
-			{ numLeaves: 5, proveLeaf: 1 },
+			{ numLeaves: 100, proveLeaf: 100 },
+			{ numLeaves: 100, proveLeaf: 99 },
+			{ numLeaves: 99, proveLeaf: 42 },
+			{ numLeaves: 1, proveLeaf: 1 },
 		];
 
 		for (let i = 0; i < testCases.length; i += 1) {
@@ -64,9 +63,9 @@ describe('binary Merkle tree', async () => {
 			).to.equal(true);
 
 			// Tamper with data
-			// expect(
-			// 	await checkVerify(bmto, testCases[i].numLeaves, testCases[i].proveLeaf, true)
-			// ).to.equal(false);
+			expect(
+				await checkVerify(bmto, testCases[i].numLeaves, testCases[i].proveLeaf, true)
+			).to.equal(false);
 		}
 	});
 
