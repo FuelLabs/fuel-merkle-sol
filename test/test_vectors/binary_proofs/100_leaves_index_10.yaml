@@ -1,0 +1,28 @@
+---
+name: 100_leaves_index_10
+root:
+  value: 1e1d93be5bfde8788abe5336a67a32feebaadd30dbf4ad69e78074a0c3575c6d
+  encoding: hex
+proof_set:
+  - value: 18825235e0ca22dbe2be370ec62da914693970955fd5ef2d681d455bd0f62a03
+    encoding: hex
+  - value: 2483b59c61c363161074ae9a99c3ed58961cf884c578638dd2c9f094d71d837b
+    encoding: hex
+  - value: 660a7710ff9d823bd20fb3ec0bfaac636f839698daf781530228b0edb0d7641e
+    encoding: hex
+  - value: df94a825d1e1a916a8d18b5f4f96c350705a17503b45c581ca4c87e1b24642b5
+    encoding: hex
+  - value: 7f535244e23a556727e61e21626e267dfdf6c6dcc1a83480a4bcccd8da0aba65
+    encoding: hex
+  - value: 22e133a2309cbcf37097fe1dd1b0f15d4763c0009cca3b00a442efc8f2d5a28e
+    encoding: hex
+  - value: eb90027ec89299ccc21d772725bc60795a719dd2e004e5876c292f4c492d9ca7
+    encoding: hex
+  - value: 8f51fca69627210658696bf06855786abe3df101b8182c3c3b990eaf0906ce6c
+    encoding: hex
+proof_data:
+  value: 94029ced19c270abaaa8748eda5f77ab5cf3ec3b3bb999f5f835224f5f2bac21
+  encoding: hex
+proof_index: 10
+num_leaves: 100
+expected_verification: true

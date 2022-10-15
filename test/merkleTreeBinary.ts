@@ -72,7 +72,7 @@ describe('binary Merkle tree', async () => {
 
 	it.only('Verification data test', async () => {
 		const data = yaml.load(
-			fs.readFileSync('./test/test_vectors/binary_proofs/test.yaml', 'utf8')
+			fs.readFileSync('./test/test_vectors/binary_proofs/100_leaves_index_10.yaml', 'utf8')
 		);
 		console.log(data);
 		const root: EncodedValue = new EncodedValue(data.root);
