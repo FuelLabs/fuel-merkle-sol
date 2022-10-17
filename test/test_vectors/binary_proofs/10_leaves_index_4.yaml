@@ -1,22 +1,22 @@
 ---
 name: 10_leaves_index_4
 root:
-  value: 25a9cb7ba5e687db98680407bfa1b3ccb8f8d7d34531bfc16476c58d7d469637
+  value: 8041c9c9bc9a301c932dd6df2e95fe50d13ae72c21fe2d0a4c5bd5a77be76714
   encoding: hex
 proof_set:
-  - value: b3c61d79214f7f0828239a6ec26a44df1c1b318bcb9f493bb4aa6e12f9626c6b
+  - value: 004a68d3e04accd94a41754983e66915e90e4aee1b63f0963c53d446e011bc2e
     encoding: hex
-  - value: 2aea1cac0867540ac8ae5dd31b1e72670d55d3c76e5d82c0c2811e15db4ea02d
+  - value: 1c3ef6186e062574e69b704eae33e99ba650b3aa001fb3a7442ff1a03b16f3c5
     encoding: hex
-  - value: af413708bf4e52b2689834c1a85409473fb0e0589888548bb0dc1f3b1f3f70ee
+  - value: 3e2181fd385a66ec8ca3cf045d253e31ac6ea618657256785840b581f742fe27
     encoding: hex
-  - value: f272e3786fd0517b856c995a5564ab3baf7653c68ef719314003c7d26497d13a
+  - value: b981997a0ae78eafce78066fa67581294065f52f58802a4c6f0680a5f97616a1
     encoding: hex
-  - value: dd0c2f0138feaff44043875e70843e1d116c602d6b5c8ad9f956f2a4604b963d
+  - value: 33267e72ea3e336a4fe35c2101b1e45d1515ed70183c641d3a432df8472c8516
     encoding: hex
 proof_data:
-  value: b27e8cb8ef45722a7aa6dea5ba6befa5ef6502d46af5d42100616be8e201417f
-  encoding: hex
+  value: qE93ytop4ZG1q9aKhgIEtLKCupvPu0Y1v7eiyFIvnSw=
+  encoding: base64
 proof_index: 4
 num_leaves: 10
 expected_verification: true

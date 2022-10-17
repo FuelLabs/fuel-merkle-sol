@@ -69,38 +69,43 @@ describe('binary Merkle tree', async () => {
 		}
 	});
 
-	it.only('Verification data test', async () => {
-		const data = yaml.load(
-			fs.readFileSync('./test/test_vectors/binary_proofs/100_leaves_index_10.yaml', 'utf8')
-		);
-		console.log(data);
-		const root: EncodedValue = new EncodedValue(data.root);
-		const dataToProve: EncodedValue = new EncodedValue(data.proof_data);
-		const proofSet: EncodedValue[] = data.proof_set.map(
-			(item: EncodedValueInput) => new EncodedValue(item)
-		);
-		const index: number = +data.proof_index;
-		const x = `0x${index.toString(16)}`;
-		const key = padBytes(x);
-		const count: number = +data.num_leaves;
+	it.only('Data-driven proofs produce expected verifications', async () => {
+		const dir = "./test/test_vectors/binary_proofs/";
 
-		proofSet.shift();
+		const executeTest = async (file: string) => {
+			const fileData = fs.readFileSync(`${dir}/${file}`, 'utf8')
+			const data = yaml.load(fileData);
 
-		console.log(root);
-		console.log(dataToProve);
-		console.log(proofSet);
-		console.log('key:', key);
+			const root: EncodedValue = new EncodedValue(data.root);
+			const dataToProve: EncodedValue = new EncodedValue(data.proof_data);
+			const proofSet: EncodedValue[] = data.proof_set.map(
+				(item: EncodedValueInput) => new EncodedValue(item)
+			);
 
-		await bmto.verify(
-			root.toString(),
-			dataToProve.toBuffer(),
-			proofSet.map((item) => item.toBuffer()),
-			key,
-			count
-		);
-		const verification: boolean = await bmto.verified();
-		const expectedVerification: boolean = data.expected_verification;
-		expect(verification).to.equal(expectedVerification);
+			// TODO: Refactor fuel-merkle proof index to be a 64-bit hex encoded value
+			const index: number = +data.proof_index;
+			const x = `0x${index.toString(16)}`;
+			const key = padBytes(x);
+			const count: number = +data.num_leaves;
+
+			// TODO: Refactor fuel-merkle proof set to be built without hash proof data
+			proofSet.shift();
+
+			await bmto.verify(
+				root.toString(),
+				dataToProve.toBuffer(),
+				proofSet.map((item) => item.toBuffer()),
+				key,
+				count
+			);
+			const verification: boolean = await bmto.verified();
+			const expectedVerification: boolean = data.expected_verification;
+			expect(verification).to.equal(expectedVerification);
+		}
+
+		fs.readdir(dir, (err: Error, files: string[]) => {
+			files.forEach(file => executeTest(file));
+		});
 	});
 
 	it('Append', async () => {

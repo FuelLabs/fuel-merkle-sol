@@ -1,0 +1,34 @@
+---
+name: 1024_leaves_index_512
+root:
+  value: bc3a3be33992cb39d4b9a40c2f9097e43ce405c1ec18751883e777dffeb14a40
+  encoding: hex
+proof_set:
+  - value: 3d4f4f4827f4f51659b14a87d7de15bb7ece34e6d87cc2e5c110c2caf180f103
+    encoding: hex
+  - value: 652f4a8e066b4049910f7051765eac1b34afc3cb78907d25a07609d44413791f
+    encoding: hex
+  - value: 6c713fbf6f70b82c38aac194563fddde557b4e022e0151ef9316ce6b1f9874ad
+    encoding: hex
+  - value: 8f04c00e5cbe376c7ec8791e24e1689926d0d3378b4d70631050f2acfb0bb3b9
+    encoding: hex
+  - value: ba91523bf93169408f1be457a0590a2c98f790901b1d8580826faf74fb4aad86
+    encoding: hex
+  - value: 4d390f24ee6f9442137001c91fb1a29cbc09fb50acc17c93ef418ee242eef34e
+    encoding: hex
+  - value: 15e96741ae9fa4b8eea04cac5e0e58d4d731fce57b04d61d97cd56ee6cf82556
+    encoding: hex
+  - value: c3f98e81528e5fdf3260151d31d59fbd05b9a428b5089ed927974ede00a2f1fe
+    encoding: hex
+  - value: 0bc72230411c18eb1a0430576392481adfc59bf3dbe7a783fc6f8481e0a14108
+    encoding: hex
+  - value: 4245b82fa0c402acde90e6554a50250cee086f0c566d69d484565ebd93837427
+    encoding: hex
+  - value: 1f88384b79596d79712f8af652d54aece457b100bf32fc42ae9233d6782a107a
+    encoding: hex
+proof_data:
+  value: 8pQNrtcl0iJzcMc/yh1V7b+la82t+XO9qIEJeXi+3pA=
+  encoding: base64
+proof_index: 512
+num_leaves: 1024
+expected_verification: true

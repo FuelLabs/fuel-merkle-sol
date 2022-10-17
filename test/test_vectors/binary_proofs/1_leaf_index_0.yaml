@@ -1,14 +1,14 @@
 ---
 name: 1_leaf_index_0
 root:
-  value: 1a3bf995a212f0aa181389409031cb1a3e07a144e8c58bc8d9340c086b038742
+  value: e9b14df9c8b794e8647d7a42315d2cdb584d8a2b77a25bbe7a50962fbae12861
   encoding: hex
 proof_set:
-  - value: 1a3bf995a212f0aa181389409031cb1a3e07a144e8c58bc8d9340c086b038742
+  - value: e9b14df9c8b794e8647d7a42315d2cdb584d8a2b77a25bbe7a50962fbae12861
     encoding: hex
 proof_data:
-  value: 09a1c84950c8f1368fc770fb2fa3c6e5cf6a3eb5f6c73f7627da5eb7a87d0fb8
-  encoding: hex
+  value: ykuEm8CtpsJHyXfkM2JzdB1Sflswb/yujchr0OuSXq8=
+  encoding: base64
 proof_index: 0
 num_leaves: 1
 expected_verification: true
