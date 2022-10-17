@@ -100,10 +100,6 @@ describe('binary Merkle tree', async () => {
 			);
 			const verification: boolean = await bmto.verified();
 			const expectedVerification: boolean = test.expected_verification;
-			if (verification !== expectedVerification) {
-				console.log(`FAIL: ${test.name}`);
-				console.log(`EXPECTED: ${test.expected_verification}; ACTUAL: ${verification}`)
-			}
 			expect(verification).to.equal(expectedVerification);
 		};
 
