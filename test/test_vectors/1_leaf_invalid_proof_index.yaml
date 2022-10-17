@@ -1,5 +1,5 @@
 ---
-name: 1_leaf_index_1
+name: 1_leaf_invalid_proof_index
 root:
   value: 15a30d811ab10b3a09d53bb26d5f5e4819cea1882fb3aab68e81182ab138ee87
   encoding: hex
