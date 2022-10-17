@@ -4,13 +4,14 @@ import { solidity } from 'ethereum-waffle';
 import { BigNumber as BN, Contract } from 'ethers';
 import { calcRoot, constructTree, getProof, hashLeaf } from '@fuel-ts/merkle';
 import BinaryMerkleBranch from '@fuel-ts/merkle/dist/types/branch';
+import yaml from 'js-yaml';
+import fs from 'fs';
 import { checkAppend, checkVerify } from './test_helpers/binaryMerkleTree';
 import { ZERO } from './utils/constants';
 import { padBytes, uintToBytes32 } from './utils/utils';
 import {EncodedValue, EncodedValueInput} from "./utils/encodedValue";
+import ProofTest from "./utils/proofTest";
 
-const yaml = require('js-yaml');
-const fs = require('fs');
 
 chai.use(solidity);
 const { expect } = chai;
@@ -69,26 +70,26 @@ describe('binary Merkle tree', async () => {
 		}
 	});
 
-	it.only('Data-driven proofs produce expected verifications', async () => {
-		const dir = "./test/test_vectors/binary_proofs/";
+	it('Data-driven proofs produce expected verifications', async () => {
+		const dir = "./test/test_vectors/binary_proofs";
 
 		const executeTest = async (file: string) => {
 			const fileData = fs.readFileSync(`${dir}/${file}`, 'utf8')
-			const data = yaml.load(fileData);
+			const test = yaml.load(fileData) as ProofTest;
 
-			const root: EncodedValue = new EncodedValue(data.root);
-			const dataToProve: EncodedValue = new EncodedValue(data.proof_data);
-			const proofSet: EncodedValue[] = data.proof_set.map(
+			const root: EncodedValue = new EncodedValue(test.root);
+			const dataToProve: EncodedValue = new EncodedValue(test.proof_data);
+			const proofSet: EncodedValue[] = test.proof_set.map(
 				(item: EncodedValueInput) => new EncodedValue(item)
 			);
 
 			// TODO: Refactor fuel-merkle proof index to be a 64-bit hex encoded value
-			const index: number = +data.proof_index;
+			const index: number = +test.proof_index;
 			const x = `0x${index.toString(16)}`;
 			const key = padBytes(x);
-			const count: number = +data.num_leaves;
+			const count: number = +test.num_leaves;
 
-			// TODO: Refactor fuel-merkle proof set to be built without hash proof data
+			// TODO: Refactor fuel-merkle proof set to be built without hashed leaf data
 			proofSet.shift();
 
 			await bmto.verify(
@@ -99,12 +100,12 @@ describe('binary Merkle tree', async () => {
 				count
 			);
 			const verification: boolean = await bmto.verified();
-			const expectedVerification: boolean = data.expected_verification;
+			const expectedVerification: boolean = test.expected_verification;
 			expect(verification).to.equal(expectedVerification);
 		}
 
-		fs.readdir(dir, (err: Error, files: string[]) => {
-			files.forEach(file => executeTest(file));
+		fs.readdir(dir, (err: Error | null, files: string[]) => {
+			files.forEach(file => executeTest(file))
 		});
 	});
 

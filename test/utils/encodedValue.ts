@@ -4,8 +4,10 @@ interface EncodedValueInput {
 }
 
 class EncodedValue {
+    /// The encoded value
     value: string;
 
+    /// The encoding type
     encoding: BufferEncoding;
 
     constructor(item: EncodedValueInput) {
