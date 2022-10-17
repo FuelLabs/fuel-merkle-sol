@@ -9,9 +9,8 @@ import fs from 'fs';
 import { checkAppend, checkVerify } from './test_helpers/binaryMerkleTree';
 import { ZERO } from './utils/constants';
 import { padBytes, uintToBytes32 } from './utils/utils';
-import {EncodedValue, EncodedValueInput} from "./utils/encodedValue";
-import ProofTest from "./utils/proofTest";
-
+import { EncodedValue, EncodedValueInput } from './utils/encodedValue';
+import ProofTest from './utils/proofTest';
 
 chai.use(solidity);
 const { expect } = chai;
@@ -71,10 +70,10 @@ describe('binary Merkle tree', async () => {
 	});
 
 	it('Data-driven proofs produce expected verifications', async () => {
-		const dir = "./test/test_vectors/binary_proofs";
+		const dir = './test/test_vectors/binary_proofs';
 
 		const executeTest = async (file: string) => {
-			const fileData = fs.readFileSync(`${dir}/${file}`, 'utf8')
+			const fileData = fs.readFileSync(`${dir}/${file}`, 'utf8');
 			const test = yaml.load(fileData) as ProofTest;
 
 			const root: EncodedValue = new EncodedValue(test.root);
@@ -102,10 +101,10 @@ describe('binary Merkle tree', async () => {
 			const verification: boolean = await bmto.verified();
 			const expectedVerification: boolean = test.expected_verification;
 			expect(verification).to.equal(expectedVerification);
-		}
+		};
 
 		fs.readdir(dir, (err: Error | null, files: string[]) => {
-			files.forEach(file => executeTest(file))
+			files.forEach((file) => executeTest(file));
 		});
 	});
 
