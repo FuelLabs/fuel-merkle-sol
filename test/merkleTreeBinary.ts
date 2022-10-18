@@ -91,14 +91,13 @@ describe('binary Merkle tree', async () => {
 			// TODO: Refactor fuel-merkle proof set to be built without hashed leaf data
 			proofSet.shift();
 
-			await bmto.verify(
+			const verification = await bmto.callStatic.verify(
 				root.toString(),
 				dataToProve.toBuffer(),
 				proofSet.map((item) => item.toBuffer()),
 				key,
 				count
 			);
-			const verification: boolean = await bmto.verified();
 			const expectedVerification: boolean = test.expected_verification;
 			expect(verification).to.equal(expectedVerification);
 		};
