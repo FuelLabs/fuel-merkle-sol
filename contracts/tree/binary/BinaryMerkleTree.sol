@@ -49,6 +49,25 @@ library BinaryMerkleTree {
         uint256 key,
         uint256 numLeaves
     ) public pure returns (bool) {
+        // A sibling at height 1 is created by getting the hash of the data to prove.
+        return verifyDigest(root, leafDigest(data), proof, key, numLeaves);
+    }
+
+    /// @notice Verify if element (key, digest) exists in Merkle tree, given digest, proof, and root.
+    /// @param root: The root of the tree in which verify the given leaf
+    /// @param digest: The digest of the data of the leaf to verify
+    /// @param key: The key of the leaf to verify.
+    /// @param proof: Binary Merkle Proof for the leaf.
+    /// @param numLeaves: The number of leaves in the tree
+    /// @return : Whether the proof is valid
+    /// @dev numLeaves is necessary to determine height of sub-tree containing the data to prove
+    function verifyDigest(
+        bytes32 root,
+        bytes32 digest,
+        bytes32[] memory proof,
+        uint256 key,
+        uint256 numLeaves
+    ) public pure returns (bool) {
         // Check proof is correct length for the key it is proving
         if (numLeaves <= 1) {
             if (proof.length != 0) {
@@ -63,11 +82,8 @@ library BinaryMerkleTree {
             return false;
         }
 
-        // A sibling at height 1 is created by getting the hash of the data to prove.
-        bytes32 digest = leafDigest(data);
-
         // Null proof is only valid if numLeaves = 1
-        // If so, just verify hash(data) is root
+        // If so, just verify digest is root
         if (proof.length == 0) {
             if (numLeaves == 1) {
                 return (root == digest);
