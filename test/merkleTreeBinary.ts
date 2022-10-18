@@ -77,10 +77,10 @@ describe('binary Merkle tree', async () => {
 			const test = yaml.load(fileData) as ProofTest;
 
 			const root: EncodedValue = new EncodedValue(test.root);
-			const dataToProve: EncodedValue = new EncodedValue(test.proof_data);
 			const proofSet: EncodedValue[] = test.proof_set.map(
 				(item: EncodedValueInput) => new EncodedValue(item)
 			);
+			const digest = proofSet.shift();
 
 			// TODO: Refactor fuel-merkle proof index to be a 64-bit hex encoded value
 			const index: number = +test.proof_index;
@@ -88,12 +88,9 @@ describe('binary Merkle tree', async () => {
 			const key = padBytes(x);
 			const count: number = +test.num_leaves;
 
-			// TODO: Refactor fuel-merkle proof set to be built without hashed leaf data
-			proofSet.shift();
-
-			const verification = await bmto.callStatic.verify(
+			const verification = await bmto.callStatic.verifyDigest(
 				root.toString(),
-				dataToProve.toBuffer(),
+				digest?.toBuffer(),
 				proofSet.map((item) => item.toBuffer()),
 				key,
 				count

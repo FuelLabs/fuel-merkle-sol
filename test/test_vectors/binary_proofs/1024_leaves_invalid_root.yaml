@@ -26,9 +26,6 @@ proof_set:
     encoding: hex
   - value: 77a9d6fd60a336851aa0b92560d0cbb9f3a978fe980bffaf5122e1ddce7653ee
     encoding: hex
-proof_data:
-  value: //Ex4LK+5nUcqQeYrkZfBrhVRI7o5pFxTUGMLY2lrYg=
-  encoding: base64
 proof_index: 512
 num_leaves: 1024
 expected_verification: false

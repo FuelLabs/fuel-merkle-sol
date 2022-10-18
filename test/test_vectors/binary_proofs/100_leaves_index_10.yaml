@@ -20,9 +20,6 @@ proof_set:
     encoding: hex
   - value: 985c543592b2ddfca71eec360849df7c19ab00a247791bd6b0cbd161939bc84f
     encoding: hex
-proof_data:
-  value: oQ19mwm0WwkNluB0SqMxaEOhKDilJNIERV/eu7oepuw=
-  encoding: base64
 proof_index: 10
 num_leaves: 100
 expected_verification: true

@@ -6,9 +6,6 @@ root:
 proof_set:
   - value: c714c335c095894606b61af9f6d40745e50bb00f909073b8484d05f69d3f9072
     encoding: hex
-proof_data:
-  value: fh5156PMBJbmLdWP5EjGJfofu5W7vaie+e7XqlwZnBQ=
-  encoding: base64
 proof_index: 0
 num_leaves: 1
 expected_verification: false

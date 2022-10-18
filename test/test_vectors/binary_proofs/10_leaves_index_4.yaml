@@ -14,9 +14,6 @@ proof_set:
     encoding: hex
   - value: 33267e72ea3e336a4fe35c2101b1e45d1515ed70183c641d3a432df8472c8516
     encoding: hex
-proof_data:
-  value: qE93ytop4ZG1q9aKhgIEtLKCupvPu0Y1v7eiyFIvnSw=
-  encoding: base64
 proof_index: 4
 num_leaves: 10
 expected_verification: true
