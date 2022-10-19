@@ -1,25 +1,24 @@
----
 name: 100_leaves_index_10
 root:
   value: a85fdc37c215ab80b9547e7bdf93fc10db7a93f37f290a066ec77878ee7d6120
   encoding: hex
 proof_set:
-  - value: 139d7688ff73173ab0b087789e56662c32b008a328f530c138da9e0c6e4c66bd
-    encoding: hex
-  - value: 6c4ae60adb6693c0b5b67d0bff43403b4c1a3535e6edaae2372f9b0834f6e616
-    encoding: hex
-  - value: 9a888ef943b7af4d467fa4fe7c82c5dd8da97b1ca1cc38c99e38f84b16b1b989
-    encoding: hex
-  - value: 3b932f31624ee7395b99a1eeb206cadcdda2a037f76e89904fabfcf36d2f5b54
-    encoding: hex
-  - value: 618d4fa41d3f53d92a9f7a9c0ad78c3bda574a63afae623c2e0c8de23f4115b4
-    encoding: hex
-  - value: 8081f4baa3b5acffff950648675cfe96e92d9f189e0c27f78c9181c4de140cc7
-    encoding: hex
-  - value: 7e043fa291c79ff944173c38c44a1ab55972094feeee5f22cf14ac626faf17c0
-    encoding: hex
-  - value: 985c543592b2ddfca71eec360849df7c19ab00a247791bd6b0cbd161939bc84f
-    encoding: hex
+- value: 139d7688ff73173ab0b087789e56662c32b008a328f530c138da9e0c6e4c66bd
+  encoding: hex
+- value: 6c4ae60adb6693c0b5b67d0bff43403b4c1a3535e6edaae2372f9b0834f6e616
+  encoding: hex
+- value: 9a888ef943b7af4d467fa4fe7c82c5dd8da97b1ca1cc38c99e38f84b16b1b989
+  encoding: hex
+- value: 3b932f31624ee7395b99a1eeb206cadcdda2a037f76e89904fabfcf36d2f5b54
+  encoding: hex
+- value: 618d4fa41d3f53d92a9f7a9c0ad78c3bda574a63afae623c2e0c8de23f4115b4
+  encoding: hex
+- value: 8081f4baa3b5acffff950648675cfe96e92d9f189e0c27f78c9181c4de140cc7
+  encoding: hex
+- value: 7e043fa291c79ff944173c38c44a1ab55972094feeee5f22cf14ac626faf17c0
+  encoding: hex
+- value: 985c543592b2ddfca71eec360849df7c19ab00a247791bd6b0cbd161939bc84f
+  encoding: hex
 proof_index: 10
 num_leaves: 100
 expected_verification: true

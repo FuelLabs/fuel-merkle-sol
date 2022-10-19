@@ -16,7 +16,7 @@ class EncodedValue {
 	}
 
 	toString(): string {
-		if (this.encoding === 'hex') {
+		if (this.encoding.toLowerCase() === 'hex') {
 			return `0x${this.value}`;
 		}
 

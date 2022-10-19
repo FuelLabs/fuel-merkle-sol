@@ -1,11 +1,10 @@
----
 name: 0_leaves
 root:
   value: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
   encoding: hex
 proof_set:
-  - value: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-    encoding: hex
+- value: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  encoding: hex
 proof_index: 0
 num_leaves: 0
 expected_verification: false

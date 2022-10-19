@@ -1,11 +1,10 @@
----
 name: 1_leaf_invalid_root
 root:
   value: f1234d75178d892a133a410355a5a990cf75d2f33eba25d575943d4df632f3a4
   encoding: hex
 proof_set:
-  - value: c714c335c095894606b61af9f6d40745e50bb00f909073b8484d05f69d3f9072
-    encoding: hex
+- value: c714c335c095894606b61af9f6d40745e50bb00f909073b8484d05f69d3f9072
+  encoding: hex
 proof_index: 0
 num_leaves: 1
 expected_verification: false
