@@ -3,28 +3,28 @@ root:
   value: f1234d75178d892a133a410355a5a990cf75d2f33eba25d575943d4df632f3a4
   encoding: hex
 proof_set:
-- value: ce2abf8555de9c520944891de5a6924ff44092ed848040f3fe6b6ece82e09a77
-  encoding: hex
-- value: 9b0f0918fdc2dabcf9cb8388ef836fc1fb580c01f451d22c6db121eec92fcd50
-  encoding: hex
-- value: 402bca57a6788f4536dad12c831a7f91a4b787ab8eed27af989b669a2fcb2a9b
-  encoding: hex
-- value: 20dfd6ff6ddc27050cdd5b1f6ac047e2a681c24649565ce8c40cea1e071e9b7d
-  encoding: hex
-- value: 0812c122d1e7d6030a3b5eaf725382db1fce78db1bd954ac8f9f178b7a7097dd
-  encoding: hex
-- value: e5047d2ec61f7c47da9df15c6036158ea1fabd492eba787d4e918c25d738e413
-  encoding: hex
-- value: 1d975a7bf1afb1583671dfbcb502c6c12831e5fdf0ef113ae7649396e3018e24
-  encoding: hex
-- value: dbf52a489b283f32caf19d751f1a36b44dcd64d15054c4b08e5dff8a26984465
-  encoding: hex
-- value: 558db08e02351db8a48d299e2538732c23e293bbddd04b472abab9da6a9570f9
-  encoding: hex
-- value: c46426acd820bb09f1895faf2f03d7ed4c6afdd8036d216cb28433f6109ccaf3
-  encoding: hex
-- value: 77a9d6fd60a336851aa0b92560d0cbb9f3a978fe980bffaf5122e1ddce7653ee
-  encoding: hex
+  - value: ce2abf8555de9c520944891de5a6924ff44092ed848040f3fe6b6ece82e09a77
+    encoding: hex
+  - value: 9b0f0918fdc2dabcf9cb8388ef836fc1fb580c01f451d22c6db121eec92fcd50
+    encoding: hex
+  - value: 402bca57a6788f4536dad12c831a7f91a4b787ab8eed27af989b669a2fcb2a9b
+    encoding: hex
+  - value: 20dfd6ff6ddc27050cdd5b1f6ac047e2a681c24649565ce8c40cea1e071e9b7d
+    encoding: hex
+  - value: 0812c122d1e7d6030a3b5eaf725382db1fce78db1bd954ac8f9f178b7a7097dd
+    encoding: hex
+  - value: e5047d2ec61f7c47da9df15c6036158ea1fabd492eba787d4e918c25d738e413
+    encoding: hex
+  - value: 1d975a7bf1afb1583671dfbcb502c6c12831e5fdf0ef113ae7649396e3018e24
+    encoding: hex
+  - value: dbf52a489b283f32caf19d751f1a36b44dcd64d15054c4b08e5dff8a26984465
+    encoding: hex
+  - value: 558db08e02351db8a48d299e2538732c23e293bbddd04b472abab9da6a9570f9
+    encoding: hex
+  - value: c46426acd820bb09f1895faf2f03d7ed4c6afdd8036d216cb28433f6109ccaf3
+    encoding: hex
+  - value: 77a9d6fd60a336851aa0b92560d0cbb9f3a978fe980bffaf5122e1ddce7653ee
+    encoding: hex
 proof_index: 512
 num_leaves: 1024
 expected_verification: false

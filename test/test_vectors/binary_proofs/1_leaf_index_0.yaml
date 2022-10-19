@@ -3,8 +3,8 @@ root:
   value: e9b14df9c8b794e8647d7a42315d2cdb584d8a2b77a25bbe7a50962fbae12861
   encoding: hex
 proof_set:
-- value: e9b14df9c8b794e8647d7a42315d2cdb584d8a2b77a25bbe7a50962fbae12861
-  encoding: hex
+  - value: e9b14df9c8b794e8647d7a42315d2cdb584d8a2b77a25bbe7a50962fbae12861
+    encoding: hex
 proof_index: 0
 num_leaves: 1
 expected_verification: true
