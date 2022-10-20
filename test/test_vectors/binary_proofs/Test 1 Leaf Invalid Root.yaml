@@ -1,4 +1,4 @@
-name: 1_leaf_invalid_root
+name: Test 1 Leaf Invalid Root
 root:
   value: f1234d75178d892a133a410355a5a990cf75d2f33eba25d575943d4df632f3a4
   encoding: hex
