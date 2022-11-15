@@ -1,29 +1,31 @@
 name: Test 1024 Leaves Index 512
+function_name: generate_test_1024_leaves_index_512
+description: Build a proof from a binary Merkle tree consisting of 1024 leaves and leaf index 512. This proof is valid and verification is expected to pass.
 root:
-  value: bc3a3be33992cb39d4b9a40c2f9097e43ce405c1ec18751883e777dffeb14a40
+  value: 1a57447fae64c1b78d02a05ac5255b2d1b350b8ce10c1180002288a9a49cf6fb
   encoding: hex
 proof_set:
-  - value: 3d4f4f4827f4f51659b14a87d7de15bb7ece34e6d87cc2e5c110c2caf180f103
+  - value: c00574a947cb3031d10fce0980c3711c70824c191e29c913f8da8b0d42da3c2e
     encoding: hex
-  - value: 652f4a8e066b4049910f7051765eac1b34afc3cb78907d25a07609d44413791f
+  - value: 5f7a260b5b5dc663ef6a338ba673c71ef611e4a5e52dc41e9bd82dd9a9507c30
     encoding: hex
-  - value: 6c713fbf6f70b82c38aac194563fddde557b4e022e0151ef9316ce6b1f9874ad
+  - value: 51dbb7b62080c64fbc976425d0032933d1126df6f223420b332297c8ca133cee
     encoding: hex
-  - value: 8f04c00e5cbe376c7ec8791e24e1689926d0d3378b4d70631050f2acfb0bb3b9
+  - value: 52c32361aabbcdb8a2d7fa6ede781716cfcb7e2708a7d1cae69b242154ba4d65
     encoding: hex
-  - value: ba91523bf93169408f1be457a0590a2c98f790901b1d8580826faf74fb4aad86
+  - value: ef41093d90dd8ece225c19f2073dfea48890f10087dcc6451c21d76a91feecfb
     encoding: hex
-  - value: 4d390f24ee6f9442137001c91fb1a29cbc09fb50acc17c93ef418ee242eef34e
+  - value: d306531e7c69cb02b7b4008281007360d00af0f640d80d44ac9730a263582967
     encoding: hex
-  - value: 15e96741ae9fa4b8eea04cac5e0e58d4d731fce57b04d61d97cd56ee6cf82556
+  - value: 200bf4ae7f3d12cfa374d72d8d73cf320b3f38bfb3dde85793a8d06f040da181
     encoding: hex
-  - value: c3f98e81528e5fdf3260151d31d59fbd05b9a428b5089ed927974ede00a2f1fe
+  - value: c9b8de8d214f5cf0ca3aeae52def4456268f3c1f06e905ed741bc18b10844f8f
     encoding: hex
-  - value: 0bc72230411c18eb1a0430576392481adfc59bf3dbe7a783fc6f8481e0a14108
+  - value: a09d8a561023e032a8b560f1e85d300a3122b0cdf83b47798802d25d4db1083c
     encoding: hex
-  - value: 4245b82fa0c402acde90e6554a50250cee086f0c566d69d484565ebd93837427
+  - value: 782b6c333967ceb052cc479f83da4cd6d9e3b75c963cd4f4c4e8f1d7dbcb3436
     encoding: hex
-  - value: 1f88384b79596d79712f8af652d54aece457b100bf32fc42ae9233d6782a107a
+  - value: 854f3ff8757852014af53efa1e8b88622281141ea5ad8f1bd21a133f467af2c4
     encoding: hex
 proof_index: 512
 num_leaves: 1024

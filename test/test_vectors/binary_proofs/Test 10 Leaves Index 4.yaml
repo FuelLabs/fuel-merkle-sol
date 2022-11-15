@@ -1,17 +1,19 @@
 name: Test 10 Leaves Index 4
+function_name: generate_test_10_leaves_index_4
+description: Build a proof from a binary Merkle tree consisting of 10 leaves and leaf index 4. This proof is valid and verification is expected to pass.
 root:
-  value: 8041c9c9bc9a301c932dd6df2e95fe50d13ae72c21fe2d0a4c5bd5a77be76714
+  value: dfdf69ca3d8bbe42effc15304a76d95fc7e2dbf54cbc185a0f0157afb47c27e8
   encoding: hex
 proof_set:
-  - value: 004a68d3e04accd94a41754983e66915e90e4aee1b63f0963c53d446e011bc2e
+  - value: 6fedf050a8f2b04e66b4b4bbe1a1bb083d1e1748c75d74cf2e31428542309ba3
     encoding: hex
-  - value: 1c3ef6186e062574e69b704eae33e99ba650b3aa001fb3a7442ff1a03b16f3c5
+  - value: 390af00738648704dbee5791e5a0dd83a0cf8e59901a519a2af4630ed9c2147b
     encoding: hex
-  - value: 3e2181fd385a66ec8ca3cf045d253e31ac6ea618657256785840b581f742fe27
+  - value: 085c73fb213d3c8b32d104ca2236bc342eac5c204730cd2115f64e8cb754e66e
     encoding: hex
-  - value: b981997a0ae78eafce78066fa67581294065f52f58802a4c6f0680a5f97616a1
+  - value: 01d58263228eac906f24a2b5f7aa53a59cd70b5895a262e8eb8151e3d571f694
     encoding: hex
-  - value: 33267e72ea3e336a4fe35c2101b1e45d1515ed70183c641d3a432df8472c8516
+  - value: 3462cc7c1d1bb60c889a6a43a71a4c23c7f4a9ab5c917a63170c182bc57b74e1
     encoding: hex
 proof_index: 4
 num_leaves: 10

@@ -1,29 +1,31 @@
 name: Test 1024 Leaves Invalid Root
+function_name: generate_test_1024_leaves_invalid_root
+description: Build a proof from a binary Merkle tree consisting of 1024 leaves and manually set the root. The root is manually set to the SHA256 hash of the string "invalid". This proof is invalid because root is not generated from canonical Merkle tree construction. Verification is expected to fail.
 root:
   value: f1234d75178d892a133a410355a5a990cf75d2f33eba25d575943d4df632f3a4
   encoding: hex
 proof_set:
-  - value: ce2abf8555de9c520944891de5a6924ff44092ed848040f3fe6b6ece82e09a77
+  - value: 0fd57bb7146938576395aa785eef8970dc33f294fa2d9a77fc1598e9084be008
     encoding: hex
-  - value: 9b0f0918fdc2dabcf9cb8388ef836fc1fb580c01f451d22c6db121eec92fcd50
+  - value: bc6abd3c380c4d69085c2f879e784f096fcd0a9e921b359fecf87ef76ca4bc67
     encoding: hex
-  - value: 402bca57a6788f4536dad12c831a7f91a4b787ab8eed27af989b669a2fcb2a9b
+  - value: c82561818abd7843b694824f21024c134158ce89445e7dc4a4aebebdb5a7dd5e
     encoding: hex
-  - value: 20dfd6ff6ddc27050cdd5b1f6ac047e2a681c24649565ce8c40cea1e071e9b7d
+  - value: f94219552c116bad634d8f9c98157ee414741ec053ea7f1ff3412df4a7b2899f
     encoding: hex
-  - value: 0812c122d1e7d6030a3b5eaf725382db1fce78db1bd954ac8f9f178b7a7097dd
+  - value: 617e973c2ac3dd9adfeb944ca1ee4d54053e2520c7d7d435872dd60f6c45c1bb
     encoding: hex
-  - value: e5047d2ec61f7c47da9df15c6036158ea1fabd492eba787d4e918c25d738e413
+  - value: 3fe1e227f51971bff35c83338f48282c81f94edb7577cce7bb56661e14aab740
     encoding: hex
-  - value: 1d975a7bf1afb1583671dfbcb502c6c12831e5fdf0ef113ae7649396e3018e24
+  - value: cbabcf9e2f7ef7a85eb98e49380236c767ec32cfac1c878a03b22492f84916a6
     encoding: hex
-  - value: dbf52a489b283f32caf19d751f1a36b44dcd64d15054c4b08e5dff8a26984465
+  - value: 2689ef456cd69c7af07084ab16922331127544f038627bfa04f8d95effd1150c
     encoding: hex
-  - value: 558db08e02351db8a48d299e2538732c23e293bbddd04b472abab9da6a9570f9
+  - value: 8007f304566161b05a29f4380dee1b5f4178b1e0a5dfadcf6613f6e15a0ec761
     encoding: hex
-  - value: c46426acd820bb09f1895faf2f03d7ed4c6afdd8036d216cb28433f6109ccaf3
+  - value: 6d8b4dd3156d16df1883acf6d6eb22f27635b44459b09a5a77a7bda6fb919d13
     encoding: hex
-  - value: 77a9d6fd60a336851aa0b92560d0cbb9f3a978fe980bffaf5122e1ddce7653ee
+  - value: c2a27c22ec6bfd35c83dcdf5379539c0865c23341ef8abba1248aa44fe36d23f
     encoding: hex
 proof_index: 512
 num_leaves: 1024
