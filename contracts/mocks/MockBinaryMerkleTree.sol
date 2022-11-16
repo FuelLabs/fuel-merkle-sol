@@ -19,6 +19,16 @@ contract MockBinaryMerkleTree {
         return result;
     }
 
+    function verifyDigest(
+        bytes32 _root,
+        bytes32 digest,
+        bytes32[] memory proof,
+        uint256 key,
+        uint256 numLeaves
+    ) public pure returns (bool) {
+        return BinaryMerkleTree.verifyDigest(_root, digest, proof, key, numLeaves);
+    }
+
     function computeRoot(bytes[] memory data) public returns (bytes32) {
         bytes32 result = BinaryMerkleTree.computeRoot(data);
         root = result;

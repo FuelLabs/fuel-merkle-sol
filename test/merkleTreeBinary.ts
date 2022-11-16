@@ -4,9 +4,13 @@ import { solidity } from 'ethereum-waffle';
 import { BigNumber as BN, Contract } from 'ethers';
 import { calcRoot, constructTree, getProof, hashLeaf } from '@fuel-ts/merkle';
 import BinaryMerkleBranch from '@fuel-ts/merkle/dist/types/branch';
-import { checkVerify, checkAppend } from './test_helpers/binaryMerkleTree';
+import yaml from 'js-yaml';
+import fs from 'fs';
+import { checkAppend, checkVerify } from './test_helpers/binaryMerkleTree';
 import { ZERO } from './utils/constants';
-import { uintToBytes32 } from './utils/utils';
+import { padBytes, uintToBytes32 } from './utils/utils';
+import { EncodedValue, EncodedValueInput } from './utils/encodedValue';
+import ProofTest from './utils/proofTest';
 
 chai.use(solidity);
 const { expect } = chai;
@@ -63,6 +67,41 @@ describe('binary Merkle tree', async () => {
 				await checkVerify(bmto, testCases[i].numLeaves, testCases[i].proveLeaf, true)
 			).to.equal(false);
 		}
+	});
+
+	it('Data-driven proofs produce expected verifications', async () => {
+		const dir = './test/test_vectors/binary_proofs';
+
+		const executeTest = async (file: string) => {
+			const fileData = fs.readFileSync(`${dir}/${file}`, 'utf8');
+			const test = yaml.load(fileData) as ProofTest;
+
+			const root: EncodedValue = new EncodedValue(test.root);
+			const proofSet: EncodedValue[] = test.proof_set.map(
+				(item: EncodedValueInput) => new EncodedValue(item)
+			);
+			const digest = proofSet.shift();
+
+			// TODO: Refactor fuel-merkle proof index to be a 64-bit hex encoded value
+			const index: number = +test.proof_index;
+			const x = `0x${index.toString(16)}`;
+			const key = padBytes(x);
+			const count: number = +test.num_leaves;
+
+			const verification = await bmto.callStatic.verifyDigest(
+				root.toString(),
+				digest?.toBuffer(),
+				proofSet.map((item) => item.toBuffer()),
+				key,
+				count
+			);
+			const expectedVerification: boolean = test.expected_verification;
+			expect(verification).to.equal(expectedVerification);
+		};
+
+		fs.readdir(dir, (err: Error | null, files: string[]) => {
+			files.forEach((file) => executeTest(file));
+		});
 	});
 
 	it('Append', async () => {
