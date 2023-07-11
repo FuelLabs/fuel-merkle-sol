@@ -8,7 +8,7 @@ import yaml from 'js-yaml';
 import fs from 'fs';
 import { checkAppend, checkVerify } from './test_helpers/binaryMerkleTree';
 import { ZERO } from './utils/constants';
-import { padBytes, uintToBytes32 } from './utils/utils';
+import { uintToBytes32 } from './utils/utils';
 import { EncodedValue, EncodedValueInput } from './utils/encodedValue';
 import ProofTest from './utils/proofTest';
 
@@ -77,20 +77,16 @@ describe('binary Merkle tree', async () => {
 			const test = yaml.load(fileData) as ProofTest;
 
 			const root: EncodedValue = new EncodedValue(test.root);
+			const data: EncodedValue = new EncodedValue(test.data);
 			const proofSet: EncodedValue[] = test.proof_set.map(
 				(item: EncodedValueInput) => new EncodedValue(item)
 			);
-			const digest = proofSet.shift();
-
-			// TODO: Refactor fuel-merkle proof index to be a 64-bit hex encoded value
-			const index: number = +test.proof_index;
-			const x = `0x${index.toString(16)}`;
-			const key = padBytes(x);
+			const key: number = +test.proof_index;
 			const count: number = +test.num_leaves;
 
-			const verification = await bmto.callStatic.verifyDigest(
+			const verification = await bmto.callStatic.verify(
 				root.toString(),
-				digest?.toBuffer(),
+				data.toBuffer(),
 				proofSet.map((item) => item.toBuffer()),
 				key,
 				count
