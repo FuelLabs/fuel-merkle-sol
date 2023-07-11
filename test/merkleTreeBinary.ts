@@ -8,7 +8,7 @@ import yaml from 'js-yaml';
 import fs from 'fs';
 import { checkAppend, checkVerify } from './test_helpers/binaryMerkleTree';
 import { ZERO } from './utils/constants';
-import { padBytes, uintToBytes32 } from './utils/utils';
+import { uintToBytes32 } from './utils/utils';
 import { EncodedValue, EncodedValueInput } from './utils/encodedValue';
 import ProofTest from './utils/proofTest';
 
