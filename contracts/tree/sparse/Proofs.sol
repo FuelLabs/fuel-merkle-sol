@@ -89,7 +89,7 @@ function compactProof(SparseMerkleProof memory proof)
         if (node == Constants.ZERO) {
             bitMask[i] = 0;
         } else {
-            compactedSideNodes[sideNodesCount] = node;
+            compactedSideNodes[sideNodesCount++] = node;
             bitMask[i] = 1;
         }
     }
